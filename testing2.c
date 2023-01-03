@@ -17,24 +17,45 @@ int main() {
     size_t bytesread;
 
     int sizeBuffer = 0;
-    char *typeBuffer = (char*) malloc(4); 
+    unsigned char *typeBuffer = (unsigned char*) malloc(4); 
     int cont = 1;
     while (cont == 1) { 
         char *temp = (char*) malloc(4);
-        int x;
-        fread(&temp[3], 1, 1, video);
-        fread(&temp[2], 1, 1, video);
-        fread(&temp[1], 1, 1, video);
-        fread(&temp[0], 1, 1, video);
-        for (int i = 32; i >= 0; i--) { 
-            printf("%d", (*temp >> i) & 1);
+        unsigned int x;
+        fread(temp, 1, 4, video);
+
+        for (int j = 0; j < 4; j++) {
+            for (int i = 7; i >= 0; i--) {
+                printf("%d", (temp[j] >> i) & 1);
+            }
+            printf(" ");
         }
+        
         printf("\n");
         
-        for (int i = 32; i >= 0; i--) { 
-            x = x | (((*temp >> i) & 1) << i);
+        for (int j = 0; j < 4; j++) {
+            for (int i = 7; i >= 0; i--) {
+                x = x | (((temp[j] >> i) & 1) << (((4 - j)*7) + (i - 7)));
+            }
         }
-        printf("%d\n", x);
+
+        /* int store;
+        fread(&store, 4, 1, video);
+        //fread_s(&store, sizeof(int), 4, 1, video);
+        printf("%d\n", store);
+        for (int i = 0; i < 32; i++) { 
+            printf("%d", (store >> i) & 1);
+        }
+        printf("\n");
+
+        int reverse = 0; 
+        for (int i = 31; i >= 0; i--) { 
+            printf("%d", (store >> i) & 1);
+        }
+        //reverse = reverse | (((store >> i) & 1) << (31 - i));
+        printf("\n%d\n", reverse); */
+
+        //printf("%d\n", x);
 
         fread(typeBuffer, 4, 1, video);
         for (int i = 0; i < 4; i++) { 
