@@ -55,7 +55,7 @@ int main() {
         //reverse = reverse | (((store >> i) & 1) << (31 - i));
         printf("\n%d\n", reverse); */
 
-        //printf("%d\n", x);
+        printf("%d\n", x);
 
         fread(typeBuffer, 4, 1, video);
         for (int i = 0; i < 4; i++) { 
