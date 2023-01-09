@@ -22,7 +22,9 @@ typedef struct Node {
 // function signatures
 void printBits(size_t const size, void const * const ptr);
 void printCharArrayBits(char *bitPattern);
+void printNBytes(char *string, int bytesToPrint, char prefixString[], char postfixString[]);
 Node *readMainBoxes(char fileName[]);
+void ftypReadBox(box *ftypBox);
 
 
 int main() { 
@@ -30,12 +32,95 @@ int main() {
 
     printf("traversing:\n");
     for (Node *traverseNode = headNode; traverseNode != NULL; traverseNode = traverseNode->nextBoxNode) {
-        printf("box type: %5s\t", traverseNode->currentBox->boxType);
+        printNBytes(traverseNode->currentBox->boxType, 4, "box type: ", "\t");
         printf("box size: %10u\n", *(traverseNode->currentBox->boxSize));
     }
 
+    ftypReadBox(headNode->currentBox);
+
     printf("end of script\n");
 }
+
+
+
+void ftypReadBox(box *ftypBox) { 
+    unsigned int boxSize = *(ftypBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char boxName[] = {ftypBox->boxType[0], ftypBox->boxType[1], ftypBox->boxType[2], ftypBox->boxType[3], '\0'};
+    char *boxData = ftypBox->boxData;
+
+    /*
+        reading the ftyp fields
+        majorBrand: 4 bytes the preferred brand or best use
+        minorVersion: 4 bytes indicates the file format specification version
+        compatibleBrands[]: an array of 4 byte compatible file formats
+    */
+    unsigned int bytesRead = 0;
+    char *majorBrand = (char*) malloc(4);
+    for (int i = 0; i < 4; i++) {
+        majorBrand[i] = boxData[bytesRead];
+        bytesRead += 1;
+    }
+    printNBytes(majorBrand, 4, "", "\n");
+
+    char *minorVersion = (char*) malloc(4);
+    for (int i = 0; i < 4; i++) {
+        minorVersion[i] = boxData[bytesRead];
+        bytesRead += 1;
+    }
+    printNBytes(minorVersion, 4, "", "\n");
+
+    unsigned int compatibleBrandsSize = boxDataSize - (bytesRead + 1);
+    char *compatibleBrands = (char*) malloc(compatibleBrandsSize);
+    compatibleBrands = &boxData[bytesRead];
+    
+    while (bytesRead < boxDataSize) {
+        break;
+    }
+
+}
+
+
+/* void readChildBox(box *Box) { 
+    unsigned int boxSize = *(Box->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char boxName[] = {Box->boxType[0], Box->boxType[1], Box->boxType[2], Box->boxType[3], '\0'};
+    char *boxData = Box->boxData;
+
+    unsigned int bytesRead = 0;
+    while (bytesRead <= boxDataSize) { 
+        char *childBoxHeaderSize = (char*) malloc(BOX_HEADER_HALF_SIZE);
+        for (int i = 0; i < BOX_HEADER_HALF_SIZE; i++) {
+             childBoxHeaderSize[i] = boxData[bytesRead];
+             bytesRead += 1;
+        }
+
+        char *childBoxHeaderType = (char*) malloc(BOX_HEADER_HALF_SIZE);
+        for (int i = 0; i < BOX_HEADER_HALF_SIZE; i++) {
+             childBoxHeaderType[i] = boxData[bytesRead];
+             bytesRead += 1;
+        }
+
+        unsigned int *fullBoxSize = (unsigned int*) malloc(sizeof(unsigned int));
+        *fullBoxSize = 0;
+        for (int headerByte = 0; headerByte < 4; headerByte++) {
+            for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+                int currentBit = (childBoxHeaderSize[headerByte] >> bitInHeaderByte) & 1;
+                int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+
+                if (currentBit == 1) {
+                    *fullBoxSize = *fullBoxSize | (currentBit << bitOffset);
+                }
+            }
+        }
+        free(childBoxHeaderSize);
+
+        printf("%u\n", *fullBoxSize);
+        printNBytes(childBoxHeaderType, 4,"", "");
+    } 
+
+} */
+
 
 
 /*
@@ -143,6 +228,22 @@ Node *readMainBoxes(char fileName[]) {
 }
 
 
+/*
+    prints n bytes from a char array
+    mainly used to print the 4 bytes of a box type since '\0' is not stored
+
+    *string: a pointer to first element in a character array
+    bytesToPrint: the number of bytes to print from a char array
+    prefixString: a char array to print before
+    postfixString: a char array to print after
+*/
+void printNBytes(char *string, int bytesToPrint, char prefixString[], char postfixString[]) { 
+    printf(prefixString);
+    for (int i = 0; i < bytesToPrint; i++) { 
+        printf("%c", string[i]);
+    }
+    printf(postfixString);
+}
 
 
 /*
