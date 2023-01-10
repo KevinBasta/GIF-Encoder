@@ -6,25 +6,33 @@
 #define BOX_HEADER_HALF_SIZE 4
 
 
-// structures for storing information
+// function signatures
+
+void printBits(size_t const size, void const * const ptr);
+void printCharArrayBits(char *bitPattern);
+void printNBytes(char *string, int bytesToPrint, char prefixString[], char postfixString[]);
+void printHexNBytes(char *string, int bytesToPrint);
+
+int boxTypeEqual(char *boxType, char stringType[]);
+
+Node *readMainBoxes(char fileName[]);
+void ftypReadBox(box *ftypBox);
+void moovReadBox(box *moovBox);
+
+
+// general box struct
 typedef struct box { 
     unsigned int *boxSize;
     char *boxType;
     char *boxData;
 } box;
 
+// box node struct
 typedef struct Node { 
     struct box *currentBox;
     struct Node *nextBoxNode;
 } Node;
 
-
-// function signatures
-void printBits(size_t const size, void const * const ptr);
-void printCharArrayBits(char *bitPattern);
-void printNBytes(char *string, int bytesToPrint, char prefixString[], char postfixString[]);
-Node *readMainBoxes(char fileName[]);
-void ftypReadBox(box *ftypBox);
 
 
 int main() { 
@@ -34,19 +42,75 @@ int main() {
     for (Node *traverseNode = headNode; traverseNode != NULL; traverseNode = traverseNode->nextBoxNode) {
         printNBytes(traverseNode->currentBox->boxType, 4, "box type: ", "\t");
         printf("box size: %10u\n", *(traverseNode->currentBox->boxSize));
+        if (boxTypeEqual(traverseNode->currentBox->boxType, "moov") == 1) {
+            moovReadBox(traverseNode->currentBox);
+        }
     }
 
-    ftypReadBox(headNode->currentBox);
-
+    //printf("%d\n", boxTypeEqual(headNode->currentBox->boxType, "ftyp"));
+    //ftypReadBox(headNode->currentBox);
+    
     printf("end of script\n");
 }
 
 
+/**
+ *  reads a moov box's first layer boxes
+ *  @param *moovBox:    a pointer to a moov box struct
+ */
+void moovReadBox(box *moovBox) {
+    unsigned int boxSize = *(moovBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = moovBox->boxData;
 
+    unsigned int bytesRead = 0;
+    while (bytesRead < boxDataSize) { 
+        char *childBoxHeaderSize = (char*) malloc(BOX_HEADER_HALF_SIZE);
+        for (int i = 0; i < BOX_HEADER_HALF_SIZE; i++) {
+            childBoxHeaderSize[i] = boxData[bytesRead];
+            bytesRead += 1;
+        }
+
+        char *childBoxHeaderType = (char*) malloc(BOX_HEADER_HALF_SIZE);
+        for (int i = 0; i < BOX_HEADER_HALF_SIZE; i++) {
+            childBoxHeaderType[i] = boxData[bytesRead];
+            bytesRead += 1;
+        }
+
+        unsigned int *fullChildBoxSize = (unsigned int*) malloc(sizeof(unsigned int));
+        *fullChildBoxSize = 0;
+        for (int headerByte = 0; headerByte < 4; headerByte++) {
+            for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+                int currentBit = (childBoxHeaderSize[headerByte] >> bitInHeaderByte) & 1;
+                int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+
+                if (currentBit == 1) {
+                    *fullChildBoxSize = *fullChildBoxSize | (currentBit << bitOffset);
+                }
+            }
+        }
+        free(childBoxHeaderSize);
+
+        printf("%u\t", *fullChildBoxSize);
+        printNBytes(childBoxHeaderType, 4,"", "\n");
+
+        int childBoxDataSize = *fullChildBoxSize - 8;
+        char *childBoxBody = (char*) malloc(childBoxDataSize);
+        for (int i = 0; i < childBoxDataSize; i++) {
+            childBoxBody[i] = boxData[bytesRead];
+            bytesRead += 1;
+        }
+    }
+}
+
+
+/**
+ *  reads a ftyp box's major brand, minor version, and compatible brands
+ *  @param *ftypBox:    a pointer to a ftyp box struct
+ */
 void ftypReadBox(box *ftypBox) { 
     unsigned int boxSize = *(ftypBox->boxSize);
     unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
-    char boxName[] = {ftypBox->boxType[0], ftypBox->boxType[1], ftypBox->boxType[2], ftypBox->boxType[3], '\0'};
     char *boxData = ftypBox->boxData;
 
     /*
@@ -68,16 +132,21 @@ void ftypReadBox(box *ftypBox) {
         minorVersion[i] = boxData[bytesRead];
         bytesRead += 1;
     }
-    printNBytes(minorVersion, 4, "", "\n");
+    printHexNBytes(minorVersion, 4);
 
     unsigned int compatibleBrandsSize = boxDataSize - (bytesRead + 1);
     char *compatibleBrands = (char*) malloc(compatibleBrandsSize);
-    compatibleBrands = &boxData[bytesRead];
     
+    int compatibleBrandsByte = 0;
     while (bytesRead < boxDataSize) {
-        break;
+        compatibleBrands[compatibleBrandsByte] = boxData[bytesRead];
+        bytesRead += 1;
+        compatibleBrandsByte += 1;
     }
 
+    for (int i = 0; i < compatibleBrandsSize; i+=4) {
+        printNBytes(&compatibleBrands[i], 4, "", "\n");
+    }
 }
 
 
@@ -122,13 +191,11 @@ void ftypReadBox(box *ftypBox) {
 } */
 
 
-
-/*
-    reads the top level boxes in an MPEG-4 binary file format
-
-    fileName: a character array (includes '\0'), a valid path to 
-              an mp4 file that exists
-*/
+/**
+ *  reads the top level boxes in an MPEG-4 binary file format
+ *  @param fileName:    a character array (includes '\0'), a valid 
+ *                      path to an mp4 file that exists
+ */
 Node *readMainBoxes(char fileName[]) { 
     Node *headNode = (Node*) malloc(sizeof(Node));
     Node *currentNode = headNode;
@@ -228,15 +295,14 @@ Node *readMainBoxes(char fileName[]) {
 }
 
 
-/*
-    prints n bytes from a char array
-    mainly used to print the 4 bytes of a box type since '\0' is not stored
-
-    *string: a pointer to first element in a character array
-    bytesToPrint: the number of bytes to print from a char array
-    prefixString: a char array to print before
-    postfixString: a char array to print after
-*/
+/**
+ *  prints n bytes from a char array.
+ *  mainly used to print the 4 bytes of a box type since '\0' is not stored
+ *  @param *string:         a pointer to first element in a character array
+ *  @param bytesToPrint:    the number of bytes to print from a char array
+ *  @param prefixString:    a char array to print before
+ *  @param postfixString:   a char array to print after
+ */
 void printNBytes(char *string, int bytesToPrint, char prefixString[], char postfixString[]) { 
     printf(prefixString);
     for (int i = 0; i < bytesToPrint; i++) { 
@@ -246,11 +312,45 @@ void printNBytes(char *string, int bytesToPrint, char prefixString[], char postf
 }
 
 
-/*
-    prints binary representation of a 4 byte char array
+/**
+ *  prints hex representation of an n byte char array
+ *  @param *string:         a pointer to first element in a character array
+ *  @param bytesToPrint:    the number of bytes to print from a char array
+ */
+void printHexNBytes(char *string, int bytesToPrint) { 
+    // 15 == (0000 1111), masks the low 4 bits in a byte
+    for (int i = 0; i < bytesToPrint; i++) {
+        printf("%X", (string[i] >> 4) & 15);
+        printf("%X ", string[i] & 15);
+    }
+    printf("\n");
+}
 
-    bitPattern: a 4 byte char array
-*/
+
+/**
+ *  compares the 4 byte box type to a string
+ *  @param *boxType:    4 byte char array pointer
+ *  @param stringType:  5 byte char array (includes '\0')
+ */
+int boxTypeEqual(char *boxType, char stringType[]) { 
+    //char boxTypeStringArray[] = {boxType[0], boxType[1], boxType[2], boxType[3], '\0'};
+    
+    int isEqual = 1;
+    for (int i = 0; i < 4; i++) {
+        if (boxType[i] != stringType[i]) {
+            isEqual = 0;
+            break;
+        }
+    }
+
+    return isEqual;
+}
+
+
+/**
+ *  prints binary bits of a 4 byte char array
+ *  @param bitPattern:  a 4 byte char array
+ */
 void printCharArrayBits(char *bitPattern) { 
     for (int j = 0; j < 4; j++) {
         for (int i = 7; i >= 0; i--) {
@@ -262,7 +362,11 @@ void printCharArrayBits(char *bitPattern) {
 }
 
 
-// Assumes little endian
+/**
+ *  prints the binary bits for any type passed
+ *  @param size:    the number of bytes to print
+ *  @param ptr:     a pointer to an element of any type
+ */
 void printBits(size_t const size, void const * const ptr) {
     unsigned char *b = (unsigned char*) ptr;
     unsigned char byte;
