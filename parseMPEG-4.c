@@ -5,20 +5,8 @@
 #define BOX_HEADER_SIZE 8
 #define BOX_HEADER_HALF_SIZE 4
 
-
-// function signatures
-
-void printBits(size_t const size, void const * const ptr);
-void printCharArrayBits(char *bitPattern);
-void printNBytes(char *string, int bytesToPrint, char prefixString[], char postfixString[]);
-void printHexNBytes(char *string, int bytesToPrint);
-
-int boxTypeEqual(char *boxType, char stringType[]);
-
-Node *readMainBoxes(char fileName[]);
-void ftypReadBox(box *ftypBox);
-void moovReadBox(box *moovBox);
-
+#define TRUE 1
+#define FALSE 0
 
 // general box struct
 typedef struct box { 
@@ -34,23 +22,115 @@ typedef struct Node {
 } Node;
 
 
+// printing/debugging  utility  reading/parsing
+void printBits(size_t const size, void const * const ptr);
+void printCharArrayBits(char *bitPattern);
+void printNBytes(char *string, int bytesToPrint, char prefixString[], char postfixString[]);
+void printHexNBytes(char *string, int bytesToPrint);
+
+int boxTypeEqual(char *boxType, char stringType[]);
+unsigned int *charToInt(char *headerSize);
+box *traverse(Node *headNode, int returnBox, char boxReturnType[]);
+char *copyNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset);
+
+Node *readMainBoxes(char fileName[]);
+Node *moovParseBox(box *moovBox);
+void ftypParseBox(box *ftypBox);
+void mvhdParseBox(box *mvhdBox);
+
 
 int main() { 
     Node *headNode = readMainBoxes("op.mp4");
+    
+    box *moovBox;
+    box *mvhdBox;
+    Node *moovHeadNode;
 
-    printf("traversing:\n");
+    moovBox = traverse(headNode, TRUE, "moov");
+    moovHeadNode = moovParseBox(moovBox);
+    mvhdBox = traverse(moovHeadNode, TRUE, "mvhd");
+    mvhdParseBox(mvhdBox);
+
+    //printf("%d\n", boxTypeEqual(headNode->currentBox->boxType, "ftyp"));
+    //ftypParseBox(headNode->currentBox);
+    
+    printf("end of script\n");
+}
+
+/**
+ *  reads a mvhd box
+ *  @param *mvhdBox:    a pointer to an mvhd box struct
+*/
+void mvhdParseBox(box *mvhdBox) { 
+    unsigned int boxSize = *(mvhdBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = mvhdBox->boxData;
+
+    unsigned int bytesRead;
+    bytesRead = 0;
+
+    char *version = copyNBytes(1, boxData, &bytesRead);
+    char *flags = copyNBytes(3, boxData, &bytesRead);
+    char *creationTime = copyNBytes(4, boxData, &bytesRead);
+    char *modificationTime = copyNBytes(4, boxData, &bytesRead);
+    char *timeScale = copyNBytes(4, boxData, &bytesRead);
+    char *duration = copyNBytes(4, boxData, &bytesRead);
+    char *preferredRate = copyNBytes(4, boxData, &bytesRead);
+    char *preferredVolume = copyNBytes(2, boxData, &bytesRead);
+    char *reserved = copyNBytes(10, boxData, &bytesRead);
+    char *matrixStructure = copyNBytes(36, boxData, &bytesRead);
+    char *previewTime = copyNBytes(4, boxData, &bytesRead);
+    char *previewDuration = copyNBytes(4, boxData, &bytesRead);
+    char *posterTime = copyNBytes(4, boxData, &bytesRead);
+    char *selectionTime = copyNBytes(4, boxData, &bytesRead);
+    char *selectionDuration = copyNBytes(4, boxData, &bytesRead);
+    char *currentTime = copyNBytes(4, boxData, &bytesRead);
+    char *nextTrackId = copyNBytes(4, boxData, &bytesRead);
+
+    printf("%d %d\n", bytesRead, boxDataSize);
+    if (bytesRead == boxDataSize) {
+        printf("read all\n");
+    } else {
+        printf("no\n");
+    } 
+}
+
+
+/**
+ *  
+ */
+char *copyNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset) {
+    char *infoCopy = (char*) malloc(numberOfBytes);
+    for (int i = 0; i < numberOfBytes; i++) {
+        infoCopy[i] = originalData[*byteOffset];
+        *byteOffset += 1;
+    }
+
+    return infoCopy;
+}
+
+
+
+/**
+ *  traverses a linked list and returns a box if exsists
+ *  @param *headNode:       the first element in the linked list
+ *  @param returnBox:       TRUE or FALSE, allows for skiping the box type checking
+ *  @param boxReturnType:   a character array that's compared against each box type
+ */
+box *traverse(Node *headNode, int returnBox, char boxReturnType[]) { 
+    box *boxToReturn;
+
     for (Node *traverseNode = headNode; traverseNode != NULL; traverseNode = traverseNode->nextBoxNode) {
         printNBytes(traverseNode->currentBox->boxType, 4, "box type: ", "\t");
         printf("box size: %10u\n", *(traverseNode->currentBox->boxSize));
-        if (boxTypeEqual(traverseNode->currentBox->boxType, "moov") == 1) {
-            moovReadBox(traverseNode->currentBox);
+        if (returnBox == TRUE) {
+            if (boxTypeEqual(traverseNode->currentBox->boxType, boxReturnType) == 1) {
+                boxToReturn = traverseNode->currentBox;
+            }
         }
     }
 
-    //printf("%d\n", boxTypeEqual(headNode->currentBox->boxType, "ftyp"));
-    //ftypReadBox(headNode->currentBox);
-    
-    printf("end of script\n");
+    return boxToReturn;
 }
 
 
@@ -58,13 +138,17 @@ int main() {
  *  reads a moov box's first layer boxes
  *  @param *moovBox:    a pointer to a moov box struct
  */
-void moovReadBox(box *moovBox) {
+Node *moovParseBox(box *moovBox) {
+    Node *headNode = (Node*) malloc(sizeof(Node));
+    Node *currentNode = headNode;
+
     unsigned int boxSize = *(moovBox->boxSize);
     unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
     char *boxData = moovBox->boxData;
 
     unsigned int bytesRead = 0;
     while (bytesRead < boxDataSize) { 
+        // parsing size and type from header
         char *childBoxHeaderSize = (char*) malloc(BOX_HEADER_HALF_SIZE);
         for (int i = 0; i < BOX_HEADER_HALF_SIZE; i++) {
             childBoxHeaderSize[i] = boxData[bytesRead];
@@ -77,30 +161,38 @@ void moovReadBox(box *moovBox) {
             bytesRead += 1;
         }
 
-        unsigned int *fullChildBoxSize = (unsigned int*) malloc(sizeof(unsigned int));
-        *fullChildBoxSize = 0;
-        for (int headerByte = 0; headerByte < 4; headerByte++) {
-            for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-                int currentBit = (childBoxHeaderSize[headerByte] >> bitInHeaderByte) & 1;
-                int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
-
-                if (currentBit == 1) {
-                    *fullChildBoxSize = *fullChildBoxSize | (currentBit << bitOffset);
-                }
-            }
-        }
+        // converting size to int and freeing char array
+        unsigned int *childFullBoxSize = charToInt(childBoxHeaderSize);
         free(childBoxHeaderSize);
 
-        printf("%u\t", *fullChildBoxSize);
+        printf("%u\t", *childFullBoxSize);
         printNBytes(childBoxHeaderType, 4,"", "\n");
 
-        int childBoxDataSize = *fullChildBoxSize - 8;
+        // reading body of childBox
+        int childBoxDataSize = *childFullBoxSize - 8;
         char *childBoxBody = (char*) malloc(childBoxDataSize);
         for (int i = 0; i < childBoxDataSize; i++) {
             childBoxBody[i] = boxData[bytesRead];
             bytesRead += 1;
         }
+
+         // Creating a box struct to store current box
+        box *currentChildBoxRead = (box*) malloc(sizeof(box));
+        currentChildBoxRead->boxSize = childFullBoxSize;
+        currentChildBoxRead->boxType = childBoxHeaderType;
+        currentChildBoxRead->boxData = childBoxBody;
+
+        // Storing the current box in the current Node and allocating memory for the next box
+        currentNode->currentBox = currentChildBoxRead;
+        if (bytesRead < boxDataSize) {
+            currentNode->nextBoxNode = (Node*) malloc(sizeof(Node));
+            currentNode = currentNode->nextBoxNode;
+        } else { 
+            currentNode->nextBoxNode = NULL;
+        }
     }
+
+    return headNode;
 }
 
 
@@ -108,7 +200,7 @@ void moovReadBox(box *moovBox) {
  *  reads a ftyp box's major brand, minor version, and compatible brands
  *  @param *ftypBox:    a pointer to a ftyp box struct
  */
-void ftypReadBox(box *ftypBox) { 
+void ftypParseBox(box *ftypBox) { 
     unsigned int boxSize = *(ftypBox->boxSize);
     unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
     char *boxData = ftypBox->boxData;
@@ -150,47 +242,6 @@ void ftypReadBox(box *ftypBox) {
 }
 
 
-/* void readChildBox(box *Box) { 
-    unsigned int boxSize = *(Box->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
-    char boxName[] = {Box->boxType[0], Box->boxType[1], Box->boxType[2], Box->boxType[3], '\0'};
-    char *boxData = Box->boxData;
-
-    unsigned int bytesRead = 0;
-    while (bytesRead <= boxDataSize) { 
-        char *childBoxHeaderSize = (char*) malloc(BOX_HEADER_HALF_SIZE);
-        for (int i = 0; i < BOX_HEADER_HALF_SIZE; i++) {
-             childBoxHeaderSize[i] = boxData[bytesRead];
-             bytesRead += 1;
-        }
-
-        char *childBoxHeaderType = (char*) malloc(BOX_HEADER_HALF_SIZE);
-        for (int i = 0; i < BOX_HEADER_HALF_SIZE; i++) {
-             childBoxHeaderType[i] = boxData[bytesRead];
-             bytesRead += 1;
-        }
-
-        unsigned int *fullBoxSize = (unsigned int*) malloc(sizeof(unsigned int));
-        *fullBoxSize = 0;
-        for (int headerByte = 0; headerByte < 4; headerByte++) {
-            for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-                int currentBit = (childBoxHeaderSize[headerByte] >> bitInHeaderByte) & 1;
-                int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
-
-                if (currentBit == 1) {
-                    *fullBoxSize = *fullBoxSize | (currentBit << bitOffset);
-                }
-            }
-        }
-        free(childBoxHeaderSize);
-
-        printf("%u\n", *fullBoxSize);
-        printNBytes(childBoxHeaderType, 4,"", "");
-    } 
-
-} */
-
-
 /**
  *  reads the top level boxes in an MPEG-4 binary file format
  *  @param fileName:    a character array (includes '\0'), a valid 
@@ -226,31 +277,8 @@ Node *readMainBoxes(char fileName[]) {
         chunksread = fread_s(&headerType[0], BOX_HEADER_HALF_SIZE, BOX_HEADER_HALF_SIZE, 1, video);
         
         // translating the headerSize binary into an integer
-        unsigned int *fullBoxSize = (unsigned int*) malloc(sizeof(unsigned int));
-        *fullBoxSize = 0;
-
-        for (int headerByte = 0; headerByte < 4; headerByte++) {
-            for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-                /*
-                    currentBit (headerSize[headerByte] >> bitInHeaderByte) & 1
-                    shifts the desired bit to the lsb and masks it with the binary
-                    representation of 1
-
-                    bitOffset (((3-headerByte)*8) + bitInHeaderByte) maps the position
-                    of a bit in a byte to it's position in a 4 byte binary representation
-
-                    if the currentBit is 1, then will set that bit in the integer number
-                */
-                int currentBit = (headerSize[headerByte] >> bitInHeaderByte) & 1;
-                int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
-                // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
-
-                if (currentBit == 1) {
-                    *fullBoxSize = *fullBoxSize | (currentBit << bitOffset);
-                }
-            }
-        }
-        free(headerSize); // freeing the char malloc of size
+        unsigned int *fullBoxSize = charToInt(headerSize);
+        free(headerSize); // freeing the char malloc for header size
         
         
         // DEBUG printBits(sizeof(int), fullBoxSize);
@@ -296,6 +324,60 @@ Node *readMainBoxes(char fileName[]) {
 
 
 /**
+ *  converts a 4 byte char array's binary to an unsigned int
+ *  @param *headerSize:     the 4 byte character array
+ */
+unsigned int *charToInt(char *headerSize) { 
+    unsigned int *fullBoxSize = (unsigned int*) malloc(sizeof(unsigned int));
+    *fullBoxSize = 0;
+
+    for (int headerByte = 0; headerByte < 4; headerByte++) {
+        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            /*
+                currentBit (headerSize[headerByte] >> bitInHeaderByte) & 1
+                shifts the desired bit to the lsb and masks it with the binary
+                representation of 1
+
+                bitOffset (((3-headerByte)*8) + bitInHeaderByte) maps the position
+                of a bit in a byte to it's position in a 4 byte binary representation
+
+                if the currentBit is 1, then will set that bit in the integer number
+            */
+            int currentBit = (headerSize[headerByte] >> bitInHeaderByte) & 1;
+            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+            // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
+
+            if (currentBit == 1) {
+                *fullBoxSize = *fullBoxSize | (currentBit << bitOffset);
+            }
+        }
+    }
+
+    return fullBoxSize;
+}
+
+
+/**
+ *  compares the 4 byte box type to a string
+ *  @param *boxType:    4 byte char array pointer
+ *  @param stringType:  5 byte char array (includes '\0')
+ */
+int boxTypeEqual(char *boxType, char stringType[]) { 
+    //char boxTypeStringArray[] = {boxType[0], boxType[1], boxType[2], boxType[3], '\0'};
+    
+    int isEqual = 1;
+    for (int i = 0; i < 4; i++) {
+        if (boxType[i] != stringType[i]) {
+            isEqual = 0;
+            break;
+        }
+    }
+
+    return isEqual;
+}
+
+
+/**
  *  prints n bytes from a char array.
  *  mainly used to print the 4 bytes of a box type since '\0' is not stored
  *  @param *string:         a pointer to first element in a character array
@@ -324,26 +406,6 @@ void printHexNBytes(char *string, int bytesToPrint) {
         printf("%X ", string[i] & 15);
     }
     printf("\n");
-}
-
-
-/**
- *  compares the 4 byte box type to a string
- *  @param *boxType:    4 byte char array pointer
- *  @param stringType:  5 byte char array (includes '\0')
- */
-int boxTypeEqual(char *boxType, char stringType[]) { 
-    //char boxTypeStringArray[] = {boxType[0], boxType[1], boxType[2], boxType[3], '\0'};
-    
-    int isEqual = 1;
-    for (int i = 0; i < 4; i++) {
-        if (boxType[i] != stringType[i]) {
-            isEqual = 0;
-            break;
-        }
-    }
-
-    return isEqual;
 }
 
 
