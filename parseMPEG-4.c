@@ -98,6 +98,11 @@ void mvhdParseBox(box *mvhdBox) {
 
 /**
  *  
+ *  @param numberOfBytes:   amount of bytes to allocate for returned array
+ *  @param *originalData:   pointer to an array
+ *  @param *byteOffset:     the current array index of originalData
+ *  @attention redundand memory usage if parent array presists
+ *  @attention if using it might be benifitial to add a terminating char
  */
 char *copyNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset) {
     char *infoCopy = (char*) malloc(numberOfBytes);
@@ -107,6 +112,28 @@ char *copyNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset
     }
 
     return infoCopy;
+}
+
+
+/**
+ *  
+ *  @param numberOfBytes:   amount of bytes to add to byteOffset
+ *  @param *originalData:   pointer to an array
+ *  @param *byteOffset:     the current array index of originalData
+ *  @attention if parent array is freed data will be lost
+ *  @attention will need to manually determine where each reference array ends
+ */
+char *referenceNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset) {
+    char *infoReference = &(originalData[*byteOffset]);
+    *byteOffset += numberOfBytes;
+
+    // checking if referenced properly
+    for (int i = 0; i < numberOfBytes; i++) { 
+        assert(&(infoReference[i]) == &(originalData[(*byteOffset) - numberOfBytes + i]));
+        assert(infoReference[i] == originalData[(*byteOffset) - numberOfBytes + i]);
+    }
+
+    return infoReference;
 }
 
 
