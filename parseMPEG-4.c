@@ -32,6 +32,7 @@ int boxTypeEqual(char *boxType, char stringType[]);
 unsigned int *charToInt(char *headerSize);
 box *traverse(Node *headNode, int returnBox, char boxReturnType[]);
 char *copyNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset);
+char *referenceNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset);
 
 Node *readMainBoxes(char fileName[]);
 Node *moovParseBox(box *moovBox);
@@ -44,18 +45,61 @@ int main() {
     
     box *moovBox;
     box *mvhdBox;
+    box *trakBox;
     Node *moovHeadNode;
+    Node *trakHeadNode;
 
+    printf("-------TOP LEVEL--------\n");
     moovBox = traverse(headNode, TRUE, "moov");
     moovHeadNode = moovParseBox(moovBox);
-    mvhdBox = traverse(moovHeadNode, TRUE, "mvhd");
-    mvhdParseBox(mvhdBox);
+    //mvhdBox = traverse(moovHeadNode, TRUE, "mvhd");
+    //mvhdParseBox(mvhdBox);
+    printf("-------SECOND LEVEL--------\n");
+    trakBox = traverse(moovHeadNode, TRUE, "trak");
+    trakHeadNode = moovParseBox(trakBox);
+    traverse(trakHeadNode, FALSE, "");
 
     //printf("%d\n", boxTypeEqual(headNode->currentBox->boxType, "ftyp"));
     //ftypParseBox(headNode->currentBox);
     
     printf("end of script\n");
 }
+
+
+void tkhdParseBox(box *trakBox) {
+    unsigned int boxSize = *(trakBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = trakBox->boxData;
+
+    unsigned int bytesRead;
+    bytesRead = 0;
+
+    char *version = referenceNBytes(1, boxData, &bytesRead);
+    char *flags = referenceNBytes(3, boxData, &bytesRead);
+    char *creationTime = referenceNBytes(4, boxData, &bytesRead);
+    char *modificationTime = referenceNBytes(4, boxData, &bytesRead);
+    char *trackId = referenceNBytes(4, boxData, &bytesRead);
+    char *reservedOne = referenceNBytes(4, boxData, &bytesRead);
+    char *duration = referenceNBytes(4, boxData, &bytesRead);
+    char *reservedTwo = referenceNBytes(8, boxData, &bytesRead);
+    char *layer = referenceNBytes(2, boxData, &bytesRead);
+    char *alternateGroup = referenceNBytes(2, boxData, &bytesRead);
+    char *volume = referenceNBytes(2, boxData, &bytesRead);
+    char *reservedThree = referenceNBytes(2, boxData, &bytesRead);
+    char *matrixStructure = referenceNBytes(36, boxData, &bytesRead);
+    char *trackWidth = referenceNBytes(4, boxData, &bytesRead);
+    char *trackHeight = referenceNBytes(4, boxData, &bytesRead);
+
+    printf("%d %d\n", bytesRead, boxDataSize);
+    if (bytesRead == boxDataSize) {
+        printf("read all\n");
+    } else {
+        printf("no\n");
+    } 
+}
+
+
+
 
 /**
  *  reads a mvhd box
@@ -69,23 +113,32 @@ void mvhdParseBox(box *mvhdBox) {
     unsigned int bytesRead;
     bytesRead = 0;
 
-    char *version = copyNBytes(1, boxData, &bytesRead);
-    char *flags = copyNBytes(3, boxData, &bytesRead);
-    char *creationTime = copyNBytes(4, boxData, &bytesRead);
-    char *modificationTime = copyNBytes(4, boxData, &bytesRead);
-    char *timeScale = copyNBytes(4, boxData, &bytesRead);
+    char *version = referenceNBytes(1, boxData, &bytesRead);
+    char *flags = referenceNBytes(3, boxData, &bytesRead);
+    char *creationTime = referenceNBytes(4, boxData, &bytesRead);
+    char *modificationTime = referenceNBytes(4, boxData, &bytesRead);
+    char *timeScale = referenceNBytes(4, boxData, &bytesRead);
+    unsigned int *timeScaleInt = charToInt(timeScale);
+    printf("timescale as int: %u\n", *timeScaleInt);
+    
     char *duration = copyNBytes(4, boxData, &bytesRead);
-    char *preferredRate = copyNBytes(4, boxData, &bytesRead);
-    char *preferredVolume = copyNBytes(2, boxData, &bytesRead);
-    char *reserved = copyNBytes(10, boxData, &bytesRead);
-    char *matrixStructure = copyNBytes(36, boxData, &bytesRead);
-    char *previewTime = copyNBytes(4, boxData, &bytesRead);
-    char *previewDuration = copyNBytes(4, boxData, &bytesRead);
-    char *posterTime = copyNBytes(4, boxData, &bytesRead);
-    char *selectionTime = copyNBytes(4, boxData, &bytesRead);
-    char *selectionDuration = copyNBytes(4, boxData, &bytesRead);
-    char *currentTime = copyNBytes(4, boxData, &bytesRead);
-    char *nextTrackId = copyNBytes(4, boxData, &bytesRead);
+    unsigned int *durationInt = charToInt(duration);
+    printf("duration as int: %u\n", *durationInt);
+    //printNBytes(duration, 4, "duration: ", ".\n");
+    printf("duration/timescale %lf\n", (*durationInt / *timeScaleInt) / 60.0);
+    //printHexNBytes(duration, 4);
+    
+    char *preferredRate = referenceNBytes(4, boxData, &bytesRead);
+    char *preferredVolume = referenceNBytes(2, boxData, &bytesRead);
+    char *reserved = referenceNBytes(10, boxData, &bytesRead);
+    char *matrixStructure = referenceNBytes(36, boxData, &bytesRead);
+    char *previewTime = referenceNBytes(4, boxData, &bytesRead);
+    char *previewDuration = referenceNBytes(4, boxData, &bytesRead);
+    char *posterTime = referenceNBytes(4, boxData, &bytesRead);
+    char *selectionTime = referenceNBytes(4, boxData, &bytesRead);
+    char *selectionDuration = referenceNBytes(4, boxData, &bytesRead);
+    char *currentTime = referenceNBytes(4, boxData, &bytesRead);
+    char *nextTrackId = referenceNBytes(4, boxData, &bytesRead);
 
     printf("%d %d\n", bytesRead, boxDataSize);
     if (bytesRead == boxDataSize) {
@@ -128,10 +181,10 @@ char *referenceNBytes(int numberOfBytes, char *originalData, unsigned int *byteO
     *byteOffset += numberOfBytes;
 
     // checking if referenced properly
-    for (int i = 0; i < numberOfBytes; i++) { 
+    /* for (int i = 0; i < numberOfBytes; i++) { 
         assert(&(infoReference[i]) == &(originalData[(*byteOffset) - numberOfBytes + i]));
         assert(infoReference[i] == originalData[(*byteOffset) - numberOfBytes + i]);
-    }
+    } */
 
     return infoReference;
 }
@@ -284,7 +337,7 @@ Node *readMainBoxes(char fileName[]) {
     while (!feof(video)) { 
         // reading and storing the size of a box
         char *headerSize = (char*) malloc(BOX_HEADER_HALF_SIZE);
-        chunksread = fread_s(&headerSize[0], BOX_HEADER_HALF_SIZE, BOX_HEADER_HALF_SIZE, 1, video);
+        chunksread = fread(&headerSize[0], BOX_HEADER_HALF_SIZE, 1, video);
         // DEBUG printCharArrayBits(headerSize);
 
         /*
@@ -301,7 +354,7 @@ Node *readMainBoxes(char fileName[]) {
 
         // reading and storing the type of a box
         char *headerType = (char*) malloc(BOX_HEADER_HALF_SIZE);
-        chunksread = fread_s(&headerType[0], BOX_HEADER_HALF_SIZE, BOX_HEADER_HALF_SIZE, 1, video);
+        chunksread = fread(&headerType[0], BOX_HEADER_HALF_SIZE, 1, video);
         
         // translating the headerSize binary into an integer
         unsigned int *fullBoxSize = charToInt(headerSize);
@@ -413,11 +466,11 @@ int boxTypeEqual(char *boxType, char stringType[]) {
  *  @param postfixString:   a char array to print after
  */
 void printNBytes(char *string, int bytesToPrint, char prefixString[], char postfixString[]) { 
-    printf(prefixString);
+    printf("%s", prefixString);
     for (int i = 0; i < bytesToPrint; i++) { 
         printf("%c", string[i]);
     }
-    printf(postfixString);
+    printf("%s", postfixString);
 }
 
 
