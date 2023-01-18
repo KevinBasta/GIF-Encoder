@@ -1,10 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
+#ifndef COMMON_HEAD
+    #define COMMON_HEAD
+    #include <stdio.h>
+    #include <stdlib.h>
+#endif
 
-// The following definitions are in bytes
+#include "printUtility.c"
+
 #define BOX_HEADER_SIZE 8
 #define BOX_HEADER_HALF_SIZE 4
-
 #define TRUE 1
 #define FALSE 0
 
@@ -17,16 +20,12 @@ typedef struct box {
 
 // box node struct
 typedef struct Node { 
-    struct box *currentBox;
-    struct Node *nextBoxNode;
+    void *currentBox;
+    void *nextBoxNode;
 } Node;
 
 
-// printing/debugging  utility  reading/parsing
-void printBits(size_t const size, void const * const ptr);
-void printCharArrayBits(char *bitPattern);
-void printNBytes(char *string, int bytesToPrint, char prefixString[], char postfixString[]);
-void printHexNBytes(char *string, int bytesToPrint);
+// utility  reading/parsing
 
 int boxTypeEqual(char *boxType, char stringType[]);
 unsigned int *charToInt(char *headerSize);
@@ -35,12 +34,14 @@ char *copyNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset
 char *referenceNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset);
 
 Node *readMainBoxes(char fileName[]);
-Node *moovParseBox(box *moovBox);
+Node *parseChildBoxes(box *moovBox);
 void ftypParseBox(box *ftypBox);
 void mvhdParseBox(box *mvhdBox);
+void tkhdParseBox(box *trakBox);
+void elstParseBox(box *elstBox);
 
 
-int main() { 
+int main(int argc, char **argv) { 
     Node *headNode = readMainBoxes("op.mp4");
     
     box *moovBox;
@@ -49,20 +50,78 @@ int main() {
     Node *moovHeadNode;
     Node *trakHeadNode;
 
-    printf("-------TOP LEVEL--------\n");
+    
+    printf("----------TOP LEVEL----------\n");
     moovBox = traverse(headNode, TRUE, "moov");
-    moovHeadNode = moovParseBox(moovBox);
+    moovHeadNode = parseChildBoxes(moovBox);
     //mvhdBox = traverse(moovHeadNode, TRUE, "mvhd");
     //mvhdParseBox(mvhdBox);
-    printf("-------SECOND LEVEL--------\n");
+        
+    printf("----------MOOV LEVEL----------\n");
     trakBox = traverse(moovHeadNode, TRUE, "trak");
-    trakHeadNode = moovParseBox(trakBox);
-    traverse(trakHeadNode, FALSE, "");
+    trakHeadNode = parseChildBoxes(trakBox);
+    printf("----------TRAK LEVEL----------\n");
+    box *edts = traverse(trakHeadNode, TRUE, "edts");
+    Node *edtsHeadNode = parseChildBoxes(edts);
+    printf("----------EDTS LEVEL----------\n");
+    box *elst = traverse(edtsHeadNode, TRUE, "elst");
+    elstParseBox(elst);
+   
+
+
+    /* printf("----------TOP LEVEL----------\n");
+    box *mdat = traverse(headNode, TRUE, "mdat");
+    Node *mdatHeadNode = parseChildBoxes(mdat); */
+
+    //tkhdParseBox(tkhd);
 
     //printf("%d\n", boxTypeEqual(headNode->currentBox->boxType, "ftyp"));
     //ftypParseBox(headNode->currentBox);
     
     printf("end of script\n");
+    return 0;
+}
+
+
+
+
+void elstParseBox(box *elstBox) {
+    //Note: If the edit atom or the edit list atom is missing, you can assume that the entire media is used by the track.
+    unsigned int boxSize = *(elstBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = elstBox->boxData;
+
+    unsigned int bytesRead;
+    bytesRead = 0;
+
+    char *version = referenceNBytes(1, boxData, &bytesRead);
+    char *flags = referenceNBytes(3, boxData, &bytesRead);
+    char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
+    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+    printf("number of edit list entries: %u\n", *numberOfEntriesInt);
+    
+    // NEED TO STORE IN DATA STRUCTURE IF THERE ARE MULTIPLE
+    char *trackDuration = referenceNBytes(4, boxData, &bytesRead);
+    char *mediaTime = referenceNBytes(4, boxData, &bytesRead);
+    char *mediaRate = referenceNBytes(4, boxData, &bytesRead);
+
+    /* 
+    for (int editListEntryNumber = 1; editListEntryNumber <= *numberOfEntries; editListEntryNumber++) { 
+        // current elst only have one entry, will generalize to store multiple entries when needed
+        free(trackDuration);
+        free(mediaTime);
+        free(mediaRate);
+        trackDuration = 
+        mediaTime = referenceNBytes(4, boxData, &bytesRead);
+        mediaRate = referenceNBytes(4, boxData, &bytesRead);
+    } */
+
+    unsigned int *trackDurationInt = charToInt(trackDuration);
+    unsigned int *mediaTimeInt = charToInt(mediaTime);
+    unsigned int *mediaRateInt = charToInt(mediaRate);
+    printf("duration: %u\n", *trackDurationInt);
+    printf("time: %u\n", *mediaTimeInt);
+    printf("rate: %u\n", *mediaRateInt);
 }
 
 
@@ -89,6 +148,10 @@ void tkhdParseBox(box *trakBox) {
     char *matrixStructure = referenceNBytes(36, boxData, &bytesRead);
     char *trackWidth = referenceNBytes(4, boxData, &bytesRead);
     char *trackHeight = referenceNBytes(4, boxData, &bytesRead);
+    printNBytes(trackWidth, 4, "width:", "\n");
+    printf("width %u\n", charToInt(trackWidth));
+
+
 
     printf("%d %d\n", bytesRead, boxDataSize);
     if (bytesRead == boxDataSize) {
@@ -150,7 +213,8 @@ void mvhdParseBox(box *mvhdBox) {
 
 
 /**
- *  
+ *  returns a char pointer to a new array. This new array contains n bytes
+ *  of data from the originalData array 
  *  @param numberOfBytes:   amount of bytes to allocate for returned array
  *  @param *originalData:   pointer to an array
  *  @param *byteOffset:     the current array index of originalData
@@ -169,7 +233,8 @@ char *copyNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset
 
 
 /**
- *  
+ *  returns a char pointer from an array and increments byteOffset by the 
+ *  size of the data that the char pointer refers to
  *  @param numberOfBytes:   amount of bytes to add to byteOffset
  *  @param *originalData:   pointer to an array
  *  @param *byteOffset:     the current array index of originalData
@@ -196,18 +261,22 @@ char *referenceNBytes(int numberOfBytes, char *originalData, unsigned int *byteO
  *  @param *headNode:       the first element in the linked list
  *  @param returnBox:       TRUE or FALSE, allows for skiping the box type checking
  *  @param boxReturnType:   a character array that's compared against each box type
+ *  @return a box struct pointer
  */
 box *traverse(Node *headNode, int returnBox, char boxReturnType[]) { 
-    box *boxToReturn;
+    box *boxToReturn = NULL;
 
     for (Node *traverseNode = headNode; traverseNode != NULL; traverseNode = traverseNode->nextBoxNode) {
-        printNBytes(traverseNode->currentBox->boxType, 4, "box type: ", "\t");
-        printf("box size: %10u\n", *(traverseNode->currentBox->boxSize));
-        if (returnBox == TRUE) {
-            if (boxTypeEqual(traverseNode->currentBox->boxType, boxReturnType) == 1) {
-                boxToReturn = traverseNode->currentBox;
-            }
+        box *currentBoxPointer = (box*) traverseNode->currentBox;
+
+        printNBytes(currentBoxPointer->boxType, 4, "box type: ", "\t");
+        printf("box size: %10u\n", *(currentBoxPointer->boxSize));
+
+        // && (boxToReturn == NULL) for taking the last match, will be based on which one is video
+        if ((returnBox == TRUE) && (boxTypeEqual(currentBoxPointer->boxType, boxReturnType) == 1) && (boxToReturn == NULL)) {
+            boxToReturn = traverseNode->currentBox;
         }
+
     }
 
     return boxToReturn;
@@ -218,7 +287,7 @@ box *traverse(Node *headNode, int returnBox, char boxReturnType[]) {
  *  reads a moov box's first layer boxes
  *  @param *moovBox:    a pointer to a moov box struct
  */
-Node *moovParseBox(box *moovBox) {
+Node *parseChildBoxes(box *moovBox) {
     Node *headNode = (Node*) malloc(sizeof(Node));
     Node *currentNode = headNode;
 
@@ -405,16 +474,16 @@ Node *readMainBoxes(char fileName[]) {
 
 /**
  *  converts a 4 byte char array's binary to an unsigned int
- *  @param *headerSize:     the 4 byte character array
+ *  @param *integerAsCharArray:     the 4 byte character array
  */
-unsigned int *charToInt(char *headerSize) { 
+unsigned int *charToInt(char *integerAsCharArray) { 
     unsigned int *fullBoxSize = (unsigned int*) malloc(sizeof(unsigned int));
     *fullBoxSize = 0;
 
     for (int headerByte = 0; headerByte < 4; headerByte++) {
         for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
             /*
-                currentBit (headerSize[headerByte] >> bitInHeaderByte) & 1
+                currentBit (integerAsCharArray[headerByte] >> bitInHeaderByte) & 1
                 shifts the desired bit to the lsb and masks it with the binary
                 representation of 1
 
@@ -423,7 +492,7 @@ unsigned int *charToInt(char *headerSize) {
 
                 if the currentBit is 1, then will set that bit in the integer number
             */
-            int currentBit = (headerSize[headerByte] >> bitInHeaderByte) & 1;
+            int currentBit = (integerAsCharArray[headerByte] >> bitInHeaderByte) & 1;
             int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
             // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
 
@@ -454,72 +523,4 @@ int boxTypeEqual(char *boxType, char stringType[]) {
     }
 
     return isEqual;
-}
-
-
-/**
- *  prints n bytes from a char array.
- *  mainly used to print the 4 bytes of a box type since '\0' is not stored
- *  @param *string:         a pointer to first element in a character array
- *  @param bytesToPrint:    the number of bytes to print from a char array
- *  @param prefixString:    a char array to print before
- *  @param postfixString:   a char array to print after
- */
-void printNBytes(char *string, int bytesToPrint, char prefixString[], char postfixString[]) { 
-    printf("%s", prefixString);
-    for (int i = 0; i < bytesToPrint; i++) { 
-        printf("%c", string[i]);
-    }
-    printf("%s", postfixString);
-}
-
-
-/**
- *  prints hex representation of an n byte char array
- *  @param *string:         a pointer to first element in a character array
- *  @param bytesToPrint:    the number of bytes to print from a char array
- */
-void printHexNBytes(char *string, int bytesToPrint) { 
-    // 15 == (0000 1111), masks the low 4 bits in a byte
-    for (int i = 0; i < bytesToPrint; i++) {
-        printf("%X", (string[i] >> 4) & 15);
-        printf("%X ", string[i] & 15);
-    }
-    printf("\n");
-}
-
-
-/**
- *  prints binary bits of a 4 byte char array
- *  @param bitPattern:  a 4 byte char array
- */
-void printCharArrayBits(char *bitPattern) { 
-    for (int j = 0; j < 4; j++) {
-        for (int i = 7; i >= 0; i--) {
-            printf("%d", (bitPattern[j] >> i) & 1);
-        }
-        printf(" ");
-    }
-    printf("\n");
-}
-
-
-/**
- *  prints the binary bits for any type passed
- *  @param size:    the number of bytes to print
- *  @param ptr:     a pointer to an element of any type
- */
-void printBits(size_t const size, void const * const ptr) {
-    unsigned char *b = (unsigned char*) ptr;
-    unsigned char byte;
-    int i, j;
-    
-    for (i = size-1; i >= 0; i--) {
-        for (j = 7; j >= 0; j--) {
-            byte = (b[i] >> j) & 1;
-            printf("%u", byte);
-        }
-        printf(" ");
-    }
-    puts("");
 }
