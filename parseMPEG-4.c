@@ -8,6 +8,8 @@
 
 #define BOX_HEADER_SIZE 8
 #define BOX_HEADER_HALF_SIZE 4
+#define VERSION_SIZE 1
+#define FLAG_SIZE 3
 #define TRUE 1
 #define FALSE 0
 
@@ -29,7 +31,8 @@ typedef struct Node {
 
 int boxTypeEqual(char *boxType, char stringType[]);
 unsigned int *charToInt(char *headerSize);
-box *traverse(Node *headNode, int returnBox, char boxReturnType[]);
+void traverse(Node *headNode);
+box *getBoxFromLinkedList(Node *headNode, char boxReturnType[]);
 char *copyNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset);
 char *referenceNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset);
 
@@ -39,10 +42,13 @@ void ftypParseBox(box *ftypBox);
 void mvhdParseBox(box *mvhdBox);
 void tkhdParseBox(box *trakBox);
 void elstParseBox(box *elstBox);
+void hdlrParseBox(box *mdiaBox);
+void vmhdParseBox(box *vmhdBox);
+void dinfParseBox(box *dinfBox);
 
 
 int main(int argc, char **argv) { 
-    Node *headNode = readMainBoxes("op.mp4");
+    Node *headNode = readMainBoxes("op2.mp4");
     
     box *moovBox;
     box *mvhdBox;
@@ -52,20 +58,46 @@ int main(int argc, char **argv) {
 
     
     printf("----------TOP LEVEL----------\n");
-    moovBox = traverse(headNode, TRUE, "moov");
+    traverse(headNode);
+    printf("----------MOOV LEVEL----------\n");
+    moovBox = getBoxFromLinkedList(headNode, "moov");
     moovHeadNode = parseChildBoxes(moovBox);
     //mvhdBox = traverse(moovHeadNode, TRUE, "mvhd");
     //mvhdParseBox(mvhdBox);
-        
-    printf("----------MOOV LEVEL----------\n");
-    trakBox = traverse(moovHeadNode, TRUE, "trak");
-    trakHeadNode = parseChildBoxes(trakBox);
+    traverse(moovHeadNode);
     printf("----------TRAK LEVEL----------\n");
+    trakBox = getBoxFromLinkedList(moovHeadNode, "trak");
+    trakHeadNode = parseChildBoxes(trakBox);
+    traverse(trakHeadNode);
+    printf("----------MDIA LEVEL----------\n");
+    box *mdia = getBoxFromLinkedList(trakHeadNode, "mdia");
+    Node *mdiaHeadNode = parseChildBoxes(mdia);
+    traverse(mdiaHeadNode);
+    //box *hdlr = traverse(mdiaHeadNode, TRUE, "hdlr");
+    //hdlrParseBox(hdlr);
+    printf("----------MINF LEVEL----------\n");
+    box *minf = getBoxFromLinkedList(mdiaHeadNode, "minf");
+    Node *minfHeadNode = parseChildBoxes(minf);
+    traverse(minfHeadNode);
+    printf("----------STBL LEVEL----------\n");
+    box *stbl = getBoxFromLinkedList(minfHeadNode, "stbl");
+    Node *stblHeadNode = parseChildBoxes(stbl);
+    traverse(stblHeadNode);
+    
+
+
+    /*
+    printf("----------MINF LEVEL----------\n");
+    box *dinf = getBoxFromLinkedList(minfHeadNode, "dinf");
+    dinfParseBox(dinf);
+    */
+
+    /* printf("----------TRAK LEVEL----------\n");
     box *edts = traverse(trakHeadNode, TRUE, "edts");
     Node *edtsHeadNode = parseChildBoxes(edts);
     printf("----------EDTS LEVEL----------\n");
     box *elst = traverse(edtsHeadNode, TRUE, "elst");
-    elstParseBox(elst);
+    elstParseBox(elst); */
    
 
 
@@ -83,6 +115,137 @@ int main(int argc, char **argv) {
 }
 
 
+//https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap2/qtff2.html#//apple_ref/doc/uid/TP40000939-CH204-25680
+//the following child atoms are required: sample description, sample size, sample to chunk, and chunk offset
+//If the sync sample atom is not present, all samples are implicitly sync samples.
+void stsdParseBox(box *stsdBox) { //sample description required
+}
+
+void stszParseBox(box *stszBox) { //sample size required
+}
+
+void stscParseBox(box *stscBox) { //sample to chunk required
+}
+
+void stcoParseBox(box *stcoBox) { //chunk offset required
+}
+
+void sttsParseBox(box *sttsBox) { //time to sample
+}
+
+void stssParseBox(box *stssBox) { //sync sample
+}
+
+void cttsParseBox(box *cttsBox) { //composition offset
+}
+
+
+
+
+
+/* void stsdParseBox(box *stsdBox) { 
+    unsigned int boxSize = *(stsdBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = stsdBox->boxData;
+
+} */
+
+
+
+
+typedef struct dataReference { 
+    unsigned int *size; 
+    char *type;
+    char *version;
+    char *flags;
+    char *data;
+} dataReference;
+
+void dinfParseBox(box *dinfBox) {
+    unsigned int boxSize = *(dinfBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = dinfBox->boxData;
+
+    unsigned int bytesRead;
+    bytesRead = 0;
+
+
+    char *drefSize = referenceNBytes(BOX_HEADER_HALF_SIZE, boxData, &bytesRead);
+    char *drefType = referenceNBytes(BOX_HEADER_HALF_SIZE, boxData, &bytesRead);
+    char *version = referenceNBytes(1, boxData, &bytesRead);
+    char *flags = referenceNBytes(3, boxData, &bytesRead);
+    char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
+    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+
+    Node *dataReferenceHeadNode = (Node*) malloc(sizeof(Node));
+    Node *dataReferenceCurrentNode = dataReferenceHeadNode;
+    for (int i = 0; i < *numberOfEntriesInt; i++) { 
+        dataReference *dataReferenceChunk = (dataReference*) malloc(sizeof(dataReference)); 
+        
+        char *dataReferenceChunkSize = referenceNBytes(BOX_HEADER_HALF_SIZE, boxData, &bytesRead); 
+        dataReferenceChunk->size = charToInt(dataReferenceChunkSize);
+        dataReferenceChunk->type = referenceNBytes(BOX_HEADER_HALF_SIZE, boxData, &bytesRead);
+        dataReferenceChunk->version = referenceNBytes(VERSION_SIZE, boxData, &bytesRead);
+        dataReferenceChunk->flags = referenceNBytes(FLAG_SIZE, boxData, &bytesRead);
+
+        unsigned int dataReferenceChunkDataSize = *(dataReferenceChunk->size) - BOX_HEADER_SIZE - VERSION_SIZE - FLAG_SIZE;
+        dataReferenceChunk->data = referenceNBytes(dataReferenceChunkDataSize, boxData, &bytesRead);
+
+        dataReferenceCurrentNode->currentBox = dataReferenceChunk;
+        dataReferenceCurrentNode = dataReferenceCurrentNode->nextBoxNode;
+        dataReferenceCurrentNode = NULL;
+    }
+}
+
+
+void vmhdParseBox(box *vmhdBox) { 
+    unsigned int boxSize = *(vmhdBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = vmhdBox->boxData;
+
+    unsigned int bytesRead;
+    bytesRead = 0;
+
+    char *version = referenceNBytes(1, boxData, &bytesRead);
+    char *flags = referenceNBytes(3, boxData, &bytesRead);
+    char *graphicsMode = referenceNBytes(2, boxData, &bytesRead);
+    char *opcolorOne = referenceNBytes(2, boxData, &bytesRead); //Red
+    char *opcolorTwo = referenceNBytes(2, boxData, &bytesRead); //Green
+    char *opcolorThree = referenceNBytes(2, boxData, &bytesRead); //Blue
+}
+
+
+void hdlrParseBox(box *hdlrBox) {
+    unsigned int boxSize = *(hdlrBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = hdlrBox->boxData;
+
+    unsigned int bytesRead;
+    bytesRead = 0;
+
+    char *version = referenceNBytes(1, boxData, &bytesRead);
+    char *flags = referenceNBytes(3, boxData, &bytesRead);
+    char *componentType = copyNBytes(4, boxData, &bytesRead); // test files show that this is empty
+    printNBytes(componentType, 4, "type: ", "\n");
+    char *componentSubtype = referenceNBytes(4, boxData, &bytesRead); // check if type is vide !IMPORTANT
+    printNBytes(componentSubtype, 4, "sub type: ", "\n");
+
+    char *componentManufacturer = referenceNBytes(4, boxData, &bytesRead);
+    char *componentFlags = referenceNBytes(4, boxData, &bytesRead);
+    char *componentFlagsMask = referenceNBytes(4, boxData, &bytesRead);
+    
+    int componentNameLength = boxDataSize - bytesRead;
+    char *componentName = referenceNBytes(componentNameLength, boxData, &bytesRead);
+    printNBytes(componentName, componentNameLength, "name: ", "\n");
+
+    printf("%d %d\n", bytesRead, boxDataSize);
+    if (bytesRead == boxDataSize) {
+        printf("read all\n");
+    } else {
+        printf("no\n");
+    } 
+
+}
 
 
 void elstParseBox(box *elstBox) {
@@ -162,8 +325,6 @@ void tkhdParseBox(box *trakBox) {
 }
 
 
-
-
 /**
  *  reads a mvhd box
  *  @param *mvhdBox:    a pointer to an mvhd box struct
@@ -212,138 +373,6 @@ void mvhdParseBox(box *mvhdBox) {
 }
 
 
-/**
- *  returns a char pointer to a new array. This new array contains n bytes
- *  of data from the originalData array 
- *  @param numberOfBytes:   amount of bytes to allocate for returned array
- *  @param *originalData:   pointer to an array
- *  @param *byteOffset:     the current array index of originalData
- *  @attention redundand memory usage if parent array presists
- *  @attention if using it might be benifitial to add a terminating char
- */
-char *copyNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset) {
-    char *infoCopy = (char*) malloc(numberOfBytes);
-    for (int i = 0; i < numberOfBytes; i++) {
-        infoCopy[i] = originalData[*byteOffset];
-        *byteOffset += 1;
-    }
-
-    return infoCopy;
-}
-
-
-/**
- *  returns a char pointer from an array and increments byteOffset by the 
- *  size of the data that the char pointer refers to
- *  @param numberOfBytes:   amount of bytes to add to byteOffset
- *  @param *originalData:   pointer to an array
- *  @param *byteOffset:     the current array index of originalData
- *  @attention if parent array is freed data will be lost
- *  @attention will need to manually determine where each reference array ends
- */
-char *referenceNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset) {
-    char *infoReference = &(originalData[*byteOffset]);
-    *byteOffset += numberOfBytes;
-
-    // checking if referenced properly
-    /* for (int i = 0; i < numberOfBytes; i++) { 
-        assert(&(infoReference[i]) == &(originalData[(*byteOffset) - numberOfBytes + i]));
-        assert(infoReference[i] == originalData[(*byteOffset) - numberOfBytes + i]);
-    } */
-
-    return infoReference;
-}
-
-
-
-/**
- *  traverses a linked list and returns a box if exsists
- *  @param *headNode:       the first element in the linked list
- *  @param returnBox:       TRUE or FALSE, allows for skiping the box type checking
- *  @param boxReturnType:   a character array that's compared against each box type
- *  @return a box struct pointer
- */
-box *traverse(Node *headNode, int returnBox, char boxReturnType[]) { 
-    box *boxToReturn = NULL;
-
-    for (Node *traverseNode = headNode; traverseNode != NULL; traverseNode = traverseNode->nextBoxNode) {
-        box *currentBoxPointer = (box*) traverseNode->currentBox;
-
-        printNBytes(currentBoxPointer->boxType, 4, "box type: ", "\t");
-        printf("box size: %10u\n", *(currentBoxPointer->boxSize));
-
-        // && (boxToReturn == NULL) for taking the last match, will be based on which one is video
-        if ((returnBox == TRUE) && (boxTypeEqual(currentBoxPointer->boxType, boxReturnType) == 1) && (boxToReturn == NULL)) {
-            boxToReturn = traverseNode->currentBox;
-        }
-
-    }
-
-    return boxToReturn;
-}
-
-
-/**
- *  reads a moov box's first layer boxes
- *  @param *moovBox:    a pointer to a moov box struct
- */
-Node *parseChildBoxes(box *moovBox) {
-    Node *headNode = (Node*) malloc(sizeof(Node));
-    Node *currentNode = headNode;
-
-    unsigned int boxSize = *(moovBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
-    char *boxData = moovBox->boxData;
-
-    unsigned int bytesRead = 0;
-    while (bytesRead < boxDataSize) { 
-        // parsing size and type from header
-        char *childBoxHeaderSize = (char*) malloc(BOX_HEADER_HALF_SIZE);
-        for (int i = 0; i < BOX_HEADER_HALF_SIZE; i++) {
-            childBoxHeaderSize[i] = boxData[bytesRead];
-            bytesRead += 1;
-        }
-
-        char *childBoxHeaderType = (char*) malloc(BOX_HEADER_HALF_SIZE);
-        for (int i = 0; i < BOX_HEADER_HALF_SIZE; i++) {
-            childBoxHeaderType[i] = boxData[bytesRead];
-            bytesRead += 1;
-        }
-
-        // converting size to int and freeing char array
-        unsigned int *childFullBoxSize = charToInt(childBoxHeaderSize);
-        free(childBoxHeaderSize);
-
-        printf("%u\t", *childFullBoxSize);
-        printNBytes(childBoxHeaderType, 4,"", "\n");
-
-        // reading body of childBox
-        int childBoxDataSize = *childFullBoxSize - 8;
-        char *childBoxBody = (char*) malloc(childBoxDataSize);
-        for (int i = 0; i < childBoxDataSize; i++) {
-            childBoxBody[i] = boxData[bytesRead];
-            bytesRead += 1;
-        }
-
-         // Creating a box struct to store current box
-        box *currentChildBoxRead = (box*) malloc(sizeof(box));
-        currentChildBoxRead->boxSize = childFullBoxSize;
-        currentChildBoxRead->boxType = childBoxHeaderType;
-        currentChildBoxRead->boxData = childBoxBody;
-
-        // Storing the current box in the current Node and allocating memory for the next box
-        currentNode->currentBox = currentChildBoxRead;
-        if (bytesRead < boxDataSize) {
-            currentNode->nextBoxNode = (Node*) malloc(sizeof(Node));
-            currentNode = currentNode->nextBoxNode;
-        } else { 
-            currentNode->nextBoxNode = NULL;
-        }
-    }
-
-    return headNode;
-}
-
 
 /**
  *  reads a ftyp box's major brand, minor version, and compatible brands
@@ -389,6 +418,69 @@ void ftypParseBox(box *ftypBox) {
         printNBytes(&compatibleBrands[i], 4, "", "\n");
     }
 }
+
+
+/**
+ *  reads a moov box's first layer boxes
+ *  @param *moovBox:    a pointer to a moov box struct
+ */
+Node *parseChildBoxes(box *moovBox) {
+    Node *headNode = (Node*) malloc(sizeof(Node));
+    Node *currentNode = headNode;
+
+    unsigned int boxSize = *(moovBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = moovBox->boxData;
+
+    unsigned int bytesRead = 0;
+    while (bytesRead < boxDataSize) { 
+        // parsing size and type from header
+        char *childBoxHeaderSize = (char*) malloc(BOX_HEADER_HALF_SIZE);
+        for (int i = 0; i < BOX_HEADER_HALF_SIZE; i++) {
+            childBoxHeaderSize[i] = boxData[bytesRead];
+            bytesRead += 1;
+        }
+
+        char *childBoxHeaderType = (char*) malloc(BOX_HEADER_HALF_SIZE);
+        for (int i = 0; i < BOX_HEADER_HALF_SIZE; i++) {
+            childBoxHeaderType[i] = boxData[bytesRead];
+            bytesRead += 1;
+        }
+
+        // converting size to int and freeing char array
+        unsigned int *childFullBoxSize = charToInt(childBoxHeaderSize);
+        free(childBoxHeaderSize);
+
+        // DEBUG printf("%u\t", *childFullBoxSize);
+        // DEBUG printNBytes(childBoxHeaderType, 4,"", "\n");
+
+        // reading body of childBox
+        int childBoxDataSize = *childFullBoxSize - 8;
+        char *childBoxBody = (char*) malloc(childBoxDataSize);
+        for (int i = 0; i < childBoxDataSize; i++) {
+            childBoxBody[i] = boxData[bytesRead];
+            bytesRead += 1;
+        }
+
+         // Creating a box struct to store current box
+        box *currentChildBoxRead = (box*) malloc(sizeof(box));
+        currentChildBoxRead->boxSize = childFullBoxSize;
+        currentChildBoxRead->boxType = childBoxHeaderType;
+        currentChildBoxRead->boxData = childBoxBody;
+
+        // Storing the current box in the current Node and allocating memory for the next box
+        currentNode->currentBox = currentChildBoxRead;
+        if (bytesRead < boxDataSize) {
+            currentNode->nextBoxNode = (Node*) malloc(sizeof(Node));
+            currentNode = currentNode->nextBoxNode;
+        } else { 
+            currentNode->nextBoxNode = NULL;
+        }
+    }
+
+    return headNode;
+}
+
 
 
 /**
@@ -523,4 +615,84 @@ int boxTypeEqual(char *boxType, char stringType[]) {
     }
 
     return isEqual;
+}
+
+
+/**
+ *  returns a char pointer to a new array. This new array contains n bytes
+ *  of data from the originalData array 
+ *  @param numberOfBytes:   amount of bytes to allocate for returned array
+ *  @param *originalData:   pointer to an array
+ *  @param *byteOffset:     the current array index of originalData
+ *  @attention redundand memory usage if parent array presists
+ *  @attention if using it might be benifitial to add a terminating char
+ */
+char *copyNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset) {
+    char *infoCopy = (char*) malloc(numberOfBytes);
+    for (int i = 0; i < numberOfBytes; i++) {
+        infoCopy[i] = originalData[*byteOffset];
+        *byteOffset += 1;
+    }
+
+    return infoCopy;
+}
+
+
+/**
+ *  returns a char pointer from an array and increments byteOffset by the 
+ *  size of the data that the char pointer refers to
+ *  @param numberOfBytes:   amount of bytes to add to byteOffset
+ *  @param *originalData:   pointer to an array
+ *  @param *byteOffset:     the current array index of originalData
+ *  @attention if parent array is freed data will be lost
+ *  @attention will need to manually determine where each reference array ends
+ */
+char *referenceNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset) {
+    char *infoReference = &(originalData[*byteOffset]);
+    *byteOffset += numberOfBytes;
+
+    // checking if referenced properly
+    /* for (int i = 0; i < numberOfBytes; i++) { 
+        assert(&(infoReference[i]) == &(originalData[(*byteOffset) - numberOfBytes + i]));
+        assert(infoReference[i] == originalData[(*byteOffset) - numberOfBytes + i]);
+    } */
+
+    return infoReference;
+}
+
+
+/**
+ *  traverses a linked list and returns a box if exsists
+ *  @param *headNode:       the first element in the linked list
+ *  @param returnBox:       TRUE or FALSE, allows for skiping the box type checking
+ *  @param boxReturnType:   a character array that's compared against each box type
+ *  @return a box struct pointer
+ */
+void traverse(Node *headNode) { 
+    for (Node *traverseNode = headNode; traverseNode != NULL; traverseNode = traverseNode->nextBoxNode) {
+        box *currentBoxPointer = (box*) traverseNode->currentBox;
+
+        printNBytes(currentBoxPointer->boxType, 4, "box type: ", "\t");
+        printf("box size: %10u\n", *(currentBoxPointer->boxSize));
+    }
+}
+
+
+box *getBoxFromLinkedList(Node *headNode, char boxReturnType[]) { 
+    box *boxToReturn = NULL;
+
+    for (Node *traverseNode = headNode; traverseNode != NULL; traverseNode = traverseNode->nextBoxNode) {
+        box *currentBoxPointer = (box*) traverseNode->currentBox;
+
+        // && (boxToReturn == NULL) for taking the last match, will be based on which one is video
+        if ((boxTypeEqual(currentBoxPointer->boxType, boxReturnType) == 1) && (boxToReturn == NULL)) {
+            boxToReturn = traverseNode->currentBox;
+        }
+    }
+
+    if (boxToReturn == NULL) { 
+        printf("No Match Found For: %s\n", boxReturnType);
+    }
+
+    return boxToReturn;
 }
