@@ -2,6 +2,11 @@
     #define COMMON_HEAD
     #include <stdio.h>
     #include <stdlib.h>
+    #include "bitUtility.h"
+    #define BOX_HEADER_SIZE 8
+    #define BOX_HEADER_HALF_SIZE 4
+    #define TRUE 1
+    #define FALSE 0
 #endif
 
 /**

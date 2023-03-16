@@ -4,4 +4,5 @@
 *.bin
 *.pdf
 *.txt
+*.o
 .DS_Store
