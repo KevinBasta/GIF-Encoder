@@ -2,15 +2,15 @@
     #define COMMON_HEAD
     #include <stdio.h>
     #include <stdlib.h>
-    #include "printUtility.h"
-    #include "bitUtility.h"
+    #include "headers/printUtility.h"
+    #include "headers/bitUtility.h"
     #define BOX_HEADER_SIZE 8
     #define BOX_HEADER_HALF_SIZE 4
     #define TRUE 1
     #define FALSE 0
 #endif
 
-#include "linkedList.h"
+#include "headers/linkedList.h"
 #define VERSION_SIZE 1
 #define FLAG_SIZE 3
 
@@ -28,7 +28,8 @@ void dinfParseBox(box *dinfBox);
 
 int main(int argc, char **argv) { 
     linkedList *topBoxesLL = initLinkedList();
-    readMainBoxes("op2.mp4", topBoxesLL);
+    // fopen taken in a relative path from executable location
+    readMainBoxes("local_files/op.mp4", topBoxesLL);
     
     box *moovBox;
     box *mvhdBox;

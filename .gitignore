@@ -5,4 +5,6 @@
 *.pdf
 *.txt
 *.o
+local_files
+bin
 .DS_Store
