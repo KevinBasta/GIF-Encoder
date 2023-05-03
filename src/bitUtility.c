@@ -11,6 +11,52 @@
 
 /**
  *  Converts a 4 byte char array's binary to an unsigned int
+ *  
+ *  Important notes and investigation:
+ *  INACCURATE NAME, this is due to the fact that the integers
+ *  are stored in the normal integer bitpattern in the file. Reading them
+ *  as chars is just a convinience. The chars read are flipped because 
+ *  the way the files are written is so that the integers fill up the top 
+ *  bits first and leave the rest of their field space empty.
+ *  It may be not the way the files are written, but simply the way they are
+ *  read by parseMPEG-4. Both propositions turned out to be false. printBits
+ *  was simply misleading in printing the bits backwards when char and forwards when int.
+ *  this behavior has to do with how integers are stored as bits in memory
+ *  After investigation, this is simply the bits being sotred as little-endian in memory
+ *
+ *  what this function really does is take a char array that has an integer
+ *  in it's top bits and put those bits in the bottom bits of an int.
+ * 
+ *  chunksread = fread(&headerSize[3], 1, 1, video);
+ *  chunksread = fread(&headerSize[2], 1, 1, video);
+ *  chunksread = fread(&headerSize[1], 1, 1, video);
+ *  chunksread = fread(&headerSize[0], 1, 1, video);
+ *  something like this could read the bytes in the right order 
+ *  intead of the one liner used in readMainBoxes, a modified version
+ *  of this function would still be needed to just map the bits to 
+ *  an unsigned int
+ *
+ *  unsigned int *headerSize = (unsigned int*) malloc(BOX_HEADER_HALF_SIZE);
+ *  chunksread = fread(&headerSize[3], BOX_HEADER_HALF_SIZE, 1, video);
+ *  chunksread = fread(&headerSize[2], BOX_HEADER_HALF_SIZE, 1, video);
+ *  chunksread = fread(&headerSize[1], BOX_HEADER_HALF_SIZE, 1, video);
+ *  chunksread = fread(&headerSize[0], BOX_HEADER_HALF_SIZE, 1, video);
+ *  printBits(4, headerSize);
+ *  Although the bit manipulation in this function is interesting, upon 
+ *  further investigation, the integers stored in the file can 
+ *  simply be read straight into an unsigned int as shown. A future refactor
+ *  will be needed. Additionally, the current bit manipulation may be 
+ *  unecessary anyways if the bytes of char and int can simply be matched. 
+ *
+ *
+ *  RESOLUTION:
+ *  this fucntion basically converts a big endian integer bit pattern
+ *  stored in a char array to little endian integer bit pattern stored
+ *  in an unsiged integer. 
+ *  integer values are stored as big endian in the MPEG-4 Files.
+ *  they are then read into a char heap array which is given 
+ *  to this function. they are then converted into an integer and returned. 
+ *  A much simplier way to do the conversion is discussed above.
  *  @param *integerAsCharArray:     the 4 byte character array
  */
 unsigned int *charToInt(char *integerAsCharArray) { 
@@ -41,6 +87,11 @@ unsigned int *charToInt(char *integerAsCharArray) {
 
     return fullBoxSize;
 }
+
+
+/* unsigned int *generalizedCharToInt(char *integerAsCharArray) { 
+    for reading more than 4 bytes for the purposes of longer boxes
+ }*/
 
 
 /**

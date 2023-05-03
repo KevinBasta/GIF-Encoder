@@ -80,8 +80,11 @@ int main(int argc, char **argv) {
     linkedList *stblLL = initLinkedList();
     parseChildBoxes(stbl, stblLL);
     printAllBoxesLinkedList(stblLL);
-    
 
+
+    printf("--------STBL CHILD LEVEL--------\n");
+    box *stsd = getBoxFromLinkedList(stblLL, "stsd");
+    stsdParseBox(stsd);
 
     /*
     printf("----------MINF LEVEL----------\n");
@@ -109,6 +112,8 @@ int main(int argc, char **argv) {
     //printf("%d\n", boxTypeEqual(headNode->currentBox->boxType, "ftyp"));
     //ftypParseBox(headNode->currentBox);
     
+
+    // free every linked list created
     printf("end of script\n");
     return 0;
 }
@@ -117,6 +122,15 @@ int main(int argc, char **argv) {
 //https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap2/qtff2.html#//apple_ref/doc/uid/TP40000939-CH204-25680
 //the following child atoms are required: sample description, sample size, sample to chunk, and chunk offset
 //If the sync sample atom is not present, all samples are implicitly sync samples.
+
+
+
+typedef struct sampleDescription { 
+    unsigned int *size; 
+    char *dataFormat;
+    char *reserved;
+    unsigned short dataReferenceIndex;
+} sampleDescription;
 
 /*
 Child boxes of STBL (Sample Table Atom). These define Samples and Chunks in the file.
@@ -127,12 +141,26 @@ void stsdParseBox(box *stsdBox) { //sample description required
     unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
     char *boxData = stsdBox->boxData;
 
+    unsigned int bytesRead;
+    bytesRead = 0;
+
+    char *version = referenceNBytes(1, boxData, &bytesRead);
+    char *flags = referenceNBytes(3, boxData, &bytesRead);
+    char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
+
+    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+    // DEBUG printf("%d\n", *numberOfEntriesInt);
+    
+    linkedList sampleDescriptions;
+    for (int i = 0; i < *numberOfEntries; i++) { 
+        
+    }
     
 
 }
 
 void stszParseBox(box *stszBox) { //sample size required
-
+    
 }
 
 void stscParseBox(box *stscBox) { //sample to chunk required

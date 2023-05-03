@@ -2,6 +2,7 @@
     #define COMMON_HEAD
     #include <stdio.h>
     #include <stdlib.h>
+    #include <string.h>
     #include "headers/printUtility.h"
     #include "headers/bitUtility.h"
     #define BOX_HEADER_SIZE 8
@@ -9,6 +10,7 @@
     #define TRUE 1
     #define FALSE 0
     
+
     typedef struct box { 
         unsigned int *boxSize;
         char *boxType;
@@ -21,7 +23,7 @@
     } Node;
 
     typedef struct linkedList {
-        int size;
+        unsigned int *size;
         Node *head;
         Node *tail;
         Node *current;
@@ -32,7 +34,10 @@
 
 linkedList* initLinkedList() { 
     linkedList *newLinkedList = (linkedList*) malloc(sizeof(linkedList));
-    newLinkedList->size = 0;
+    
+    newLinkedList->size = (unsigned int*) malloc(sizeof(unsigned int));
+    *(newLinkedList->size) = 0;
+
     newLinkedList->head = (Node*) malloc(sizeof(Node));
     newLinkedList->tail = newLinkedList->head;
 
@@ -42,8 +47,9 @@ linkedList* initLinkedList() {
 void appendNodeLinkedList(linkedList *list, void *item) {
     list->tail->currentItem = item; 
     list->tail->nextNode = (Node*) malloc(sizeof(Node)); 
+
     list->tail = list->tail->nextNode;
-    list->size += 1;
+    *(list->size) += 1;
 }
 
 //void removeNode(linkedList *linkedList, void *)
@@ -56,10 +62,10 @@ void nullifyLastNodeLinkedList(linkedList *list) {
 
 
 
- //replaces traverse
+//replaces traverse
 void printAllBoxesLinkedList(linkedList *list) { 
     Node *currentNode = list->head;
-    for (int i = 0; i < list->size; i++) { 
+    for (int i = 0; i < *(list->size); i++) { 
         box *currentBoxPointer = (box*) currentNode->currentItem;
         printNBytes(currentBoxPointer->boxType, 4, "box type: ", "\t");
         printf("box size: %10u\n", *(currentBoxPointer->boxSize));
@@ -79,7 +85,7 @@ box *getBoxFromLinkedList(linkedList *list, char boxReturnType[]) {
     box *boxToReturn = NULL;
     Node *currentNode = list->head;
 
-    for (int i = 0; i < list->size; i++) {
+    for (int i = 0; i < *(list->size); i++) {
         box *currentBoxPointer = (box*) currentNode->currentItem;
 
         // && (boxToReturn == NULL) for taking the last match, will be based on which one is video
@@ -106,6 +112,40 @@ void freeBox(box *boxStruct) {
     free(boxStruct);
 }
 
-void freeNode(Node *nodeStruct) { 
+
+Node *freeBoxNode(Node *nodeStruct) { 
+    Node *nextNode = nodeStruct->nextNode;
+
     freeBox(nodeStruct->currentItem);
+    // Note: free(nodeStruct->currentItem) handeled by freeBox
+    // Note: not freeing nodeStruct->nextNode
+    free(nodeStruct);
+
+    return nextNode;
 }
+
+
+void freeLinkedList(linkedList *list, char type[]) { 
+
+    Node *currentNode = list->head;
+
+    for (int i = 0; i < *(list->size); i++) {
+        if (strncmp(type, "box", 3)) { 
+            currentNode = freeBoxNode(currentNode);
+            // DEBUG printf("%d %d\n", currentNode, currentNode->nextNode);
+            list->head = currentNode;
+        }
+    }
+}
+
+/* int main() {
+    linkedList *test = initLinkedList();
+    box *testBox1 = (box*) malloc(sizeof(box));
+    box *testBox2 = (box*) malloc(sizeof(box));
+    box *testBox3 = (box*) malloc(sizeof(box));
+    appendNodeLinkedList(test, testBox1);
+    appendNodeLinkedList(test, testBox2);
+    appendNodeLinkedList(test, testBox3);
+
+    freeLinkedList(test, "box");
+} */

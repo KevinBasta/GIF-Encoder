@@ -8,3 +8,4 @@
 local_files
 bin
 .DS_Store
+l_*.c
