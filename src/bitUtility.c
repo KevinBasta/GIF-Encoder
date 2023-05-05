@@ -89,6 +89,93 @@ unsigned int *charToInt(char *integerAsCharArray) {
 }
 
 
+short *bigEndianCharToLittleEndianShort(char *bigEndianCharArray) { 
+    short *littleEndianShort = (short*) malloc(sizeof(short));
+
+    for (int headerByte = 0; headerByte < 2; headerByte++) {
+        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+            // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
+
+            if (currentBit == 1) {
+                *littleEndianShort = *littleEndianShort | (currentBit << bitOffset);
+            }
+        }
+    }
+
+    return littleEndianShort;
+}
+
+int *bigEndianCharToLittleEndianInt(char *bigEndianCharArray) { 
+    int *littleEndianInt = (int*) malloc(sizeof(int));
+
+    for (int headerByte = 0; headerByte < 4; headerByte++) {
+        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+            // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
+
+            if (currentBit == 1) {
+                *littleEndianInt = *littleEndianInt | (currentBit << bitOffset);
+            }
+        }
+    }
+
+    return littleEndianInt;
+}
+
+
+
+// for testing purposes
+unsigned short *bigEndianCharToLittleEndianUnsignedShort(char *bigEndianCharArray) { 
+    unsigned short *littleEndianUnsignedShort = (unsigned short*) malloc(sizeof(unsigned short));
+
+    for (int headerByte = 0; headerByte < 2; headerByte++) {
+        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+            // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
+
+            if (currentBit == 1) {
+                *littleEndianUnsignedShort = *littleEndianUnsignedShort | (currentBit << bitOffset);
+            }
+        }
+    }
+
+    return littleEndianUnsignedShort;
+}
+
+
+unsigned int *bigEndianCharToLittleEndianUnsignedInt(char *bigEndianCharArray, int numberOfBytes) { 
+    
+    /* unsigned int *littleEndianUnsignedInt; // change to more generic type that allows dereferencing below
+    if (numberOfBytes <= 2) { 
+        littleEndianUnsignedInt = (unsigned short*) malloc(numberOfBytes);
+    } else if (numberOfBytes > 2 && numberOfBytes <= 4) { 
+        littleEndianUnsignedInt = (unsigned int*) malloc(numberOfBytes);
+    } else { 
+        littleEndianUnsignedInt = (unsigned long*) malloc(numberOfBytes);
+    } */
+
+    unsigned int *littleEndianUnsignedInt = (unsigned int*) malloc(sizeof(unsigned int));
+
+    for (int headerByte = 0; headerByte < numberOfBytes; headerByte++) {
+        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+            // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
+
+            if (currentBit == 1) {
+                *littleEndianUnsignedInt = *littleEndianUnsignedInt | (currentBit << bitOffset);
+            }
+        }
+    }
+
+    return littleEndianUnsignedInt;
+}
+
+
 /* unsigned int *generalizedCharToInt(char *integerAsCharArray) { 
     for reading more than 4 bytes for the purposes of longer boxes
  }*/

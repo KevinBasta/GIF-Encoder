@@ -24,26 +24,21 @@ void elstParseBox(box *elstBox);
 void hdlrParseBox(box *mdiaBox);
 void vmhdParseBox(box *vmhdBox);
 void dinfParseBox(box *dinfBox);
-
+void stsdParseBox(box *stsdBox);
 
 int main(int argc, char **argv) { 
     linkedList *topBoxesLL = initLinkedList();
     // fopen taken in a relative path from executable location
-    readMainBoxes("local_files/op.mp4", topBoxesLL);
-    
-    box *moovBox;
-    box *mvhdBox;
-    box *trakBox;
-    Node *moovHeadNode;
-    Node *trakHeadNode;
+    readMainBoxes("local_files/op2.mp4", topBoxesLL);
 
-    
+
+
     printf("----------TOP LEVEL----------\n");
     printAllBoxesLinkedList(topBoxesLL);
     
 
     printf("----------MOOV LEVEL----------\n");
-    moovBox = getBoxFromLinkedList(topBoxesLL, "moov");
+    box *moovBox = getBoxFromLinkedList(topBoxesLL, "moov");
     
     linkedList *moovLL = initLinkedList();
     parseChildBoxes(moovBox, moovLL);
@@ -51,7 +46,7 @@ int main(int argc, char **argv) {
 
 
     printf("----------TRAK LEVEL----------\n");
-    trakBox = getBoxFromLinkedList(moovLL, "trak");
+    box *trakBox = getBoxFromLinkedList(moovLL, "trak");
 
     linkedList *trakLL = initLinkedList();
     parseChildBoxes(trakBox, trakLL);
@@ -86,11 +81,18 @@ int main(int argc, char **argv) {
     box *stsd = getBoxFromLinkedList(stblLL, "stsd");
     stsdParseBox(stsd);
 
-    /*
-    printf("----------MINF LEVEL----------\n");
-    box *dinf = getBoxFromLinkedList(minfHeadNode, "dinf");
-    dinfParseBox(dinf);
-    */
+    
+
+
+
+    /* printf("----------DINF LEVEL----------\n");
+    box *dinf = getBoxFromLinkedList(minfLL, "dinf");
+    dinfParseBox(dinf); */
+
+    printf("\n----------HDLR LEVEL----------\n");
+    box *hdlrBox = getBoxFromLinkedList(mdiaLL, "hdlr");
+    hdlrParseBox(hdlrBox); // Establishes that it's a video track
+   
 
     /* printf("----------TRAK LEVEL----------\n");
     box *edts = getBoxFromLinkedList(trakHeadNode, "edts");
@@ -152,8 +154,56 @@ void stsdParseBox(box *stsdBox) { //sample description required
     // DEBUG printf("%d\n", *numberOfEntriesInt);
     
     linkedList sampleDescriptions;
-    for (int i = 0; i < *numberOfEntries; i++) { 
+    for (int i = 0; i < *numberOfEntriesInt; i++) { 
+        char *sampleDescriptionSizeChar = referenceNBytes(4, boxData, &bytesRead);
+        unsigned int *sampleDescriptionSize = charToInt(sampleDescriptionSizeChar);
+        unsigned int absoluteEndOfSampleDescription = bytesRead + *sampleDescriptionSize - 4;
+
+        char *dataFormat = referenceNBytes(4, boxData, &bytesRead);
+        char *reserved = referenceNBytes(6, boxData, &bytesRead);
+        char *dataReferenceIndex = referenceNBytes(2, boxData, &bytesRead); 
+        unsigned int *dataReferenceIndexShort = bigEndianCharToLittleEndianUnsignedInt(dataReferenceIndex, 2); 
+
+        printf("%d\n", *sampleDescriptionSize);
+        printNBytes(dataFormat, 4, "", "\n");
+        printf("%d\n", *dataReferenceIndexShort);
+
+        // The following fields assume that this stsd box belongs to a video trak 
+        char *version = referenceNBytes(2, boxData, &bytesRead);
+        char *revisionLevel = referenceNBytes(2, boxData, &bytesRead);
+        char *vendor = referenceNBytes(4, boxData, &bytesRead);
+        // the following return value passing is only permissible since the data is a 
+        // reference in the bigger array and not separatly allocated memory that would need freeing
+        int *temporalQuality = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
+        int *spatialQuality = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
+        int *width = bigEndianCharToLittleEndianInt(referenceNBytes(2, boxData, &bytesRead));
+        int *height = bigEndianCharToLittleEndianInt(referenceNBytes(2, boxData, &bytesRead));
+        int *horizontalResolution = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
+        int *verticalResolution = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
+        int *dataSize = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
+        int *frameCount = bigEndianCharToLittleEndianInt(referenceNBytes(2, boxData, &bytesRead));
         
+        char *compressorName = referenceNBytes(4, boxData, &bytesRead);
+
+        short *depth = bigEndianCharToLittleEndianShort(referenceNBytes(2, boxData, &bytesRead));
+        short *colorTableID = bigEndianCharToLittleEndianShort(referenceNBytes(2, boxData, &bytesRead));
+
+        printNBytes(version, 2, "version: ", "\n");
+        printNBytes(revisionLevel, 2, "revisionLevel: ", "\n");
+        printNBytes(vendor, 4, "vendor: ", "\n");
+        printf("tmp spa quality: %d %d\n", *temporalQuality, *spatialQuality); 
+        printf("width height: %d %d\n", *width, *height);
+        printf("horizontal vertical resolution: %d %d\n", *horizontalResolution, *verticalResolution);
+        printf("data size: %d\n", *dataSize);
+        printf("frame count: %d\n", *frameCount);
+        printNBytes(compressorName, 4, "compressor name: ", "\n");
+        printf("depth: %d\n", *depth);
+        printf("color table id: %d\n", *colorTableID);
+
+        if (bytesRead != absoluteEndOfSampleDescription) { 
+            // parse video sample description extensions
+        }
+
     }
     
 
@@ -224,6 +274,7 @@ void dinfParseBox(box *dinfBox) {
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
     unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
 
+
     Node *dataReferenceHeadNode = (Node*) malloc(sizeof(Node));
     Node *dataReferenceCurrentNode = dataReferenceHeadNode;
     for (int i = 0; i < *numberOfEntriesInt; i++) { 
@@ -238,6 +289,7 @@ void dinfParseBox(box *dinfBox) {
         unsigned int dataReferenceChunkDataSize = *(dataReferenceChunk->size) - BOX_HEADER_SIZE - VERSION_SIZE - FLAG_SIZE;
         dataReferenceChunk->data = referenceNBytes(dataReferenceChunkDataSize, boxData, &bytesRead);
 
+        printNBytes(dataReferenceChunk->type, BOX_HEADER_HALF_SIZE, "", "\n");
 
         // UPDATE TO USE NEW LINKED LIST STRUCT
         /* dataReferenceCurrentNode->currentBox = dataReferenceChunk;
@@ -265,6 +317,7 @@ void vmhdParseBox(box *vmhdBox) {
 
 
 void hdlrParseBox(box *hdlrBox) {
+    // IMPORTANT BOX FOR IDENTIFYING IF THE CURRENT TRAK IS VIDEO OR AUDIO
     unsigned int boxSize = *(hdlrBox->boxSize);
     unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
     char *boxData = hdlrBox->boxData;
@@ -361,7 +414,7 @@ void tkhdParseBox(box *trakBox) {
     char *trackWidth = referenceNBytes(4, boxData, &bytesRead);
     char *trackHeight = referenceNBytes(4, boxData, &bytesRead);
     printNBytes(trackWidth, 4, "width:", "\n");
-    printf("width %u\n", charToInt(trackWidth));
+    printf("width %u\n", *charToInt(trackWidth));
 
 
 
