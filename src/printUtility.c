@@ -3,10 +3,6 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include "headers/bitUtility.h"
-    #define BOX_HEADER_SIZE 8
-    #define BOX_HEADER_HALF_SIZE 4
-    #define TRUE 1
-    #define FALSE 0
 #endif
 
 /**
@@ -60,7 +56,7 @@ void printCharArrayBits(char *bitPattern) {
  *  @param size:    the number of bytes to print
  *  @param ptr:     a pointer to an element of any type
  */
-void printBits(size_t const size, void const * const ptr) {
+void printBits(void const * const ptr, size_t const size) {
     unsigned char *b = (unsigned char*) ptr;
     unsigned char byte;
     int i, j;

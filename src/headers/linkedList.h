@@ -1,20 +1,4 @@
-typedef struct box { 
-    unsigned int *boxSize;
-    char *boxType;
-    char *boxData;
-} box;
-
-typedef struct Node { 
-    void *currentItem;
-    void *nextNode;
-} Node;
-
-typedef struct linkedList {
-    unsigned int *size;
-    Node *head;
-    Node *tail;
-    Node *current;
-} linkedList;
+#include "types.h"
 
 linkedList* initLinkedList();
 void appendNodeLinkedList(linkedList *list, void *item);

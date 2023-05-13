@@ -3,10 +3,6 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include "headers/printUtility.h"
-    #define BOX_HEADER_SIZE 8
-    #define BOX_HEADER_HALF_SIZE 4
-    #define TRUE 1
-    #define FALSE 0
 #endif
 
 /**
@@ -173,6 +169,56 @@ unsigned int *bigEndianCharToLittleEndianUnsignedInt(char *bigEndianCharArray, i
     }
 
     return littleEndianUnsignedInt;
+}
+
+int *bigEndianCharToLittleEndianBytedInt(char *bigEndianCharArray, int numberOfBytes) { 
+    int *littleEndianInt = (int*) malloc(sizeof(int));
+
+    for (int headerByte = 0; headerByte < numberOfBytes; headerByte++) {
+        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+            // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
+
+            if (currentBit == 1) {
+                *littleEndianInt = *littleEndianInt | (currentBit << bitOffset);
+            }
+        }
+    }
+
+    return littleEndianInt;
+}
+
+
+union intToFloat
+{
+    unsigned int u32; // here_write_bits
+    float    f32; // here_read_float
+};
+
+float *bigEndianCharToLittleEndianFloat(char *bigEndianCharArray) { 
+    unsigned int littleEndianInt = 0;
+
+    for (int headerByte = 0; headerByte < 4; headerByte++) {
+        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+            // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
+
+            if (currentBit == 1) {
+                littleEndianInt = littleEndianInt | (currentBit << bitOffset);
+            }
+        }
+    }
+
+    float *littleEndianFloat = (float*) malloc(sizeof(float));
+    union intToFloat x = {.u32 = littleEndianInt};
+    *littleEndianFloat = x.f32;
+
+    printf("%d\n", x.u32);
+    printf("%f\n", (float) x.f32);
+    
+    return littleEndianFloat;
 }
 
 

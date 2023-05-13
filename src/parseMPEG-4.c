@@ -4,12 +4,10 @@
     #include <stdlib.h>
     #include "headers/printUtility.h"
     #include "headers/bitUtility.h"
-    #define BOX_HEADER_SIZE 8
-    #define BOX_HEADER_HALF_SIZE 4
-    #define TRUE 1
-    #define FALSE 0
+
 #endif
 
+#include "headers/types.h"
 #include "headers/linkedList.h"
 #define VERSION_SIZE 1
 #define FLAG_SIZE 3
@@ -89,9 +87,9 @@ int main(int argc, char **argv) {
     box *dinf = getBoxFromLinkedList(minfLL, "dinf");
     dinfParseBox(dinf); */
 
-    printf("\n----------HDLR LEVEL----------\n");
+    /* printf("\n----------HDLR LEVEL----------\n");
     box *hdlrBox = getBoxFromLinkedList(mdiaLL, "hdlr");
-    hdlrParseBox(hdlrBox); // Establishes that it's a video track
+    hdlrParseBox(hdlrBox); // Establishes that it's a video track */
    
 
     /* printf("----------TRAK LEVEL----------\n");
@@ -127,12 +125,7 @@ int main(int argc, char **argv) {
 
 
 
-typedef struct sampleDescription { 
-    unsigned int *size; 
-    char *dataFormat;
-    char *reserved;
-    unsigned short dataReferenceIndex;
-} sampleDescription;
+
 
 /*
 Child boxes of STBL (Sample Table Atom). These define Samples and Chunks in the file.
@@ -162,43 +155,46 @@ void stsdParseBox(box *stsdBox) { //sample description required
         char *dataFormat = referenceNBytes(4, boxData, &bytesRead);
         char *reserved = referenceNBytes(6, boxData, &bytesRead);
         char *dataReferenceIndex = referenceNBytes(2, boxData, &bytesRead); 
-        unsigned int *dataReferenceIndexShort = bigEndianCharToLittleEndianUnsignedInt(dataReferenceIndex, 2); 
+        int *dataReferenceIndexInt = bigEndianCharToLittleEndianBytedInt(dataReferenceIndex, 2); 
 
         printf("%d\n", *sampleDescriptionSize);
         printNBytes(dataFormat, 4, "", "\n");
-        printf("%d\n", *dataReferenceIndexShort);
+        printf("%d\n", *dataReferenceIndexInt);
 
         // The following fields assume that this stsd box belongs to a video trak 
-        char *version = referenceNBytes(2, boxData, &bytesRead);
-        char *revisionLevel = referenceNBytes(2, boxData, &bytesRead);
-        char *vendor = referenceNBytes(4, boxData, &bytesRead);
+        char *version =         referenceNBytes(2, boxData, &bytesRead);
+        char *revisionLevel =   referenceNBytes(2, boxData, &bytesRead);
+        char *vendor =          referenceNBytes(4, boxData, &bytesRead);
         // the following return value passing is only permissible since the data is a 
         // reference in the bigger array and not separatly allocated memory that would need freeing
-        int *temporalQuality = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
-        int *spatialQuality = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
-        int *width = bigEndianCharToLittleEndianInt(referenceNBytes(2, boxData, &bytesRead));
-        int *height = bigEndianCharToLittleEndianInt(referenceNBytes(2, boxData, &bytesRead));
-        int *horizontalResolution = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
-        int *verticalResolution = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
-        int *dataSize = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
-        int *frameCount = bigEndianCharToLittleEndianInt(referenceNBytes(2, boxData, &bytesRead));
+        int *temporalQuality =      bigEndianCharToLittleEndianBytedInt(referenceNBytes(4, boxData, &bytesRead), 4);
+        int *spatialQuality =       bigEndianCharToLittleEndianBytedInt(referenceNBytes(4, boxData, &bytesRead), 4);
+        int *width =                bigEndianCharToLittleEndianBytedInt(referenceNBytes(2, boxData, &bytesRead), 2);
+        int *height =               bigEndianCharToLittleEndianBytedInt(referenceNBytes(2, boxData, &bytesRead), 2);
+
+        char *horizontalResolutionChar =  referenceNBytes(4, boxData, &bytesRead);
+        char *verticalResolutionChar =    referenceNBytes(4, boxData, &bytesRead);
+        float *horizontalResolution =  bigEndianCharToLittleEndianFloat(horizontalResolutionChar);
+        //float *verticalResolution =    bigEndianCharToLittleEndianFloat(verticalResolutionChar);
         
-        char *compressorName = referenceNBytes(4, boxData, &bytesRead);
+        int *dataSize =             bigEndianCharToLittleEndianBytedInt(referenceNBytes(4, boxData, &bytesRead), 4);
+        int *frameCount =           bigEndianCharToLittleEndianBytedInt(referenceNBytes(2, boxData, &bytesRead), 2);
+        
+        char *compressorName =      referenceNBytes(4, boxData, &bytesRead);
 
-        short *depth = bigEndianCharToLittleEndianShort(referenceNBytes(2, boxData, &bytesRead));
-        short *colorTableID = bigEndianCharToLittleEndianShort(referenceNBytes(2, boxData, &bytesRead));
+        int *depth =              bigEndianCharToLittleEndianBytedInt(referenceNBytes(2, boxData, &bytesRead), 2);
+        int *colorTableID =       bigEndianCharToLittleEndianBytedInt(referenceNBytes(2, boxData, &bytesRead), 2);
 
-        printNBytes(version, 2, "version: ", "\n");
-        printNBytes(revisionLevel, 2, "revisionLevel: ", "\n");
-        printNBytes(vendor, 4, "vendor: ", "\n");
-        printf("tmp spa quality: %d %d\n", *temporalQuality, *spatialQuality); 
+
         printf("width height: %d %d\n", *width, *height);
-        printf("horizontal vertical resolution: %d %d\n", *horizontalResolution, *verticalResolution);
-        printf("data size: %d\n", *dataSize);
+        printf("%f\n", *horizontalResolution);
+        //printf("horizontal vertical resolution: %f %f\n", *horizontalResolution, *verticalResolution);
+        printBits(horizontalResolutionChar, 4);
+        //printBits(verticalResolutionChar, 4);
+        printBits(horizontalResolution, 4);
+        //printBits(verticalResolution, 4);
         printf("frame count: %d\n", *frameCount);
-        printNBytes(compressorName, 4, "compressor name: ", "\n");
-        printf("depth: %d\n", *depth);
-        printf("color table id: %d\n", *colorTableID);
+        
 
         if (bytesRead != absoluteEndOfSampleDescription) { 
             // parse video sample description extensions
@@ -249,13 +245,7 @@ void videoMediaBox() {
 
 
 
-typedef struct dataReference { 
-    unsigned int *size; 
-    char *type;
-    char *version;
-    char *flags;
-    char *data;
-} dataReference;
+
 
 // NEEDS UPDATING 
 void dinfParseBox(box *dinfBox) {

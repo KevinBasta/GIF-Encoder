@@ -1,33 +1,13 @@
 #ifndef COMMON_HEAD
+    #include "headers/types.h"
+
+
     #define COMMON_HEAD
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
     #include "headers/printUtility.h"
     #include "headers/bitUtility.h"
-    #define BOX_HEADER_SIZE 8
-    #define BOX_HEADER_HALF_SIZE 4
-    #define TRUE 1
-    #define FALSE 0
-    
-
-    typedef struct box { 
-        unsigned int *boxSize;
-        char *boxType;
-        char *boxData;
-    } box;
-
-    typedef struct Node { 
-        void *currentItem;
-        void *nextNode;
-    } Node;
-
-    typedef struct linkedList {
-        unsigned int *size;
-        Node *head;
-        Node *tail;
-        Node *current;
-    } linkedList;
 #endif
 
 
