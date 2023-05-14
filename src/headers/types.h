@@ -43,7 +43,7 @@ typedef struct Node {
  * @param *size     -   items in linkedlist
  * @param *head     -   first node
  * @param *tail     -   last node
- * @param *current  -   unused. intended for traversal.
+ * @param *current  -   used for traversal to mimic "yeild"
  *
  * @note interface defined in linkedList.c/h
  */

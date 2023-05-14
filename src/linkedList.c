@@ -22,6 +22,7 @@ linkedList* initLinkedList() {
 
     newLinkedList->head = (Node*) malloc(sizeof(Node));
     newLinkedList->tail = newLinkedList->head;
+    newLinkedList->current = newLinkedList->head;
 
     return newLinkedList;
 }
@@ -78,24 +79,37 @@ void printAllBoxesLinkedList(linkedList *list) {
  */
 box *getBoxFromLinkedList(linkedList *list, char boxReturnType[]) { 
     box *boxToReturn = NULL;
-    Node *currentNode = list->head;
+    list->current = list->head;
 
     for (int i = 0; i < *(list->size); i++) {
-        box *currentBoxPointer = (box*) currentNode->currentItem;
+        box *currentBoxPointer = (box*) list->current->currentItem;
 
-        // && (boxToReturn == NULL) for taking the last match, will be based on which one is video
-        if ((compareNBytes(currentBoxPointer->boxType, boxReturnType, 4) == 1) && (boxToReturn == NULL)) {
-            boxToReturn = currentNode->currentItem;
+        if ((compareNBytes(currentBoxPointer->boxType, boxReturnType, 4) == 1)) {
+            printf("True, returning\n");
+            boxToReturn = list->current->currentItem;
+
+            list->current = list->current->nextNode;
+
+            return boxToReturn;
         }
 
-        currentNode = currentNode->nextNode;
+        list->current = list->current->nextNode;
     }
 
     if (boxToReturn == NULL) { 
-        printf("No Match Found For: %s\n", boxReturnType);
+        printf("No (Other) Match Found For: %s\n", boxReturnType);
     }
 
     return boxToReturn;
+}
+
+/**
+ * @brief reset list->current to allow for another getBoxFromLinkedList
+ * from the start of the linkedList
+ * @param list 
+ */
+void resetCurrentNodeLinkedList(linkedList *list) { 
+    list->current = list->head;
 }
 
 

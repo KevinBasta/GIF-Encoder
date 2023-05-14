@@ -10,20 +10,22 @@
 
 void readMainBoxes(char fileName[], linkedList *list);
 void parseChildBoxes(box *moovBox, linkedList *list);
+void parseNestedChildBoxes(char *boxData, unsigned int *bytesRead, unsigned int endIndex, linkedList *list);
 void ftypParseBox(box *ftypBox);
 void mvhdParseBox(box *mvhdBox);
 void tkhdParseBox(box *trakBox);
 void elstParseBox(box *elstBox);
-void hdlrParseBox(box *mdiaBox);
+char *hdlrParseBox(box *hdlrBox);
 void vmhdParseBox(box *vmhdBox);
 void dinfParseBox(box *dinfBox);
 void stsdParseBox(box *stsdBox);
+box *getVideTrak(linkedList *moovLL);
+
 
 int main(int argc, char **argv) { 
     linkedList *topBoxesLL = initLinkedList();
     // fopen taken in a relative path from executable location
-    readMainBoxes("local_files/op2.mp4", topBoxesLL);
-
+    readMainBoxes("local_files/op.mp4", topBoxesLL);
 
 
     printf("----------TOP LEVEL----------\n");
@@ -39,7 +41,7 @@ int main(int argc, char **argv) {
 
 
     printf("----------TRAK LEVEL----------\n");
-    box *trakBox = getBoxFromLinkedList(moovLL, "trak");
+    box *trakBox = getVideTrak(moovLL);
 
     linkedList *trakLL = initLinkedList();
     parseChildBoxes(trakBox, trakLL);
@@ -125,7 +127,25 @@ int main(int argc, char **argv) {
 //If the sync sample atom is not present, all samples are implicitly sync samples.
 
 
+box *getVideTrak(linkedList *moovLL) { 
+    box *trakBox;
 
+    while ((trakBox = getBoxFromLinkedList(moovLL, "trak")) != NULL) { 
+        linkedList *trakLL = initLinkedList();
+        parseChildBoxes(trakBox, trakLL);
+
+        box *mdiaBox = getBoxFromLinkedList(trakLL, "mdia");
+        linkedList *mdiaLL = initLinkedList();
+        parseChildBoxes(mdiaBox, mdiaLL);
+
+        box *hdlrBox = getBoxFromLinkedList(mdiaLL, "hdlr");
+        if (compareNBytes(hdlrParseBox(hdlrBox), "vide", 4) == TRUE) { 
+            return trakBox;
+        }
+    }
+
+    return NULL;
+}
 
 
 /*
@@ -148,10 +168,12 @@ void stsdParseBox(box *stsdBox) { //sample description required
     // DEBUG printf("%d\n", *numberOfEntriesInt);
     
     linkedList sampleDescriptions;
+    printf("entries: %d\n", *numberOfEntriesInt);
     for (int i = 0; i < *numberOfEntriesInt; i++) { 
         char *sampleDescriptionSizeChar = referenceNBytes(4, boxData, &bytesRead);
         unsigned int *sampleDescriptionSize = charToInt(sampleDescriptionSizeChar);
         unsigned int absoluteEndOfSampleDescription = bytesRead + *sampleDescriptionSize - 4;
+        printf("total %d\n", boxDataSize);
 
         char *dataFormat = referenceNBytes(4, boxData, &bytesRead);
         char *reserved = referenceNBytes(6, boxData, &bytesRead);
@@ -196,8 +218,22 @@ void stsdParseBox(box *stsdBox) { //sample description required
         //printBits(verticalResolution, 4);
         printf("frame count: %d\n", *frameCount);
         
+        printf("read: %d, end: %d\n", bytesRead, absoluteEndOfSampleDescription);
+        char *emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
+        emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
+        emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
+        emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
+        emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
+        emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
+        emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
 
-        if (bytesRead != absoluteEndOfSampleDescription) { 
+        printf("read: %d, end: %d\n", bytesRead, absoluteEndOfSampleDescription);
+        if (bytesRead != absoluteEndOfSampleDescription) {
+            printf("not end\n"); 
+            linkedList *stsdVideoExtention = initLinkedList();
+            parseNestedChildBoxes(boxData, &bytesRead, absoluteEndOfSampleDescription, stsdVideoExtention);
+            printAllBoxesLinkedList(stsdVideoExtention);
+
             // parse video sample description extensions
         }
 
@@ -307,7 +343,7 @@ void vmhdParseBox(box *vmhdBox) {
 }
 
 
-void hdlrParseBox(box *hdlrBox) {
+char *hdlrParseBox(box *hdlrBox) {
     // IMPORTANT BOX FOR IDENTIFYING IF THE CURRENT TRAK IS VIDEO OR AUDIO
     unsigned int boxSize = *(hdlrBox->boxSize);
     unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
@@ -337,6 +373,8 @@ void hdlrParseBox(box *hdlrBox) {
     } else {
         printf("no\n");
     } 
+
+    return componentSubtype;
 
 }
 
@@ -511,6 +549,41 @@ void ftypParseBox(box *ftypBox) {
         printNBytes(&compatibleBrands[i], 4, "", "\n");
     }
 }
+
+
+
+void parseNestedChildBoxes(char *boxData, unsigned int *bytesRead, unsigned int endIndex, linkedList *list) {
+    while (*bytesRead < endIndex) { 
+        // parsing size and type from header
+        char *childBoxHeaderSize = copyNBytes(BOX_HEADER_HALF_SIZE, boxData, bytesRead);
+        char *childBoxHeaderType = copyNBytes(BOX_HEADER_HALF_SIZE, boxData, bytesRead);
+
+        // converting size to int and freeing char array
+        unsigned int *childFullBoxSize = charToInt(childBoxHeaderSize);
+        free(childBoxHeaderSize);
+
+        printf("%u\t", *childFullBoxSize);
+        printNBytes(childBoxHeaderType, 4,"type: ", "\n");
+
+        // reading body of childBox
+        int childBoxDataSize = *childFullBoxSize - 8;
+        char *childBoxData = copyNBytes(childBoxDataSize, boxData, bytesRead);
+
+        // Creating a box struct to store current box
+        box *currentChildBoxRead = (box*) malloc(sizeof(box));
+        currentChildBoxRead->boxSize = childFullBoxSize;
+        currentChildBoxRead->boxType = childBoxHeaderType;
+        currentChildBoxRead->boxData = childBoxData;
+
+        // Storing the current box in the current Node and allocating memory for the next box
+        appendNodeLinkedList(list, currentChildBoxRead);
+        if (*bytesRead >= endIndex) {
+            nullifyLastNodeLinkedList(list);
+        }
+    }
+}
+
+
 
 
 /**
