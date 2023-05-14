@@ -1,4 +1,7 @@
-#include "types.h"
+#ifndef MPEG_HEAD
+    // This may be unnecessary
+    #include "types.h"
+#endif
 
 linkedList* initLinkedList();
 void appendNodeLinkedList(linkedList *list, void *item);
@@ -6,4 +9,5 @@ void nullifyLastNodeLinkedList(linkedList *list);
 void printAllBoxesLinkedList(linkedList *list);
 box *getBoxFromLinkedList(linkedList *list, char boxReturnType[]);
 void freeBox(box *boxStruct);
-void freeNode(Node *nodeStruct);
+Node *freeBoxNode(Node *nodeStruct);
+void freeLinkedList(linkedList *list, char type[]);

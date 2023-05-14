@@ -1,17 +1,12 @@
-#ifndef COMMON_HEAD
-    #define COMMON_HEAD
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include "headers/printUtility.h"
-    #include "headers/bitUtility.h"
-
-#endif
+#define MPEG_HEAD
+#include <stdio.h>
+#include <stdlib.h>
+//#include <string.h>
 
 #include "headers/types.h"
+#include "headers/printUtility.h"
+#include "headers/bitUtility.h"
 #include "headers/linkedList.h"
-#define VERSION_SIZE 1
-#define FLAG_SIZE 3
-
 
 void readMainBoxes(char fileName[], linkedList *list);
 void parseChildBoxes(box *moovBox, linkedList *list);
@@ -114,6 +109,12 @@ int main(int argc, char **argv) {
     
 
     // free every linked list created
+    freeLinkedList(topBoxesLL, "box");
+    freeLinkedList(moovLL, "box");
+    freeLinkedList(trakLL, "box");
+    freeLinkedList(mdiaLL, "box");
+    freeLinkedList(minfLL, "box");
+    freeLinkedList(stblLL, "box");
     printf("end of script\n");
     return 0;
 }
@@ -513,8 +514,13 @@ void ftypParseBox(box *ftypBox) {
 
 
 /**
- *  reads a moov box's first layer boxes
- *  @param *moovBox:    a pointer to a moov box struct
+ * @brief given a container box, reads the child boxes and
+ * stores them in the given linkedList
+ * @param *parentBox    -   the container box contianing child boxes
+ * @param *list         -   the linkedList to store the boxes in
+ *
+ * @note NOT REFERENCING PARENT BOX FIELDS. currenlty copying the 
+ * information from the parentBox (creating new allocations for each child field).
  */
 void parseChildBoxes(box *parentBox, linkedList *list) {
     unsigned int boxSize = *(parentBox->boxSize);
@@ -524,17 +530,8 @@ void parseChildBoxes(box *parentBox, linkedList *list) {
     unsigned int bytesRead = 0;
     while (bytesRead < boxDataSize) { 
         // parsing size and type from header
-        char *childBoxHeaderSize = (char*) malloc(BOX_HEADER_HALF_SIZE);
-        for (int i = 0; i < BOX_HEADER_HALF_SIZE; i++) {
-            childBoxHeaderSize[i] = boxData[bytesRead];
-            bytesRead += 1;
-        }
-
-        char *childBoxHeaderType = (char*) malloc(BOX_HEADER_HALF_SIZE);
-        for (int i = 0; i < BOX_HEADER_HALF_SIZE; i++) {
-            childBoxHeaderType[i] = boxData[bytesRead];
-            bytesRead += 1;
-        }
+        char *childBoxHeaderSize = copyNBytes(BOX_HEADER_HALF_SIZE, boxData, &bytesRead);
+        char *childBoxHeaderType = copyNBytes(BOX_HEADER_HALF_SIZE, boxData, &bytesRead);
 
         // converting size to int and freeing char array
         unsigned int *childFullBoxSize = charToInt(childBoxHeaderSize);
@@ -545,11 +542,7 @@ void parseChildBoxes(box *parentBox, linkedList *list) {
 
         // reading body of childBox
         int childBoxDataSize = *childFullBoxSize - 8;
-        char *childBoxData = (char*) malloc(childBoxDataSize);
-        for (int i = 0; i < childBoxDataSize; i++) {
-            childBoxData[i] = boxData[bytesRead];
-            bytesRead += 1;
-        }
+        char *childBoxData = copyNBytes(childBoxDataSize, boxData, &bytesRead);
 
         // Creating a box struct to store current box
         box *currentChildBoxRead = (box*) malloc(sizeof(box));

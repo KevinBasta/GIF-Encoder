@@ -1,7 +1,8 @@
-#ifndef COMMON_HEAD
-    #define COMMON_HEAD
+#ifndef MPEG_HEAD
+    #define MPEG_HEAD
     #include <stdio.h>
     #include <stdlib.h>
+
     #include "headers/bitUtility.h"
 #endif
 

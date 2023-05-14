@@ -4,7 +4,8 @@
 #define BOX_HEADER_HALF_SIZE 4
 #define TRUE 1
 #define FALSE 0
-
+#define VERSION_SIZE 1
+#define FLAG_SIZE 3
 
 
 // General Structs //
@@ -41,7 +42,8 @@ typedef struct Node {
  * @brief Standard linked list implementation
  * @param *size     -   items in linkedlist
  * @param *head     -   first node
- * @param *tail     -   current node in a traversal. unused.
+ * @param *tail     -   last node
+ * @param *current  -   unused. intended for traversal.
  *
  * @note interface defined in linkedList.c/h
  */

@@ -1,10 +1,15 @@
-#ifndef COMMON_HEAD
-    #define COMMON_HEAD
+#ifndef MPEG_HEAD
+    #define MPEG_HEAD
     #include <stdio.h>
     #include <stdlib.h>
+
     #include "headers/printUtility.h"
+    #include "headers/types.h"
 #endif
 
+
+
+// the following conversion functions will be cleaned up when it is clearer what is needed. //
 /**
  *  Converts a 4 byte char array's binary to an unsigned int
  *  
@@ -227,17 +232,22 @@ float *bigEndianCharToLittleEndianFloat(char *bigEndianCharArray) {
  }*/
 
 
+
+
+
 /**
- *  Compares n bytes of char types. Intended for comparing the 
- *  types of mpeg boxes.
- *  @param *firstItem:    n byte char array pointer
- *  @param secondItem:  m byte char array (includes '\0')
+ * @brief Compares n bytes of char types. Intended for comparing the 
+ * types of MPEG boxes.
+ * @param *firstItem    -   n byte char array pointer
+ * @param secondItem    -   m byte char array (includes '\0')
+ * @param numberOfBytes -   the number of bytes to compare
+ * @return TRUE or FALSE
  */
 int compareNBytes(char *firstItem, char secondItem[], int numberOfBytes) {     
-    int isEqual = 1;
+    int isEqual = TRUE;
     for (int i = 0; i < numberOfBytes; i++) {
         if (firstItem[i] != secondItem[i]) {
-            isEqual = 0;
+            isEqual = FALSE;
             break;
         }
     }
@@ -247,13 +257,15 @@ int compareNBytes(char *firstItem, char secondItem[], int numberOfBytes) {
 
 
 /**
- *  Returns a char pointer to a new array. This new array contains n bytes
- *  of data from the originalData array 
- *  @param numberOfBytes:   amount of bytes to allocate for returned array
- *  @param *originalData:   pointer to an array
- *  @param *byteOffset:     the current array index of originalData
- *  @attention redundand memory usage if parent array presists
- *  @attention if using it might be benifitial to add a terminating char
+ * @brief creates a new array containing n bytes of data from the originalData array 
+ * @param numberOfBytes     -   amount of bytes to allocate for returned array
+ * @param *originalData     -   pointer to an array
+ * @param *byteOffset       -   the current array index of originalData
+ * @return a new char array of size numberOfBytes that contains data from
+ * originalData
+ *
+ * @note redundand memory usage if parent array persists.
+ * @note it might be benifitial to add a terminating char.
  */
 char *copyNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset) {
     char *infoCopy = (char*) malloc(numberOfBytes);
@@ -267,13 +279,15 @@ char *copyNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset
 
 
 /**
- *  Returns a char pointer from an array and increments byteOffset by the 
- *  size of the data that the char pointer refers to
- *  @param numberOfBytes:   amount of bytes to add to byteOffset
- *  @param *originalData:   pointer to an array
- *  @param *byteOffset:     the current array index of originalData
- *  @attention if parent array is freed data will be lost
- *  @attention will need to manually determine where each reference array ends
+ * @brief returns a char pointer from an array and increments byteOffset by the 
+ * size of the data that the char pointer refers to
+ * @param numberOfBytes     -   amount of bytes to add to byteOffset
+ * @param *originalData     -   pointer to an array
+ * @param *byteOffset       -   the current array index of originalData
+ * @return a pointer to the originalData at offset byteOffset
+ *
+ * @note if parent array is freed data will be lost.
+ * @note will need to manually determine where each reference array ends.
  */
 char *referenceNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset) {
     char *infoReference = &(originalData[*byteOffset]);
