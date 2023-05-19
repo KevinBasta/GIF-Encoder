@@ -20,7 +20,7 @@ linkedList* initLinkedList() {
     newLinkedList->size = (unsigned int*) malloc(sizeof(unsigned int));
     *(newLinkedList->size) = 0;
 
-    newLinkedList->head = (Node*) malloc(sizeof(Node));
+    newLinkedList->head = (Node*) calloc(1, sizeof(Node));
     newLinkedList->tail = newLinkedList->head;
     newLinkedList->current = newLinkedList->head;
 
@@ -35,7 +35,7 @@ linkedList* initLinkedList() {
  */
 void appendNodeLinkedList(linkedList *list, void *item) {
     list->tail->currentItem = item; 
-    list->tail->nextNode = (Node*) malloc(sizeof(Node)); 
+    list->tail->nextNode = (Node*) calloc(1, sizeof(Node)); 
 
     list->tail = list->tail->nextNode;
     *(list->size) += 1;
@@ -103,10 +103,11 @@ box *getBoxFromLinkedList(linkedList *list, char boxReturnType[]) {
     return boxToReturn;
 }
 
+
 /**
  * @brief reset list->current to allow for another getBoxFromLinkedList
  * from the start of the linkedList
- * @param list 
+ * @param list      -   the linkedlist to reset list->current for
  */
 void resetCurrentNodeLinkedList(linkedList *list) { 
     list->current = list->head;
@@ -173,7 +174,9 @@ void freeLinkedList(linkedList *list, char type[]) {
     if (strncmp(type, "box", 3)) { 
         freeBox(currentNode->currentItem);
         if (currentNode->nextNode != NULL) { 
-            freeBox(currentNode->nextNode);
+            // this case should not happen
+            printf("error occured in freeLinkedList final node");
+            free(currentNode->nextNode);
         }
     }
 

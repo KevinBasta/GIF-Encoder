@@ -18,9 +18,16 @@ void elstParseBox(box *elstBox);
 char *hdlrParseBox(box *hdlrBox);
 void vmhdParseBox(box *vmhdBox);
 void dinfParseBox(box *dinfBox);
-void stsdParseBox(box *stsdBox);
 box *getVideTrak(linkedList *moovLL);
 
+void stsdParseBox(box *stsdBox);
+void stszParseBox(box *stszBox);
+void stscParseBox(box *stscBox);
+void stcoParseBox(box *stcoBox);
+void sttsParseBox(box *sttsBox);
+void stssParseBox(box *stssBox);
+void cttsParseBox(box *cttsBox);
+void videoMediaBox();
 
 int main(int argc, char **argv) { 
     linkedList *topBoxesLL = initLinkedList();
@@ -72,9 +79,19 @@ int main(int argc, char **argv) {
     printAllBoxesLinkedList(stblLL);
 
 
-    printf("--------STBL CHILD LEVEL--------\n");
-    box *stsd = getBoxFromLinkedList(stblLL, "stsd");
-    stsdParseBox(stsd);
+    printf("--------STTS CHILD LEVEL--------\n");
+    box *stsz = getBoxFromLinkedList(stblLL, "stsz");
+    stszParseBox(stsz);
+    /* box *stsc = getBoxFromLinkedList(stblLL, "stsc");
+    stscParseBox(stsc); */
+    /* box *stss = getBoxFromLinkedList(stblLL, "stss");
+    stssParseBox(stss); */
+    /* box *ctts = getBoxFromLinkedList(stblLL, "ctts");
+    cttsParseBox(ctts); */
+    /* box *stts = getBoxFromLinkedList(stblLL, "stts");
+    sttsParseBox(stts); */
+    /* box *stsd = getBoxFromLinkedList(stblLL, "stsd");
+    stsdParseBox(stsd); */
 
     
 
@@ -122,11 +139,15 @@ int main(int argc, char **argv) {
 }
 
 
-//https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap2/qtff2.html#//apple_ref/doc/uid/TP40000939-CH204-25680
-//the following child atoms are required: sample description, sample size, sample to chunk, and chunk offset
-//If the sync sample atom is not present, all samples are implicitly sync samples.
-
-
+/**
+ * @brief 
+ * 
+ * paths - 
+ * moov->trak->mdia->hdlr
+ * 
+ * @param moovLL 
+ * @return 
+ */
 box *getVideTrak(linkedList *moovLL) { 
     box *trakBox;
 
@@ -147,6 +168,10 @@ box *getVideTrak(linkedList *moovLL) {
     return NULL;
 }
 
+
+//https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap2/qtff2.html#//apple_ref/doc/uid/TP40000939-CH204-25680
+//the following child atoms are required: sample description, sample size, sample to chunk, and chunk offset
+//If the sync sample atom is not present, all samples are implicitly sync samples.
 
 /*
 Child boxes of STBL (Sample Table Atom). These define Samples and Chunks in the file.
@@ -219,6 +244,10 @@ void stsdParseBox(box *stsdBox) { //sample description required
         printf("frame count: %d\n", *frameCount);
         
         printf("read: %d, end: %d\n", bytesRead, absoluteEndOfSampleDescription);
+        /*
+            Unspecified 28 bytes of all 0 bits not mentioned in spesification
+            the last 4 bytes contains some unknown non-zero bits
+        */
         char *emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
         emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
         emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
@@ -226,6 +255,10 @@ void stsdParseBox(box *stsdBox) { //sample description required
         emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
         emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
         emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
+        printBits(emptyFourBytes, 4);
+        printNBytes(emptyFourBytes, 4, "", "\n");
+        unsigned int *test = charToInt(emptyFourBytes);
+        printf("%d\n", *test);
 
         printf("read: %d, end: %d\n", bytesRead, absoluteEndOfSampleDescription);
         if (bytesRead != absoluteEndOfSampleDescription) {
@@ -242,11 +275,69 @@ void stsdParseBox(box *stsdBox) { //sample description required
 
 }
 
+/* int isNullBytes(unsigned int numberOfBytes, char *data, int *index) { 
+    for (int i = 0; i < numberOfBytes; i++) { 
+        if (data[*index + i] != NULL) { 
+            return FALSE;
+        }
+    }
+
+    *index = *index + numberOfBytes;
+    return TRUE;
+} */
+
+
 void stszParseBox(box *stszBox) { //sample size required
+    unsigned int boxSize = *(stszBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = stszBox->boxData;
+
+    unsigned int bytesRead;
+    bytesRead = 0;
+
+    char *version = referenceNBytes(1, boxData, &bytesRead);
+    char *flags = referenceNBytes(3, boxData, &bytesRead);
+    char *sampleSize = referenceNBytes(4, boxData, &bytesRead);
+    char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
+    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+    printf("%d\n", *numberOfEntriesInt);
+    printf("%u %u\n", boxDataSize, bytesRead);
+    //for (int i = 1; i <= *numberOfEntriesInt; i++) { 
+    for (int i = 1; i <= 10; i++) { 
+        char *size = referenceNBytes(4, boxData, &bytesRead);
+        unsigned int *sizeInt = charToInt(size);
+
+        printf("%d: %u\n", i, sizeInt);
     
+        // calloc array of number of entries * size of usngiend int
+        // set each index 
+    }
 }
 
 void stscParseBox(box *stscBox) { //sample to chunk required
+    unsigned int boxSize = *(stscBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = stscBox->boxData;
+
+    unsigned int bytesRead;
+    bytesRead = 0;
+
+    char *version = referenceNBytes(1, boxData, &bytesRead);
+    char *flags = referenceNBytes(3, boxData, &bytesRead);
+    char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
+    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+    printf("%d\n", *numberOfEntriesInt);
+    printf("First chunk \t Samples per chunk \t Sample description ID\n");
+    for (int i = 0; i < *numberOfEntriesInt; i++) { 
+        char *firstChunk = referenceNBytes(4, boxData, &bytesRead); 
+        char *samplesPerChunk = referenceNBytes(4, boxData, &bytesRead); 
+        char *sampleDescriptionId = referenceNBytes(4, boxData, &bytesRead);
+
+        unsigned int *firstChunkInt = charToInt(firstChunk); 
+        unsigned int *samplesPerChunkInt = charToInt(samplesPerChunk); 
+        unsigned int *sampleDescriptionIdInt = charToInt(sampleDescriptionId); 
+        printf("%d \t\t %d \t\t %d \n", *firstChunkInt, *samplesPerChunkInt, *sampleDescriptionIdInt);
+    }
 
 }
 
@@ -255,15 +346,77 @@ void stcoParseBox(box *stcoBox) { //chunk offset required
 }
 
 void sttsParseBox(box *sttsBox) { //time to sample
+    unsigned int boxSize = *(sttsBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = sttsBox->boxData;
+
+    unsigned int bytesRead;
+    bytesRead = 0;
+
+    char *version = referenceNBytes(1, boxData, &bytesRead);
+    char *flags = referenceNBytes(3, boxData, &bytesRead);
+    char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
+    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+    printf("%d\n", *numberOfEntriesInt);
+    printf("Sample Count \t\t Sample Duration\n");
+    for (int i = 0; i < *numberOfEntriesInt; i++) { 
+        char *sampleCount = referenceNBytes(4, boxData, &bytesRead);
+        char *sampleDuration = referenceNBytes(4, boxData, &bytesRead);
+        
+        unsigned int *sampleCountInt = charToInt(sampleCount);
+        unsigned int *sampleDurationInt = charToInt(sampleDuration);
+        printf("%d \t\t %d\n", *sampleCountInt, *sampleDurationInt);
+        free(sampleCountInt);
+        free(sampleDurationInt);
+    }
 
 }
 
 void stssParseBox(box *stssBox) { //sync sample
+    unsigned int boxSize = *(stssBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = stssBox->boxData;
+
+    unsigned int bytesRead;
+    bytesRead = 0;
+
+    char *version = referenceNBytes(1, boxData, &bytesRead);
+    char *flags = referenceNBytes(3, boxData, &bytesRead);
+    char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
+    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+    printf("%d\n", *numberOfEntriesInt);
+    for (int i = 0; i < *numberOfEntriesInt; i++) { 
+        char *entry = referenceNBytes(4, boxData, &bytesRead);
+        unsigned int *entryInt = charToInt(entry);
+        printf("%d\n", *entryInt);
+    }
 
 }
 
 void cttsParseBox(box *cttsBox) { //composition offset
+    unsigned int boxSize = *(cttsBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = cttsBox->boxData;
 
+    unsigned int bytesRead;
+    bytesRead = 0;
+
+    char *version = referenceNBytes(1, boxData, &bytesRead);
+    char *flags = referenceNBytes(3, boxData, &bytesRead);
+    char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
+    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+    printf("%d\n", *numberOfEntriesInt);
+    printf("Sample Count \t\t Composition Offset\n");
+    for (int i = 0; i < *numberOfEntriesInt; i++) { 
+        char *sampleCount = referenceNBytes(4, boxData, &bytesRead);
+        char *compositionOffset = referenceNBytes(4, boxData, &bytesRead);
+        
+        unsigned int *sampleCountInt = charToInt(sampleCount);
+        unsigned int *compositionOffsetInt = charToInt(compositionOffset);
+        printf("%d \t\t %d\n", *sampleCountInt, *compositionOffsetInt);
+        free(sampleCountInt);
+        free(compositionOffsetInt);
+    }
 }
 
 void videoMediaBox() { 
