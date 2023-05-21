@@ -60,7 +60,7 @@
  *  A much simplier way to do the conversion is discussed above.
  *  @param *integerAsCharArray:     the 4 byte character array
  */
-unsigned int *charToInt(char *integerAsCharArray) { 
+unsigned int *charToUnsignedInt(char *integerAsCharArray) { 
     unsigned int *fullBoxSize = (unsigned int*) malloc(sizeof(unsigned int));
     *fullBoxSize = 0;
 
@@ -79,6 +79,25 @@ unsigned int *charToInt(char *integerAsCharArray) {
             int currentBit = (integerAsCharArray[headerByte] >> bitInHeaderByte) & 1;
             int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
             // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
+
+            if (currentBit == 1) {
+                *fullBoxSize = *fullBoxSize | (currentBit << bitOffset);
+            }
+        }
+    }
+
+    return fullBoxSize;
+}
+
+
+int *charToInt(char *integerAsCharArray) { 
+    int *fullBoxSize = (unsigned int*) malloc(sizeof(unsigned int));
+    *fullBoxSize = 0;
+
+    for (int headerByte = 0; headerByte < 4; headerByte++) {
+        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            int currentBit = (integerAsCharArray[headerByte] >> bitInHeaderByte) & 1;
+            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
 
             if (currentBit == 1) {
                 *fullBoxSize = *fullBoxSize | (currentBit << bitOffset);

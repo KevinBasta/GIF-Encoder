@@ -79,3 +79,48 @@ typedef struct sampleDescription {
     char *reserved;
     unsigned short dataReferenceIndex;
 } sampleDescription;
+
+
+/**
+ * @brief 
+ */
+typedef struct table { 
+    unsigned int numberOfEntries;
+    void *tableArray;
+} table;
+
+/**
+ * @brief 
+ * @param *trackDuration    -   duration of edit/track in movie timescale units
+ * @param *mediaTime        -   the starting time within the media of the edit
+ * in movie time scale units. this is -1 if the edit is empty. 
+ * @param *mediaRate        -   realtive rate which to play the media corresponding
+ * to this edit segment. Cannot be 0 or negative.
+ */
+typedef struct elstTableEntry { 
+    unsigned int *trackDuration;
+    int *mediaTime;
+    unsigned int *mediaRate;
+} elstTableEntry;
+
+
+// Main Storage Structs //
+
+/**
+ * @brief 
+ * @param *timescale            -   the number of time units that pass per second in 
+ * this movies time coordinate system.
+ * @param *fullDuration         -   the duration of the longest trak in the movie in
+ * time scale units.
+ * @param *videoTrackDuration   -   the duration of the video track in the movie in
+ * movie time scale units. derived from the track's edts. equal to the sum of the 
+ * durations of all the track's edits. if there is not elst then it's the sum of 
+ * all sample durations converted into movie timescale.
+ *
+ */
+typedef struct MPEG_Data { 
+    unsigned int *timescale; 
+    unsigned int *fullDuration;
+    unsigned int *videoTrackDuration;
+
+} MPEG_Data; 

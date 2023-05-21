@@ -85,7 +85,7 @@ box *getBoxFromLinkedList(linkedList *list, char boxReturnType[]) {
         box *currentBoxPointer = (box*) list->current->currentItem;
 
         if ((compareNBytes(currentBoxPointer->boxType, boxReturnType, 4) == 1)) {
-            printf("True, returning\n");
+            // DEBUG printf("True, returning\n");
             boxToReturn = list->current->currentItem;
 
             list->current = list->current->nextNode;

@@ -9,12 +9,14 @@
 #include "headers/linkedList.h"
 
 void readMainBoxes(char fileName[], linkedList *list);
-void parseChildBoxes(box *moovBox, linkedList *list);
+void parseChildBoxes(box *parentBox, linkedList *list);
 void parseNestedChildBoxes(char *boxData, unsigned int *bytesRead, unsigned int endIndex, linkedList *list);
+box *parseSingleNestedChildBox(char *boxData, unsigned int *bytesRead);
 void ftypParseBox(box *ftypBox);
-void mvhdParseBox(box *mvhdBox);
-void tkhdParseBox(box *trakBox);
-void elstParseBox(box *elstBox);
+void mvhdParseBox(box *mvhdBox, MPEG_Data *videoData);
+void tkhdParseBox(box *trakBox, MPEG_Data *videoData);
+void elstParseBox(box *elstBox, MPEG_Data *videoData);
+void edtsParseBox(box *edtsBox, MPEG_Data *videoData);
 char *hdlrParseBox(box *hdlrBox);
 void vmhdParseBox(box *vmhdBox);
 void dinfParseBox(box *dinfBox);
@@ -32,7 +34,9 @@ void videoMediaBox();
 int main(int argc, char **argv) { 
     linkedList *topBoxesLL = initLinkedList();
     // fopen taken in a relative path from executable location
-    readMainBoxes("local_files/op.mp4", topBoxesLL);
+    readMainBoxes("local_files/op2.mp4", topBoxesLL);
+
+    MPEG_Data *videoData = (MPEG_Data*) malloc(sizeof(MPEG_Data));
 
 
     printf("----------TOP LEVEL----------\n");
@@ -47,12 +51,32 @@ int main(int argc, char **argv) {
     printAllBoxesLinkedList(moovLL);
 
 
+    printf(">----------MVHD LEVEL----------\n");
+    box *mvhdBox = getBoxFromLinkedList(moovLL, "mvhd");
+    mvhdParseBox(mvhdBox, videoData);
+
+
+
     printf("----------TRAK LEVEL----------\n");
     box *trakBox = getVideTrak(moovLL);
 
     linkedList *trakLL = initLinkedList();
     parseChildBoxes(trakBox, trakLL);
     printAllBoxesLinkedList(trakLL);
+
+
+
+    
+    printf(">----------TKHD LEVEL----------\n");
+    box *tkhdBox = getBoxFromLinkedList(trakLL, "tkhd");
+    tkhdParseBox(tkhdBox, videoData);
+
+
+    printf(">----------EDTS LEVEL----------\n");
+    box *edtsBox = getBoxFromLinkedList(trakLL, "edts");
+    edtsParseBox(edtsBox, videoData);
+
+
 
 
     printf("----------MDIA LEVEL----------\n");
@@ -80,6 +104,8 @@ int main(int argc, char **argv) {
 
 
     printf("--------STTS CHILD LEVEL--------\n");
+    box *stco = getBoxFromLinkedList(stblLL, "stco");
+    stcoParseBox(stco);
     box *stsz = getBoxFromLinkedList(stblLL, "stsz");
     stszParseBox(stsz);
     /* box *stsc = getBoxFromLinkedList(stblLL, "stsc");
@@ -128,12 +154,12 @@ int main(int argc, char **argv) {
     
 
     // free every linked list created
-    freeLinkedList(topBoxesLL, "box");
+    /* freeLinkedList(topBoxesLL, "box");
     freeLinkedList(moovLL, "box");
     freeLinkedList(trakLL, "box");
     freeLinkedList(mdiaLL, "box");
     freeLinkedList(minfLL, "box");
-    freeLinkedList(stblLL, "box");
+    freeLinkedList(stblLL, "box"); */
     printf("end of script\n");
     return 0;
 }
@@ -189,14 +215,14 @@ void stsdParseBox(box *stsdBox) { //sample description required
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
 
-    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
     // DEBUG printf("%d\n", *numberOfEntriesInt);
     
     linkedList sampleDescriptions;
     printf("entries: %d\n", *numberOfEntriesInt);
     for (int i = 0; i < *numberOfEntriesInt; i++) { 
         char *sampleDescriptionSizeChar = referenceNBytes(4, boxData, &bytesRead);
-        unsigned int *sampleDescriptionSize = charToInt(sampleDescriptionSizeChar);
+        unsigned int *sampleDescriptionSize = charToUnsignedInt(sampleDescriptionSizeChar);
         unsigned int absoluteEndOfSampleDescription = bytesRead + *sampleDescriptionSize - 4;
         printf("total %d\n", boxDataSize);
 
@@ -257,7 +283,7 @@ void stsdParseBox(box *stsdBox) { //sample description required
         emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
         printBits(emptyFourBytes, 4);
         printNBytes(emptyFourBytes, 4, "", "\n");
-        unsigned int *test = charToInt(emptyFourBytes);
+        unsigned int *test = charToUnsignedInt(emptyFourBytes);
         printf("%d\n", *test);
 
         printf("read: %d, end: %d\n", bytesRead, absoluteEndOfSampleDescription);
@@ -298,16 +324,18 @@ void stszParseBox(box *stszBox) { //sample size required
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *sampleSize = referenceNBytes(4, boxData, &bytesRead);
+    unsigned int *sampleSizeInt = charToUnsignedInt(sampleSize);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
+    printf("%d\n", *sampleSizeInt);
     printf("%d\n", *numberOfEntriesInt);
     printf("%u %u\n", boxDataSize, bytesRead);
     //for (int i = 1; i <= *numberOfEntriesInt; i++) { 
     for (int i = 1; i <= 10; i++) { 
         char *size = referenceNBytes(4, boxData, &bytesRead);
-        unsigned int *sizeInt = charToInt(size);
+        unsigned int *sizeInt = charToUnsignedInt(size);
 
-        printf("%d: %u\n", i, sizeInt);
+        printf("%d: %u\n", i, *sizeInt);
     
         // calloc array of number of entries * size of usngiend int
         // set each index 
@@ -325,7 +353,7 @@ void stscParseBox(box *stscBox) { //sample to chunk required
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
     printf("%d\n", *numberOfEntriesInt);
     printf("First chunk \t Samples per chunk \t Sample description ID\n");
     for (int i = 0; i < *numberOfEntriesInt; i++) { 
@@ -333,16 +361,35 @@ void stscParseBox(box *stscBox) { //sample to chunk required
         char *samplesPerChunk = referenceNBytes(4, boxData, &bytesRead); 
         char *sampleDescriptionId = referenceNBytes(4, boxData, &bytesRead);
 
-        unsigned int *firstChunkInt = charToInt(firstChunk); 
-        unsigned int *samplesPerChunkInt = charToInt(samplesPerChunk); 
-        unsigned int *sampleDescriptionIdInt = charToInt(sampleDescriptionId); 
+        unsigned int *firstChunkInt = charToUnsignedInt(firstChunk); 
+        unsigned int *samplesPerChunkInt = charToUnsignedInt(samplesPerChunk); 
+        unsigned int *sampleDescriptionIdInt = charToUnsignedInt(sampleDescriptionId); 
         printf("%d \t\t %d \t\t %d \n", *firstChunkInt, *samplesPerChunkInt, *sampleDescriptionIdInt);
     }
 
 }
 
 void stcoParseBox(box *stcoBox) { //chunk offset required
+    unsigned int boxSize = *(stcoBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = stcoBox->boxData;
 
+    unsigned int bytesRead;
+    bytesRead = 0;
+
+    char *version = referenceNBytes(1, boxData, &bytesRead);
+    char *flags = referenceNBytes(3, boxData, &bytesRead);
+    char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
+    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
+    printf("%d\n", *numberOfEntriesInt);
+    
+    printf("Chunk: Offset\n");
+    for (int i = 1; i <= 10; i++) {
+        char *offset = referenceNBytes(4, boxData, &bytesRead);
+        unsigned int *offsetInt = charToUnsignedInt(offset);
+
+        printf("%d: %d\n", i, *offsetInt);
+    }
 }
 
 void sttsParseBox(box *sttsBox) { //time to sample
@@ -356,15 +403,15 @@ void sttsParseBox(box *sttsBox) { //time to sample
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
     printf("%d\n", *numberOfEntriesInt);
     printf("Sample Count \t\t Sample Duration\n");
     for (int i = 0; i < *numberOfEntriesInt; i++) { 
         char *sampleCount = referenceNBytes(4, boxData, &bytesRead);
         char *sampleDuration = referenceNBytes(4, boxData, &bytesRead);
         
-        unsigned int *sampleCountInt = charToInt(sampleCount);
-        unsigned int *sampleDurationInt = charToInt(sampleDuration);
+        unsigned int *sampleCountInt = charToUnsignedInt(sampleCount);
+        unsigned int *sampleDurationInt = charToUnsignedInt(sampleDuration);
         printf("%d \t\t %d\n", *sampleCountInt, *sampleDurationInt);
         free(sampleCountInt);
         free(sampleDurationInt);
@@ -383,11 +430,11 @@ void stssParseBox(box *stssBox) { //sync sample
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
     printf("%d\n", *numberOfEntriesInt);
     for (int i = 0; i < *numberOfEntriesInt; i++) { 
         char *entry = referenceNBytes(4, boxData, &bytesRead);
-        unsigned int *entryInt = charToInt(entry);
+        unsigned int *entryInt = charToUnsignedInt(entry);
         printf("%d\n", *entryInt);
     }
 
@@ -404,15 +451,15 @@ void cttsParseBox(box *cttsBox) { //composition offset
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
     printf("%d\n", *numberOfEntriesInt);
     printf("Sample Count \t\t Composition Offset\n");
     for (int i = 0; i < *numberOfEntriesInt; i++) { 
         char *sampleCount = referenceNBytes(4, boxData, &bytesRead);
         char *compositionOffset = referenceNBytes(4, boxData, &bytesRead);
         
-        unsigned int *sampleCountInt = charToInt(sampleCount);
-        unsigned int *compositionOffsetInt = charToInt(compositionOffset);
+        unsigned int *sampleCountInt = charToUnsignedInt(sampleCount);
+        unsigned int *compositionOffsetInt = charToUnsignedInt(compositionOffset);
         printf("%d \t\t %d\n", *sampleCountInt, *compositionOffsetInt);
         free(sampleCountInt);
         free(compositionOffsetInt);
@@ -452,7 +499,7 @@ void dinfParseBox(box *dinfBox) {
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
 
 
     Node *dataReferenceHeadNode = (Node*) malloc(sizeof(Node));
@@ -461,7 +508,7 @@ void dinfParseBox(box *dinfBox) {
         dataReference *dataReferenceChunk = (dataReference*) malloc(sizeof(dataReference)); 
         
         char *dataReferenceChunkSize = referenceNBytes(BOX_HEADER_HALF_SIZE, boxData, &bytesRead); 
-        dataReferenceChunk->size = charToInt(dataReferenceChunkSize);
+        dataReferenceChunk->size = charToUnsignedInt(dataReferenceChunkSize);
         dataReferenceChunk->type = referenceNBytes(BOX_HEADER_HALF_SIZE, boxData, &bytesRead);
         dataReferenceChunk->version = referenceNBytes(VERSION_SIZE, boxData, &bytesRead);
         dataReferenceChunk->flags = referenceNBytes(FLAG_SIZE, boxData, &bytesRead);
@@ -495,7 +542,11 @@ void vmhdParseBox(box *vmhdBox) {
     char *opcolorThree = referenceNBytes(2, boxData, &bytesRead); //Blue
 }
 
-
+/**
+ * @brief for now returns the sub type to indicate video track
+ * @param hdlrBox 
+ * @return 
+ */
 char *hdlrParseBox(box *hdlrBox) {
     // IMPORTANT BOX FOR IDENTIFYING IF THE CURRENT TRAK IS VIDEO OR AUDIO
     unsigned int boxSize = *(hdlrBox->boxSize);
@@ -508,9 +559,9 @@ char *hdlrParseBox(box *hdlrBox) {
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *componentType = copyNBytes(4, boxData, &bytesRead); // test files show that this is empty
-    printNBytes(componentType, 4, "type: ", "\n");
+    //printNBytes(componentType, 4, "type: ", "\n");
     char *componentSubtype = referenceNBytes(4, boxData, &bytesRead); // check if type is vide !IMPORTANT
-    printNBytes(componentSubtype, 4, "sub type: ", "\n");
+    //printNBytes(componentSubtype, 4, "sub type: ", "\n");
 
     char *componentManufacturer = referenceNBytes(4, boxData, &bytesRead);
     char *componentFlags = referenceNBytes(4, boxData, &bytesRead);
@@ -518,22 +569,25 @@ char *hdlrParseBox(box *hdlrBox) {
     
     int componentNameLength = boxDataSize - bytesRead;
     char *componentName = referenceNBytes(componentNameLength, boxData, &bytesRead);
-    printNBytes(componentName, componentNameLength, "name: ", "\n");
+    //printNBytes(componentName, componentNameLength, "name: ", "\n");
 
-    printf("%d %d\n", bytesRead, boxDataSize);
+    /* printf("%d %d\n", bytesRead, boxDataSize);
     if (bytesRead == boxDataSize) {
         printf("read all\n");
     } else {
         printf("no\n");
-    } 
+    } */ 
 
     return componentSubtype;
 
 }
 
 
-void elstParseBox(box *elstBox) {
-    //Note: If the edit atom or the edit list atom is missing, you can assume that the entire media is used by the track.
+
+
+
+
+void elstParseBox(box *elstBox, MPEG_Data *videoData) { 
     unsigned int boxSize = *(elstBox->boxSize);
     unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
     char *boxData = elstBox->boxData;
@@ -544,35 +598,49 @@ void elstParseBox(box *elstBox) {
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *numberOfEntriesInt = charToInt(numberOfEntries);
+    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
     printf("number of edit list entries: %u\n", *numberOfEntriesInt);
-    
-    // NEED TO STORE IN DATA STRUCTURE IF THERE ARE MULTIPLE
+
     char *trackDuration = referenceNBytes(4, boxData, &bytesRead);
     char *mediaTime = referenceNBytes(4, boxData, &bytesRead);
     char *mediaRate = referenceNBytes(4, boxData, &bytesRead);
 
-    /* 
-    for (int editListEntryNumber = 1; editListEntryNumber <= *numberOfEntries; editListEntryNumber++) { 
-        // current elst only have one entry, will generalize to store multiple entries when needed
-        free(trackDuration);
-        free(mediaTime);
-        free(mediaRate);
-        trackDuration = 
-        mediaTime = referenceNBytes(4, boxData, &bytesRead);
-        mediaRate = referenceNBytes(4, boxData, &bytesRead);
-    } */
+    // there can be multiple table entries in for example the video stops in
+    // the middle of the movie and then continues later on
+    elstTableEntry *elstTable = (elstTableEntry*) calloc(*numberOfEntries, sizeof(elstTableEntry*));
+    
 
-    unsigned int *trackDurationInt = charToInt(trackDuration);
-    unsigned int *mediaTimeInt = charToInt(mediaTime);
-    unsigned int *mediaRateInt = charToInt(mediaRate);
+
+    unsigned int *trackDurationInt = charToUnsignedInt(trackDuration);
+    unsigned int *mediaTimeInt = charToUnsignedInt(mediaTime);
+    unsigned int *mediaRateInt = charToUnsignedInt(mediaRate);
     printf("duration: %u\n", *trackDurationInt);
     printf("time: %u\n", *mediaTimeInt);
     printf("rate: %u\n", *mediaRateInt);
+
+    // temp error message
+    if (*numberOfEntriesInt > 1) {
+        printf("more than one elst table entry, parse rest");
+    }
+
 }
 
 
-void tkhdParseBox(box *trakBox) {
+void edtsParseBox(box *edtsBox, MPEG_Data *videoData) {
+    //Note: If the edit atom or the edit list atom is missing, you can assume that the entire media is used by the track.
+    unsigned int boxSize = *(edtsBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = edtsBox->boxData;
+
+    unsigned int bytesRead;
+    bytesRead = 0;
+
+    box *elstBox = parseSingleNestedChildBox(boxData, &bytesRead);
+    elstParseBox(elstBox, videoData);
+}
+
+
+void tkhdParseBox(box *trakBox, MPEG_Data *videoData) {
     unsigned int boxSize = *(trakBox->boxSize);
     unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
     char *boxData = trakBox->boxData;
@@ -586,17 +654,29 @@ void tkhdParseBox(box *trakBox) {
     char *modificationTime = referenceNBytes(4, boxData, &bytesRead);
     char *trackId = referenceNBytes(4, boxData, &bytesRead);
     char *reservedOne = referenceNBytes(4, boxData, &bytesRead);
+
+    // Start Of Used Values //
     char *duration = referenceNBytes(4, boxData, &bytesRead);
+    unsigned int *durationInt = charToUnsignedInt(duration);
+    videoData->videoTrackDuration = durationInt;
+    // End Of Used Values //
+    printf("duration: %d\n", *durationInt);
+
+
     char *reservedTwo = referenceNBytes(8, boxData, &bytesRead);
     char *layer = referenceNBytes(2, boxData, &bytesRead);
     char *alternateGroup = referenceNBytes(2, boxData, &bytesRead);
     char *volume = referenceNBytes(2, boxData, &bytesRead);
     char *reservedThree = referenceNBytes(2, boxData, &bytesRead);
     char *matrixStructure = referenceNBytes(36, boxData, &bytesRead);
+    //printNBytes(matrixStructure, 36, "matrix: ", "\n");
+    
+    
     char *trackWidth = referenceNBytes(4, boxData, &bytesRead);
+    unsigned int *trackWidthInt = charToUnsignedInt(trackWidth);
     char *trackHeight = referenceNBytes(4, boxData, &bytesRead);
-    printNBytes(trackWidth, 4, "width:", "\n");
-    printf("width %u\n", *charToInt(trackWidth));
+    unsigned int *trackHeightInt = charToUnsignedInt(trackHeight);
+    printf("width: %d height: %d\n", *trackWidthInt, *trackHeightInt);
 
 
 
@@ -607,13 +687,14 @@ void tkhdParseBox(box *trakBox) {
         printf("no\n");
     } 
 }
-
+// use
 
 /**
  *  reads a mvhd box
  *  @param *mvhdBox:    a pointer to an mvhd box struct
 */
-void mvhdParseBox(box *mvhdBox) { 
+void mvhdParseBox(box *mvhdBox, MPEG_Data *videoData) { 
+
     unsigned int boxSize = *(mvhdBox->boxSize);
     unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
     char *boxData = mvhdBox->boxData;
@@ -625,15 +706,25 @@ void mvhdParseBox(box *mvhdBox) {
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *creationTime = referenceNBytes(4, boxData, &bytesRead);
     char *modificationTime = referenceNBytes(4, boxData, &bytesRead);
-    char *timeScale = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *timeScaleInt = charToInt(timeScale);
-    printf("timescale as int: %u\n", *timeScaleInt);
     
-    char *duration = copyNBytes(4, boxData, &bytesRead);
-    unsigned int *durationInt = charToInt(duration);
+    
+    // Start Of Used Values //
+    char *timeScale = referenceNBytes(4, boxData, &bytesRead);
+    unsigned int *timeScaleInt = charToUnsignedInt(timeScale);
+    videoData->timescale = timeScaleInt;
+
+    char *duration = referenceNBytes(4, boxData, &bytesRead);
+    unsigned int *durationInt = charToUnsignedInt(duration);
+    videoData->fullDuration = durationInt;
+    // End Of Used Values //
+
+    printf("timescale as int: %u\n", *timeScaleInt);
     printf("duration as int: %u\n", *durationInt);
+
+
+
     //printNBytes(duration, 4, "duration: ", ".\n");
-    printf("duration/timescale %lf\n", (*durationInt / *timeScaleInt) / 60.0);
+    //printf("duration/timescale %lf\n", (*durationInt / *timeScaleInt) / 60.0);
     //printHexNBytes(duration, 4);
     
     char *preferredRate = referenceNBytes(4, boxData, &bytesRead);
@@ -655,6 +746,8 @@ void mvhdParseBox(box *mvhdBox) {
         printf("no\n");
     } 
 }
+
+
 
 
 
@@ -705,28 +798,46 @@ void ftypParseBox(box *ftypBox) {
 
 
 
+
+
+
+
+
+
+box *parseSingleNestedChildBox(char *boxData, unsigned int *bytesRead) {
+    // parsing size and type from header
+    char *childBoxHeaderSize = copyNBytes(BOX_HEADER_HALF_SIZE, boxData, bytesRead);
+    char *childBoxHeaderType = copyNBytes(BOX_HEADER_HALF_SIZE, boxData, bytesRead);
+    
+    // converting size to int and freeing char array
+    unsigned int *childFullBoxSize = charToUnsignedInt(childBoxHeaderSize);
+    free(childBoxHeaderSize);
+    
+    // DEBUG printf("%u\t", *childFullBoxSize);
+    // DEBUG printNBytes(childBoxHeaderType, 4,"", "\n");
+
+    // reading body of childBox
+    int childBoxDataSize = *childFullBoxSize - 8;
+    char *childBoxData = copyNBytes(childBoxDataSize, boxData, bytesRead);
+    
+    // Creating a box struct to store current box
+    box *currentChildBoxRead = (box*) malloc(sizeof(box));
+    currentChildBoxRead->boxSize = childFullBoxSize;
+    currentChildBoxRead->boxType = childBoxHeaderType;
+    currentChildBoxRead->boxData = childBoxData;
+
+    return currentChildBoxRead;
+}
+
+// give the following three linked list return types
+// might not want to do that if final thing wants to append
+// on one big linked list containing all parsed boxes
+
+
 void parseNestedChildBoxes(char *boxData, unsigned int *bytesRead, unsigned int endIndex, linkedList *list) {
     while (*bytesRead < endIndex) { 
-        // parsing size and type from header
-        char *childBoxHeaderSize = copyNBytes(BOX_HEADER_HALF_SIZE, boxData, bytesRead);
-        char *childBoxHeaderType = copyNBytes(BOX_HEADER_HALF_SIZE, boxData, bytesRead);
-
-        // converting size to int and freeing char array
-        unsigned int *childFullBoxSize = charToInt(childBoxHeaderSize);
-        free(childBoxHeaderSize);
-
-        printf("%u\t", *childFullBoxSize);
-        printNBytes(childBoxHeaderType, 4,"type: ", "\n");
-
-        // reading body of childBox
-        int childBoxDataSize = *childFullBoxSize - 8;
-        char *childBoxData = copyNBytes(childBoxDataSize, boxData, bytesRead);
-
         // Creating a box struct to store current box
-        box *currentChildBoxRead = (box*) malloc(sizeof(box));
-        currentChildBoxRead->boxSize = childFullBoxSize;
-        currentChildBoxRead->boxType = childBoxHeaderType;
-        currentChildBoxRead->boxData = childBoxData;
+        box *currentChildBoxRead = parseSingleNestedChildBox(boxData, bytesRead);
 
         // Storing the current box in the current Node and allocating memory for the next box
         appendNodeLinkedList(list, currentChildBoxRead);
@@ -754,34 +865,7 @@ void parseChildBoxes(box *parentBox, linkedList *list) {
     char *boxData = parentBox->boxData;
 
     unsigned int bytesRead = 0;
-    while (bytesRead < boxDataSize) { 
-        // parsing size and type from header
-        char *childBoxHeaderSize = copyNBytes(BOX_HEADER_HALF_SIZE, boxData, &bytesRead);
-        char *childBoxHeaderType = copyNBytes(BOX_HEADER_HALF_SIZE, boxData, &bytesRead);
-
-        // converting size to int and freeing char array
-        unsigned int *childFullBoxSize = charToInt(childBoxHeaderSize);
-        free(childBoxHeaderSize);
-
-        // DEBUG printf("%u\t", *childFullBoxSize);
-        // DEBUG printNBytes(childBoxHeaderType, 4,"", "\n");
-
-        // reading body of childBox
-        int childBoxDataSize = *childFullBoxSize - 8;
-        char *childBoxData = copyNBytes(childBoxDataSize, boxData, &bytesRead);
-
-        // Creating a box struct to store current box
-        box *currentChildBoxRead = (box*) malloc(sizeof(box));
-        currentChildBoxRead->boxSize = childFullBoxSize;
-        currentChildBoxRead->boxType = childBoxHeaderType;
-        currentChildBoxRead->boxData = childBoxData;
-
-        // Storing the current box in the current Node and allocating memory for the next box
-        appendNodeLinkedList(list, currentChildBoxRead);
-        if (bytesRead >= boxDataSize) {
-            nullifyLastNodeLinkedList(list);
-        }
-    }
+    parseNestedChildBoxes(boxData, &bytesRead, boxDataSize, list);
 }
 
 
@@ -816,7 +900,7 @@ void readMainBoxes(char fileName[], linkedList *list) {
         chunksread = fread(&headerType[0], BOX_HEADER_HALF_SIZE, 1, video);
         
         // translating the headerSize binary into an integer
-        unsigned int *fullBoxSize = charToInt(headerSize);
+        unsigned int *fullBoxSize = charToUnsignedInt(headerSize);
         free(headerSize); // freeing the char malloc for header size
         
         
