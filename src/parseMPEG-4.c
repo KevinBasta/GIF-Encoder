@@ -17,6 +17,7 @@ void mvhdParseBox(box *mvhdBox, MPEG_Data *videoData);
 void tkhdParseBox(box *trakBox, MPEG_Data *videoData);
 void elstParseBox(box *elstBox, MPEG_Data *videoData);
 void edtsParseBox(box *edtsBox, MPEG_Data *videoData);
+void mdhdParseBox(box *mdhdBox, MPEG_Data *videoData);
 char *hdlrParseBox(box *hdlrBox);
 void vmhdParseBox(box *vmhdBox);
 void dinfParseBox(box *dinfBox);
@@ -85,6 +86,21 @@ int main(int argc, char **argv) {
     linkedList *mdiaLL = initLinkedList();
     parseChildBoxes(mdia, mdiaLL);
     printAllBoxesLinkedList(mdiaLL);
+
+
+
+
+    printf(">----------MDHD LEVEL----------\n");
+    box *mdhdBox = getBoxFromLinkedList(mdiaLL, "mdhd");
+    mdhdParseBox(mdhdBox, videoData);
+
+
+    printf(">----------HDLR LEVEL----------\n");
+    box *hdlrBox = getBoxFromLinkedList(mdiaLL, "hdlr");
+    hdlrParseBox(hdlrBox);
+
+
+
 
 
     printf("----------MINF LEVEL----------\n");
@@ -187,6 +203,7 @@ box *getVideTrak(linkedList *moovLL) {
 
         box *hdlrBox = getBoxFromLinkedList(mdiaLL, "hdlr");
         if (compareNBytes(hdlrParseBox(hdlrBox), "vide", 4) == TRUE) { 
+            // gather other info into MPEG_Data then
             return trakBox;
         }
     }
@@ -485,6 +502,12 @@ void videoMediaBox() {
 
 
 // NEEDS UPDATING 
+
+/**
+ * @brief 
+ * @note path: moov->trak->mdia->minf->dinf
+ * @param dinfBox 
+ */
 void dinfParseBox(box *dinfBox) {
     unsigned int boxSize = *(dinfBox->boxSize);
     unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
@@ -526,6 +549,11 @@ void dinfParseBox(box *dinfBox) {
 }
 
 
+/**
+ * @brief unused box
+ * @note path: moov->trak->mdia->minf->vmhd
+ * @param vmhdBox 
+ */
 void vmhdParseBox(box *vmhdBox) { 
     unsigned int boxSize = *(vmhdBox->boxSize);
     unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
@@ -542,13 +570,15 @@ void vmhdParseBox(box *vmhdBox) {
     char *opcolorThree = referenceNBytes(2, boxData, &bytesRead); //Blue
 }
 
+
 /**
- * @brief for now returns the sub type to indicate video track
- * @param hdlrBox 
- * @return 
+ * @brief identifies if the current trak is Video or Audio
+ * @note path: moov->trak->mdia->hdlr
+ * @param hdlrBox   -   the box
+ * @return the componentSubtype that determins if this box's parent trak atom is 
+ * of type video or not. vide return descides if should parse this trak further.
  */
-char *hdlrParseBox(box *hdlrBox) {
-    // IMPORTANT BOX FOR IDENTIFYING IF THE CURRENT TRAK IS VIDEO OR AUDIO
+char *hdlrParseBox(box *hdlrBox) { 
     unsigned int boxSize = *(hdlrBox->boxSize);
     unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
     char *boxData = hdlrBox->boxData;
@@ -558,35 +588,71 @@ char *hdlrParseBox(box *hdlrBox) {
 
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
-    char *componentType = copyNBytes(4, boxData, &bytesRead); // test files show that this is empty
-    //printNBytes(componentType, 4, "type: ", "\n");
+
+    // Start Of Used Values //
+    char *componentType = referenceNBytes(4, boxData, &bytesRead);
     char *componentSubtype = referenceNBytes(4, boxData, &bytesRead); // check if type is vide !IMPORTANT
-    //printNBytes(componentSubtype, 4, "sub type: ", "\n");
+    // End Of Used Values //
+    printNBytes(componentType, 4, "type ", "\n");
+    printNBytes(componentSubtype, 4, "sub type ", "\n");
 
     char *componentManufacturer = referenceNBytes(4, boxData, &bytesRead);
     char *componentFlags = referenceNBytes(4, boxData, &bytesRead);
     char *componentFlagsMask = referenceNBytes(4, boxData, &bytesRead);
-    
+
     int componentNameLength = boxDataSize - bytesRead;
     char *componentName = referenceNBytes(componentNameLength, boxData, &bytesRead);
-    //printNBytes(componentName, componentNameLength, "name: ", "\n");
-
-    /* printf("%d %d\n", bytesRead, boxDataSize);
-    if (bytesRead == boxDataSize) {
-        printf("read all\n");
-    } else {
-        printf("no\n");
-    } */ 
 
     return componentSubtype;
-
 }
 
 
+/**
+ * @brief gives characteristics of specific media
+ * @note path: moov->trak->mdia->mdhd
+ * @param mdhdBox   -   the box
+ * @param videoData -   struct to store VIDEO timescale and duration
+ */
+void mdhdParseBox(box *mdhdBox, MPEG_Data *videoData) { 
+    unsigned int boxSize = *(mdhdBox->boxSize);
+    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    char *boxData = mdhdBox->boxData;
+
+    unsigned int bytesRead;
+    bytesRead = 0;
+
+    char *version = referenceNBytes(1, boxData, &bytesRead);
+    char *flags = referenceNBytes(3, boxData, &bytesRead);
+    char *creationTime = referenceNBytes(4, boxData, &bytesRead);
+    char *modificationTime = referenceNBytes(4, boxData, &bytesRead);
+
+    // Start Of Used Values //
+    char *timeScale = referenceNBytes(4, boxData, &bytesRead);
+    char *duration = referenceNBytes(4, boxData, &bytesRead);
+    
+    unsigned int *timeScaleInt = charToUnsignedInt(timeScale);
+    unsigned int *durationInt = charToUnsignedInt(duration);
+    
+    videoData->mdhdTimeScale = timeScaleInt;
+    videoData->mdhdDuration = durationInt;
+    // End Of Used Values //
+    printf("%d %d\n", *timeScaleInt, *durationInt);
+
+    
+    char *language = referenceNBytes(2, boxData, &bytesRead);
+    char *quality = referenceNBytes(2, boxData, &bytesRead);
+
+    //printBits(language, 2);
+    //printBits(quality, 2);
+}
 
 
-
-
+/**
+ * @brief parses elst table
+ * @note path: moov->trak->edts->elst
+ * @param elstBox   -   the box
+ * @param videoData -   struct to store elstTable in
+ */
 void elstParseBox(box *elstBox, MPEG_Data *videoData) { 
     unsigned int boxSize = *(elstBox->boxSize);
     unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
@@ -601,31 +667,50 @@ void elstParseBox(box *elstBox, MPEG_Data *videoData) {
     unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
     printf("number of edit list entries: %u\n", *numberOfEntriesInt);
 
-    char *trackDuration = referenceNBytes(4, boxData, &bytesRead);
-    char *mediaTime = referenceNBytes(4, boxData, &bytesRead);
-    char *mediaRate = referenceNBytes(4, boxData, &bytesRead);
-
     // there can be multiple table entries in for example the video stops in
     // the middle of the movie and then continues later on
-    elstTableEntry *elstTable = (elstTableEntry*) calloc(*numberOfEntries, sizeof(elstTableEntry*));
     
+    //table *elstTable = (table*) malloc(sizeof(table));
 
+    elstTableEntry **elstTable = calloc(*numberOfEntriesInt + 1, sizeof(elstTableEntry*));
+    elstTable[*numberOfEntriesInt] = NULL;
 
-    unsigned int *trackDurationInt = charToUnsignedInt(trackDuration);
-    unsigned int *mediaTimeInt = charToUnsignedInt(mediaTime);
-    unsigned int *mediaRateInt = charToUnsignedInt(mediaRate);
-    printf("duration: %u\n", *trackDurationInt);
-    printf("time: %u\n", *mediaTimeInt);
-    printf("rate: %u\n", *mediaRateInt);
+    for (int i = 0; i < *numberOfEntriesInt; i++) { 
+        char *trackDuration = referenceNBytes(4, boxData, &bytesRead);
+        char *mediaTime = referenceNBytes(4, boxData, &bytesRead);
+        char *mediaRate = referenceNBytes(4, boxData, &bytesRead);
 
-    // temp error message
-    if (*numberOfEntriesInt > 1) {
-        printf("more than one elst table entry, parse rest");
+        unsigned int *trackDurationInt = charToUnsignedInt(trackDuration);
+        int *mediaTimeInt = charToInt(mediaTime);
+        unsigned int *mediaRateInt = charToUnsignedInt(mediaRate);
+        printf("%d %d %d\n", *trackDurationInt, *mediaTimeInt, *mediaRateInt);
+
+        elstTableEntry *elstEntry = (elstTableEntry*) malloc(sizeof(elstTableEntry));
+        elstEntry->trackDuration = trackDurationInt;
+        elstEntry->mediaTime = mediaTimeInt;
+        elstEntry->mediaRate = mediaRateInt;
+        
+        elstTable[i] = elstEntry;
     }
+    videoData->elstTable = elstTable;
 
+
+    /* { 
+        int i = 0;
+        while (elstTable[i] != NULL) { 
+            printf("%d %d %d\n", *(elstTable[i]->trackDuration), *(elstTable[i]->mediaTime), *(elstTable[i]->mediaRate));
+            i++;
+        }
+    } */
 }
 
 
+/**
+ * @brief parses it's single elst child box
+ * @note path: moov->trak->edts
+ * @param edtsBox   -   the box
+ * @param videoData -   just for passing to child
+ */
 void edtsParseBox(box *edtsBox, MPEG_Data *videoData) {
     //Note: If the edit atom or the edit list atom is missing, you can assume that the entire media is used by the track.
     unsigned int boxSize = *(edtsBox->boxSize);
@@ -640,6 +725,12 @@ void edtsParseBox(box *edtsBox, MPEG_Data *videoData) {
 }
 
 
+/**
+ * @brief gives duration of track in question. used to get duration of video.
+ * @note path: moov->trak->tkhd
+ * @param trakBox   -   the box
+ * @param videoData -   struct to store TRACK duration
+ */
 void tkhdParseBox(box *trakBox, MPEG_Data *videoData) {
     unsigned int boxSize = *(trakBox->boxSize);
     unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
@@ -658,7 +749,7 @@ void tkhdParseBox(box *trakBox, MPEG_Data *videoData) {
     // Start Of Used Values //
     char *duration = referenceNBytes(4, boxData, &bytesRead);
     unsigned int *durationInt = charToUnsignedInt(duration);
-    videoData->videoTrackDuration = durationInt;
+    videoData->tkhdTrackDuration = durationInt;
     // End Of Used Values //
     printf("duration: %d\n", *durationInt);
 
@@ -687,12 +778,14 @@ void tkhdParseBox(box *trakBox, MPEG_Data *videoData) {
         printf("no\n");
     } 
 }
-// use
+
 
 /**
- *  reads a mvhd box
- *  @param *mvhdBox:    a pointer to an mvhd box struct
-*/
+ * @brief gives a timescale and duration for the entire movie
+ * @note path: moov->mvhd
+ * @param mvhdBox   -   the box
+ * @param videoData -   struct to store ENTIRE MOVIE timescale and duration
+ */
 void mvhdParseBox(box *mvhdBox, MPEG_Data *videoData) { 
 
     unsigned int boxSize = *(mvhdBox->boxSize);
@@ -711,11 +804,11 @@ void mvhdParseBox(box *mvhdBox, MPEG_Data *videoData) {
     // Start Of Used Values //
     char *timeScale = referenceNBytes(4, boxData, &bytesRead);
     unsigned int *timeScaleInt = charToUnsignedInt(timeScale);
-    videoData->timescale = timeScaleInt;
+    videoData->mvhdTimeScale = timeScaleInt;
 
     char *duration = referenceNBytes(4, boxData, &bytesRead);
     unsigned int *durationInt = charToUnsignedInt(duration);
-    videoData->fullDuration = durationInt;
+    videoData->mvhdDuration = durationInt;
     // End Of Used Values //
 
     printf("timescale as int: %u\n", *timeScaleInt);

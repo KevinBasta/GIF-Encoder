@@ -82,12 +82,13 @@ typedef struct sampleDescription {
 
 
 /**
- * @brief 
+ * @brief unused. opted to have null terminated 
+ * table entry struct arrays instead.
  */
-typedef struct table { 
-    unsigned int numberOfEntries;
+/* typedef struct table { 
+    unsigned int *numberOfEntries;
     void *tableArray;
-} table;
+} table; */
 
 /**
  * @brief 
@@ -119,8 +120,17 @@ typedef struct elstTableEntry {
  *
  */
 typedef struct MPEG_Data { 
-    unsigned int *timescale; 
-    unsigned int *fullDuration;
-    unsigned int *videoTrackDuration;
-
+    // from mvhdParseBox
+    unsigned int *mvhdTimeScale; 
+    unsigned int *mvhdDuration;
+    
+    // from tkhdParseBox
+    unsigned int *tkhdTrackDuration;
+    
+    // from edtsParseBox->elstParseBox
+    elstTableEntry **elstTable;
+    
+    // from mdhdParseBox
+    unsigned int *mdhdTimeScale;
+    unsigned int *mdhdDuration;
 } MPEG_Data; 
