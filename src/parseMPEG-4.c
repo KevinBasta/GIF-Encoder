@@ -25,11 +25,12 @@ void dinfParseBox(box *dinfBox, MPEG_Data *videoData);
 box *getVideTrak(linkedList *moovLL);
 unsigned int realTimeToMediaTime(unsigned int time, unsigned int newTimeScale);
 unsigned int mediaTimeToSampleNumber(unsigned int mediaTime, timeToSampleTableEntry **timeToSampleTable);
+unsigned int sampleNumberToChunkNumber(unsigned int sampleNumber, sampleToChunkTableEntry **sampleToChunkTable);
 void sampleSearch(unsigned int time, MPEG_Data *videoData);
 
 void stsdParseBox(box *stsdBox);
 void stszParseBox(box *stszBox);
-void stscParseBox(box *stscBox);
+void stscParseBox(box *stscBox, MPEG_Data *videoData);
 void stcoParseBox(box *stcoBox);
 void sttsParseBox(box *sttsBox, MPEG_Data *videoData);
 void stssParseBox(box *stssBox);
@@ -135,8 +136,8 @@ int main(int argc, char **argv) {
     stcoParseBox(stco); */
     /* box *stsz = getBoxFromLinkedList(stblLL, "stsz");
     stszParseBox(stsz); */
-    /* box *stsc = getBoxFromLinkedList(stblLL, "stsc");
-    stscParseBox(stsc); */
+    box *stsc = getBoxFromLinkedList(stblLL, "stsc");
+    stscParseBox(stsc, videoData);
     /* box *stss = getBoxFromLinkedList(stblLL, "stss");
     stssParseBox(stss); */
     /* box *ctts = getBoxFromLinkedList(stblLL, "ctts");
@@ -197,19 +198,22 @@ box *getVideTrak(linkedList *moovLL) {
  */
 unsigned int realTimeToMediaTime(unsigned int realTimeInSeconds, unsigned int mediaTimeScale) { 
     // can put the to seconds conversion here later once interface is decided
+    // need to use milliseconds too.  ideally a web interface would allow for 
+    // precise time input.
     unsigned int convertedTime = realTimeInSeconds * mediaTimeScale;
     //printf("converted time: %d\n", convertedTime);
     return convertedTime;
 }
 
 unsigned int mediaTimeToSampleNumber(unsigned int mediaTime, timeToSampleTableEntry **timeToSampleTable) { 
+    // need to consider edge cases here
     unsigned int sampleNumber = 0; 
     unsigned int sampleTimeAccumulator = 0;
 
     int timeToSampleEntryNumber = 0;
     while (timeToSampleTable[timeToSampleEntryNumber] != NULL) { 
-        unsigned int sampleCountInTableEntry = *(timeToSampleTable[timeToSampleEntryNumber]->sampleCount);
-        unsigned int sampleDurationInTableEntry = *(timeToSampleTable[timeToSampleEntryNumber]->sampleDuration);
+        unsigned int sampleCountInTableEntry = timeToSampleTable[timeToSampleEntryNumber]->sampleCount;
+        unsigned int sampleDurationInTableEntry = timeToSampleTable[timeToSampleEntryNumber]->sampleDuration;
         
         
         for (int i = 0; i < sampleCountInTableEntry; i++) { 
@@ -221,22 +225,33 @@ unsigned int mediaTimeToSampleNumber(unsigned int mediaTime, timeToSampleTableEn
                 return sampleNumber;
             }
         }
+
+        timeToSampleEntryNumber++;
     }
 
-    return 1;
+    return 1; // error return
 }
 
+
+unsigned int sampleNumberToChunkNumber(unsigned int sampleNumber, sampleToChunkTableEntry **sampleToChunkTable) { 
+    unsigned int i = 0;
+    unsigned int totalSamples;
+    unsigned int samplesInChunk = sampleToChunkTable[i]->firstChunk * sampleToChunkTable[i]->samplesPerChunk;
+    //if ()
+}
 
 void sampleSearch(unsigned int time, MPEG_Data *videoData) { 
     //printf("media duration: %d\n", *(videoData->mdhdDuration));
     //printf("media time scale: %d\n", *(videoData->mdhdTimeScale));
 
 
-    unsigned int mediaTime = realTimeToMediaTime(time, *(videoData->mdhdTimeScale));
+    unsigned int mediaTime = realTimeToMediaTime(time, videoData->mdhdTimeScale);
     unsigned int sampleNumber = mediaTimeToSampleNumber(mediaTime, videoData->timeToSampleTable);
+    unsigned int chunkNumber = sampleNumberToChunkNumber(sampleNumber, videoData->sampleToChunkTable);
 
     printf("media time: %d\n", mediaTime);
     printf("sample: %d\n", sampleNumber);
+    printf("sample: %d\n", chunkNumber);
 
 }
 
@@ -255,8 +270,7 @@ Child boxes of STBL (Sample Table Atom). These define Samples and Chunks in the 
 
 */
 void stsdParseBox(box *stsdBox) { //sample description required
-    unsigned int boxSize = *(stsdBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = stsdBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = stsdBox->boxData;
 
     unsigned int bytesRead;
@@ -269,7 +283,7 @@ void stsdParseBox(box *stsdBox) { //sample description required
     unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
     // DEBUG printf("%d\n", *numberOfEntriesInt);
     
-    linkedList sampleDescriptions;
+    /* linkedList sampleDescriptions;
     printf("entries: %d\n", *numberOfEntriesInt);
     for (int i = 0; i < *numberOfEntriesInt; i++) { 
         char *sampleDescriptionSizeChar = referenceNBytes(4, boxData, &bytesRead);
@@ -321,10 +335,10 @@ void stsdParseBox(box *stsdBox) { //sample description required
         printf("frame count: %d\n", *frameCount);
         
         printf("read: %d, end: %d\n", bytesRead, absoluteEndOfSampleDescription);
-        /*
-            Unspecified 28 bytes of all 0 bits not mentioned in spesification
-            the last 4 bytes contains some unknown non-zero bits
-        */
+        
+        //    Unspecified 28 bytes of all 0 bits not mentioned in spesification
+        //    the last 4 bytes contains some unknown non-zero bits
+        
         char *emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
         emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
         emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
@@ -347,7 +361,7 @@ void stsdParseBox(box *stsdBox) { //sample description required
             // parse video sample description extensions
         }
 
-    }
+    } */
     
 
 }
@@ -365,8 +379,7 @@ void stsdParseBox(box *stsdBox) { //sample description required
 
 
 void stszParseBox(box *stszBox) { //sample size required
-    unsigned int boxSize = *(stszBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = stszBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = stszBox->boxData;
 
     unsigned int bytesRead;
@@ -393,9 +406,20 @@ void stszParseBox(box *stszBox) { //sample size required
     }
 }
 
-void stscParseBox(box *stscBox) { //sample to chunk required
-    unsigned int boxSize = *(stscBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+
+/**
+ * @brief sample to chunk. REQUIRED.
+ * A chunk contains one or more samples. 
+ * Contains a table that maps samples to their chunks.
+ * Each table entry corresponds to a set of consecutive chunks, each of which contains the same number of samples. 
+ * Furthermore, each of the samples in these chunks must use the same sample description. Whenever the number of 
+ * samples per chunk or the sample description changes, you must create a new table entry. If all the chunks have 
+ * the same number of samples per chunk and use the same sample description, this table has one entry.
+ * @param stscBox       -   the box
+ * @param *videoData    -   to store sample-to-chunk table
+ */
+void stscParseBox(box *stscBox, MPEG_Data *videoData) { //sample to chunk required
+    unsigned int boxDataSize = stscBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = stscBox->boxData;
 
     unsigned int bytesRead;
@@ -404,25 +428,40 @@ void stscParseBox(box *stscBox) { //sample to chunk required
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
-    printf("%d\n", *numberOfEntriesInt);
-    printf("First chunk \t Samples per chunk \t Sample description ID\n");
-    for (int i = 0; i < *numberOfEntriesInt; i++) { 
+    unsigned int numberOfEntriesInt = bigEndianCharToLittleEndianUnsignedInt(numberOfEntries);
+    // DEBUG printf("%d\n", *numberOfEntriesInt);
+
+    sampleToChunkTableEntry **sampleToChunkTable = (sampleToChunkTableEntry**) calloc(numberOfEntriesInt + 1, sizeof(sampleToChunkTableEntry*));
+    sampleToChunkTable[numberOfEntriesInt] = NULL;
+
+    for (int i = 0; i < numberOfEntriesInt; i++) { 
+        // first chunk refers to the index number of the chunk 
+        // identifying a range from this first index number to the 
+        // next table entry's first chunk index value, or the end of the file
+        // calculated by the number of samples per chunk
         char *firstChunk = referenceNBytes(4, boxData, &bytesRead); 
         char *samplesPerChunk = referenceNBytes(4, boxData, &bytesRead); 
         char *sampleDescriptionId = referenceNBytes(4, boxData, &bytesRead);
 
-        unsigned int *firstChunkInt = charToUnsignedInt(firstChunk); 
-        unsigned int *samplesPerChunkInt = charToUnsignedInt(samplesPerChunk); 
-        unsigned int *sampleDescriptionIdInt = charToUnsignedInt(sampleDescriptionId); 
-        printf("%d \t\t %d \t\t %d \n", *firstChunkInt, *samplesPerChunkInt, *sampleDescriptionIdInt);
+        unsigned int firstChunkInt = bigEndianCharToLittleEndianUnsignedInt(firstChunk); 
+        unsigned int samplesPerChunkInt = bigEndianCharToLittleEndianUnsignedInt(samplesPerChunk); 
+        unsigned int sampleDescriptionIdInt = bigEndianCharToLittleEndianUnsignedInt(sampleDescriptionId); 
+        
+        sampleToChunkTableEntry *sampleToChunkEntry = (sampleToChunkTableEntry*) malloc(sizeof(sampleToChunkTableEntry));
+        sampleToChunkEntry->firstChunk = firstChunkInt;
+        sampleToChunkEntry->samplesPerChunk = samplesPerChunkInt;
+        sampleToChunkEntry->sampleDescriptionId = sampleDescriptionIdInt;
+
+        sampleToChunkTable[i] = sampleToChunkEntry;
+
+        printf("%d \t\t %d \t\t %d \n", firstChunkInt, samplesPerChunkInt, sampleDescriptionIdInt);
     }
 
+    videoData->sampleToChunkTable = sampleToChunkTable;
 }
 
 void stcoParseBox(box *stcoBox) { //chunk offset required
-    unsigned int boxSize = *(stcoBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = stcoBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = stcoBox->boxData;
 
     unsigned int bytesRead;
@@ -443,9 +482,17 @@ void stcoParseBox(box *stcoBox) { //chunk offset required
     }
 }
 
+/**
+ * @brief time to sample. 
+ * stores duration information of media's samples.
+ * the time-to-sample table can be used to map from media time to 
+ * corresponding data sample.
+ * @note path: moov->trak->mdia->minf->stbl->stts
+ * @param sttsBox       -   the box
+ * @param videoData     -   for storing time-to-sample table
+ */
 void sttsParseBox(box *sttsBox, MPEG_Data *videoData) { //time to sample
-    unsigned int boxSize = *(sttsBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = sttsBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = sttsBox->boxData;
 
     unsigned int bytesRead;
@@ -454,19 +501,23 @@ void sttsParseBox(box *sttsBox, MPEG_Data *videoData) { //time to sample
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
-    printf("%d\n", *numberOfEntriesInt);
+    unsigned int numberOfEntriesInt = bigEndianCharToLittleEndianUnsignedInt(numberOfEntries);
+    // DEBUG printf("%d\n", *numberOfEntriesInt);
 
-    timeToSampleTableEntry **timeToSampleTable = (timeToSampleTableEntry**) calloc(*numberOfEntriesInt + 1, sizeof(timeToSampleTableEntry*));
-    timeToSampleTable[*numberOfEntriesInt] = NULL;
+    unsigned int numberOfSamples = 0;
+
+    timeToSampleTableEntry **timeToSampleTable = (timeToSampleTableEntry**) calloc(numberOfEntriesInt + 1, sizeof(timeToSampleTableEntry*));
+    timeToSampleTable[numberOfEntriesInt] = NULL;
         
-    for (int i = 0; i < *numberOfEntriesInt; i++) { 
+    for (int i = 0; i < numberOfEntriesInt; i++) { 
         char *sampleCount = referenceNBytes(4, boxData, &bytesRead);
         char *sampleDuration = referenceNBytes(4, boxData, &bytesRead);
         
-        unsigned int *sampleCountInt = charToUnsignedInt(sampleCount);
-        unsigned int *sampleDurationInt = charToUnsignedInt(sampleDuration);
+        unsigned int sampleCountInt = bigEndianCharToLittleEndianUnsignedInt(sampleCount);
+        unsigned int sampleDurationInt = bigEndianCharToLittleEndianUnsignedInt(sampleDuration);
         
+        numberOfSamples += sampleCountInt;
+
         timeToSampleTableEntry *timeToSampleEntry = (timeToSampleTableEntry*) malloc(sizeof(timeToSampleTableEntry));
         timeToSampleEntry->sampleCount = sampleCountInt; 
         timeToSampleEntry->sampleDuration = sampleDurationInt;
@@ -475,11 +526,12 @@ void sttsParseBox(box *sttsBox, MPEG_Data *videoData) { //time to sample
     }
 
     videoData->timeToSampleTable = timeToSampleTable;
+    videoData->numberOfSamples = numberOfSamples;
+    // DEBUG printf("%d %d\n", videoData->timeToSampleTable[0]->sampleCount, videoData->timeToSampleTable[0]->sampleDuration);
 }
 
 void stssParseBox(box *stssBox) { //sync sample
-    unsigned int boxSize = *(stssBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = stssBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = stssBox->boxData;
 
     unsigned int bytesRead;
@@ -499,8 +551,7 @@ void stssParseBox(box *stssBox) { //sync sample
 }
 
 void cttsParseBox(box *cttsBox) { //composition offset
-    unsigned int boxSize = *(cttsBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = cttsBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = cttsBox->boxData;
 
     unsigned int bytesRead;
@@ -543,13 +594,14 @@ void videoMediaBox() {
 
 
 /**
- * @brief 
+ * @brief theoretically supposed to contain instructions 
+ * for how to access the media's data in the data references table.
  * @note path: moov->trak->mdia->minf->dinf->dref
- * @param drefBox 
+ * @param drefBox       -   the box
+ * @param *videoData    -   for storing the data reference table
  */
 void drefParseBox(box *drefBox, MPEG_Data *videoData) { 
-    unsigned int boxSize = *(drefBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = drefBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = drefBox->boxData;
 
     unsigned int bytesRead;
@@ -558,25 +610,25 @@ void drefParseBox(box *drefBox, MPEG_Data *videoData) {
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
-    printf("entries: %d\n", *numberOfEntriesInt);
+    unsigned int numberOfEntriesInt = bigEndianCharToLittleEndianUnsignedInt(numberOfEntries);
+    printf("entries: %d\n", numberOfEntriesInt);
 
-    dataReferenceTableEntry **dataReferenceTable = (dataReferenceTableEntry**) calloc(*numberOfEntriesInt + 1, sizeof(dataReferenceTableEntry*)); 
-    dataReferenceTable[*numberOfEntriesInt] = NULL;
+    dataReferenceTableEntry **dataReferenceTable = (dataReferenceTableEntry**) calloc(numberOfEntriesInt + 1, sizeof(dataReferenceTableEntry*)); 
+    dataReferenceTable[numberOfEntriesInt] = NULL;
     
-    for (int i = 0; i < *numberOfEntriesInt; i++) { 
+    for (int i = 0; i < numberOfEntriesInt; i++) { 
         dataReferenceTableEntry *dataReferenceEntry = (dataReferenceTableEntry*) malloc(sizeof(dataReferenceTableEntry));
         char *dataReferenceSize = referenceNBytes(BOX_HEADER_HALF_SIZE, boxData, &bytesRead);
-        dataReferenceEntry->size = charToUnsignedInt(dataReferenceSize);
+        dataReferenceEntry->size = bigEndianCharToLittleEndianUnsignedInt(dataReferenceSize);
 
-        dataReferenceEntry->type = referenceNBytes(BOX_HEADER_HALF_SIZE, boxData, &bytesRead);
+        dataReferenceEntry->type = copyNBytes(BOX_HEADER_HALF_SIZE, boxData, &bytesRead);
 
         // flag is used to indicate that media's data is in same file
-        dataReferenceEntry->version = referenceNBytes(VERSION_SIZE, boxData, &bytesRead);
-        dataReferenceEntry->flags = referenceNBytes(FLAG_SIZE, boxData, &bytesRead);
+        dataReferenceEntry->version = copyNBytes(VERSION_SIZE, boxData, &bytesRead);
+        dataReferenceEntry->flags = copyNBytes(FLAG_SIZE, boxData, &bytesRead);
 
-        unsigned int dataReferenceDataSize = *(dataReferenceEntry->size) - BOX_HEADER_SIZE - VERSION_SIZE - FLAG_SIZE;
-        dataReferenceEntry->data = referenceNBytes(dataReferenceDataSize, boxData, &bytesRead);
+        unsigned int dataReferenceDataSize = dataReferenceEntry->size - BOX_HEADER_SIZE - VERSION_SIZE - FLAG_SIZE;
+        dataReferenceEntry->data = copyNBytes(dataReferenceDataSize, boxData, &bytesRead);
 
         
         dataReferenceTable[i] = dataReferenceEntry;
@@ -591,13 +643,14 @@ void drefParseBox(box *drefBox, MPEG_Data *videoData) {
 
 
 /**
- * @brief 
+ * @brief parses it's child box, deref. helps in interpreting the 
+ * media's data.
  * @note path: moov->trak->mdia->minf->dinf
- * @param dinfBox 
+ * @param dinfBox       -   the box
+ * @param *videoData    -   to pass to dref 
  */
 void dinfParseBox(box *dinfBox, MPEG_Data *videoData) {
-    unsigned int boxSize = *(dinfBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = dinfBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = dinfBox->boxData;
 
     unsigned int bytesRead;
@@ -614,8 +667,7 @@ void dinfParseBox(box *dinfBox, MPEG_Data *videoData) {
  * @param vmhdBox 
  */
 void vmhdParseBox(box *vmhdBox) { 
-    unsigned int boxSize = *(vmhdBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = vmhdBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = vmhdBox->boxData;
 
     unsigned int bytesRead;
@@ -638,8 +690,7 @@ void vmhdParseBox(box *vmhdBox) {
  * of type video or not. vide return descides if should parse this trak further.
  */
 char *hdlrParseBox(box *hdlrBox) { 
-    unsigned int boxSize = *(hdlrBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = hdlrBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = hdlrBox->boxData;
 
     unsigned int bytesRead;
@@ -673,8 +724,7 @@ char *hdlrParseBox(box *hdlrBox) {
  * @param videoData -   struct to store VIDEO timescale and duration
  */
 void mdhdParseBox(box *mdhdBox, MPEG_Data *videoData) { 
-    unsigned int boxSize = *(mdhdBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = mdhdBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = mdhdBox->boxData;
 
     unsigned int bytesRead;
@@ -689,13 +739,13 @@ void mdhdParseBox(box *mdhdBox, MPEG_Data *videoData) {
     char *timeScale = referenceNBytes(4, boxData, &bytesRead);
     char *duration = referenceNBytes(4, boxData, &bytesRead);
     
-    unsigned int *timeScaleInt = charToUnsignedInt(timeScale);
-    unsigned int *durationInt = charToUnsignedInt(duration);
+    unsigned int timeScaleInt = bigEndianCharToLittleEndianUnsignedInt(timeScale);
+    unsigned int durationInt = bigEndianCharToLittleEndianUnsignedInt(duration);
     
     videoData->mdhdTimeScale = timeScaleInt;
     videoData->mdhdDuration = durationInt;
     // End Of Used Values //
-    printf("%d %d\n", *timeScaleInt, *durationInt);
+    printf("%d %d\n", timeScaleInt, durationInt);
 
     
     char *language = referenceNBytes(2, boxData, &bytesRead);
@@ -713,8 +763,7 @@ void mdhdParseBox(box *mdhdBox, MPEG_Data *videoData) {
  * @param videoData -   struct to store elstTable in
  */
 void elstParseBox(box *elstBox, MPEG_Data *videoData) { 
-    unsigned int boxSize = *(elstBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = elstBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = elstBox->boxData;
 
     unsigned int bytesRead;
@@ -723,26 +772,26 @@ void elstParseBox(box *elstBox, MPEG_Data *videoData) {
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
-    printf("number of edit list entries: %u\n", *numberOfEntriesInt);
+    unsigned int numberOfEntriesInt = bigEndianCharToLittleEndianUnsignedInt(numberOfEntries);
+    printf("number of edit list entries: %u\n", numberOfEntriesInt);
 
     // there can be multiple table entries in for example the video stops in
     // the middle of the movie and then continues later on
     
     //table *elstTable = (table*) malloc(sizeof(table));
 
-    elstTableEntry **elstTable = calloc(*numberOfEntriesInt + 1, sizeof(elstTableEntry*));
-    elstTable[*numberOfEntriesInt] = NULL;
+    elstTableEntry **elstTable = calloc(numberOfEntriesInt + 1, sizeof(elstTableEntry*));
+    elstTable[numberOfEntriesInt] = NULL;
 
-    for (int i = 0; i < *numberOfEntriesInt; i++) { 
+    for (int i = 0; i < numberOfEntriesInt; i++) { 
         char *trackDuration = referenceNBytes(4, boxData, &bytesRead);
         char *mediaTime = referenceNBytes(4, boxData, &bytesRead);
         char *mediaRate = referenceNBytes(4, boxData, &bytesRead);
 
-        unsigned int *trackDurationInt = charToUnsignedInt(trackDuration);
-        int *mediaTimeInt = charToInt(mediaTime);
-        unsigned int *mediaRateInt = charToUnsignedInt(mediaRate);
-        printf("%d %d %d\n", *trackDurationInt, *mediaTimeInt, *mediaRateInt);
+        unsigned int trackDurationInt = bigEndianCharToLittleEndianUnsignedInt(trackDuration);
+        int mediaTimeInt = bigEndianCharToLittleEndianInt(mediaTime);
+        unsigned int mediaRateInt = bigEndianCharToLittleEndianUnsignedInt(mediaRate);
+        printf("%d %d %d\n", trackDurationInt, mediaTimeInt, mediaRateInt);
 
         elstTableEntry *elstEntry = (elstTableEntry*) malloc(sizeof(elstTableEntry));
         elstEntry->trackDuration = trackDurationInt;
@@ -751,6 +800,7 @@ void elstParseBox(box *elstBox, MPEG_Data *videoData) {
         
         elstTable[i] = elstEntry;
     }
+    
     videoData->elstTable = elstTable;
 
 
@@ -772,8 +822,7 @@ void elstParseBox(box *elstBox, MPEG_Data *videoData) {
  */
 void edtsParseBox(box *edtsBox, MPEG_Data *videoData) {
     //Note: If the edit atom or the edit list atom is missing, you can assume that the entire media is used by the track.
-    unsigned int boxSize = *(edtsBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = edtsBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = edtsBox->boxData;
 
     unsigned int bytesRead;
@@ -791,8 +840,7 @@ void edtsParseBox(box *edtsBox, MPEG_Data *videoData) {
  * @param videoData -   struct to store TRACK duration
  */
 void tkhdParseBox(box *trakBox, MPEG_Data *videoData) {
-    unsigned int boxSize = *(trakBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = trakBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = trakBox->boxData;
 
     unsigned int bytesRead;
@@ -807,10 +855,10 @@ void tkhdParseBox(box *trakBox, MPEG_Data *videoData) {
 
     // Start Of Used Values //
     char *duration = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *durationInt = charToUnsignedInt(duration);
+    unsigned int durationInt = bigEndianCharToLittleEndianUnsignedInt(duration);
     videoData->tkhdTrackDuration = durationInt;
     // End Of Used Values //
-    printf("duration: %d\n", *durationInt);
+    printf("duration: %d\n", durationInt);
 
 
     char *reservedTwo = referenceNBytes(8, boxData, &bytesRead);
@@ -823,10 +871,10 @@ void tkhdParseBox(box *trakBox, MPEG_Data *videoData) {
     
     
     char *trackWidth = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *trackWidthInt = charToUnsignedInt(trackWidth);
+    //unsigned int *trackWidthInt = charToUnsignedInt(trackWidth);
     char *trackHeight = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *trackHeightInt = charToUnsignedInt(trackHeight);
-    printf("width: %d height: %d\n", *trackWidthInt, *trackHeightInt);
+    //unsigned int *trackHeightInt = charToUnsignedInt(trackHeight);
+    //printf("width: %d height: %d\n", *trackWidthInt, *trackHeightInt);
 
 
 
@@ -846,9 +894,7 @@ void tkhdParseBox(box *trakBox, MPEG_Data *videoData) {
  * @param videoData -   struct to store ENTIRE MOVIE timescale and duration
  */
 void mvhdParseBox(box *mvhdBox, MPEG_Data *videoData) { 
-
-    unsigned int boxSize = *(mvhdBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = mvhdBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = mvhdBox->boxData;
 
     unsigned int bytesRead;
@@ -862,16 +908,16 @@ void mvhdParseBox(box *mvhdBox, MPEG_Data *videoData) {
     
     // Start Of Used Values //
     char *timeScale = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *timeScaleInt = charToUnsignedInt(timeScale);
+    unsigned int timeScaleInt = bigEndianCharToLittleEndianUnsignedInt(timeScale);
     videoData->mvhdTimeScale = timeScaleInt;
 
     char *duration = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *durationInt = charToUnsignedInt(duration);
+    unsigned int durationInt = bigEndianCharToLittleEndianUnsignedInt(duration);
     videoData->mvhdDuration = durationInt;
     // End Of Used Values //
 
-    printf("timescale as int: %u\n", *timeScaleInt);
-    printf("duration as int: %u\n", *durationInt);
+    printf("timescale as int: %u\n", timeScaleInt);
+    printf("duration as int: %u\n", durationInt);
 
 
 
@@ -908,8 +954,7 @@ void mvhdParseBox(box *mvhdBox, MPEG_Data *videoData) {
  *  @param *ftypBox:    a pointer to a ftyp box struct
  */
 void ftypParseBox(box *ftypBox) { 
-    unsigned int boxSize = *(ftypBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = ftypBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = ftypBox->boxData;
 
     /*
@@ -962,14 +1007,14 @@ box *parseSingleNestedChildBox(char *boxData, unsigned int *bytesRead) {
     char *childBoxHeaderType = copyNBytes(BOX_HEADER_HALF_SIZE, boxData, bytesRead);
     
     // converting size to int and freeing char array
-    unsigned int *childFullBoxSize = charToUnsignedInt(childBoxHeaderSize);
+    unsigned int childFullBoxSize = bigEndianCharToLittleEndianUnsignedInt(childBoxHeaderSize);
     free(childBoxHeaderSize);
     
     // DEBUG printf("%u\t", *childFullBoxSize);
     // DEBUG printNBytes(childBoxHeaderType, 4,"", "\n");
 
     // reading body of childBox
-    int childBoxDataSize = *childFullBoxSize - 8;
+    int childBoxDataSize = childFullBoxSize - 8;
     char *childBoxData = copyNBytes(childBoxDataSize, boxData, bytesRead);
     
     // Creating a box struct to store current box
@@ -1012,8 +1057,7 @@ void parseNestedChildBoxes(char *boxData, unsigned int *bytesRead, unsigned int 
  * information from the parentBox (creating new allocations for each child field).
  */
 void parseChildBoxes(box *parentBox, linkedList *list) {
-    unsigned int boxSize = *(parentBox->boxSize);
-    unsigned int boxDataSize = boxSize - BOX_HEADER_SIZE;
+    unsigned int boxDataSize = parentBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = parentBox->boxData;
 
     unsigned int bytesRead = 0;
@@ -1052,7 +1096,7 @@ void readMainBoxes(char fileName[], linkedList *list) {
         chunksread = fread(&headerType[0], BOX_HEADER_HALF_SIZE, 1, video);
         
         // translating the headerSize binary into an integer
-        unsigned int *fullBoxSize = charToUnsignedInt(headerSize);
+        unsigned int fullBoxSize = bigEndianCharToLittleEndianUnsignedInt(headerSize);
         free(headerSize); // freeing the char malloc for header size
         
         
@@ -1072,7 +1116,7 @@ void readMainBoxes(char fileName[], linkedList *list) {
             (box header: 8 bytes {[size -> 4 bytes] [type -> 4 bytes]})
             needs to be subtracted from fullBoxSize before the body of the box is read
         */
-        int boxDataSize = *fullBoxSize - 8;
+        int boxDataSize = fullBoxSize - 8;
         char *boxData = (char*) malloc(boxDataSize);
         chunksread = fread(boxData, boxDataSize, 1, video);
         

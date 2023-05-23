@@ -21,7 +21,7 @@
  * @note boxType does NOT include the null terminator '\0'.
  */
 typedef struct box { 
-    unsigned int *boxSize;
+    unsigned int boxSize;
     char *boxType;
     char *boxData;
 } box;
@@ -48,7 +48,7 @@ typedef struct Node {
  * @note interface defined in linkedList.c/h
  */
 typedef struct linkedList {
-    unsigned int *size;
+    unsigned int size;
     Node *head;
     Node *tail;
     Node *current;
@@ -89,9 +89,9 @@ typedef struct sampleDescription {
  * to this edit segment. Cannot be 0 or negative.
  */
 typedef struct elstTableEntry { 
-    unsigned int *trackDuration;
-    int *mediaTime;
-    unsigned int *mediaRate;
+    unsigned int trackDuration;
+    int mediaTime;
+    unsigned int mediaRate;
 } elstTableEntry;
 
 
@@ -99,7 +99,7 @@ typedef struct elstTableEntry {
  * @brief Dinf box sub container
  */
 typedef struct dataReferenceTableEntry { 
-    unsigned int *size; 
+    unsigned int size; 
     char *type;
     char *version;
     char *flags;
@@ -108,9 +108,18 @@ typedef struct dataReferenceTableEntry {
 
 
 typedef struct timeToSampleTableEntry { 
-    unsigned int *sampleCount; 
-    unsigned int *sampleDuration;
+    unsigned int sampleCount; 
+    unsigned int sampleDuration;
 } timeToSampleTableEntry;
+
+
+typedef struct sampleToChunkTableEntry { 
+    unsigned int firstChunk;
+    unsigned int samplesPerChunk;
+    unsigned int sampleDescriptionId;
+} sampleToChunkTableEntry;
+
+
 
 
 // Main Storage Structs //
@@ -129,22 +138,28 @@ typedef struct timeToSampleTableEntry {
  */
 typedef struct MPEG_Data { 
     // from mvhdParseBox
-    unsigned int *mvhdTimeScale; 
-    unsigned int *mvhdDuration;
+    unsigned int mvhdTimeScale; 
+    unsigned int mvhdDuration;
     
     // from tkhdParseBox
-    unsigned int *tkhdTrackDuration;
+    unsigned int tkhdTrackDuration;
     
     // from edtsParseBox->elstParseBox
     elstTableEntry **elstTable;
     
     // from mdhdParseBox
-    unsigned int *mdhdTimeScale;
-    unsigned int *mdhdDuration;
+    unsigned int mdhdTimeScale;
+    unsigned int mdhdDuration;
 
     // from dinfParseBox->drefParseBox
     dataReferenceTableEntry **dataReferenceTable;
 
     // from sttsParseBox
     timeToSampleTableEntry **timeToSampleTable;
+    unsigned int numberOfSamples; // unsure if want to keep here or make pointer
+
+    // from stscParseBox
+    sampleToChunkTableEntry **sampleToChunkTable;
+
+
 } MPEG_Data; 

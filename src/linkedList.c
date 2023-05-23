@@ -17,8 +17,7 @@
 linkedList* initLinkedList() { 
     linkedList *newLinkedList = (linkedList*) malloc(sizeof(linkedList));
     
-    newLinkedList->size = (unsigned int*) malloc(sizeof(unsigned int));
-    *(newLinkedList->size) = 0;
+    newLinkedList->size = 0;
 
     newLinkedList->head = (Node*) calloc(1, sizeof(Node));
     newLinkedList->tail = newLinkedList->head;
@@ -38,7 +37,7 @@ void appendNodeLinkedList(linkedList *list, void *item) {
     list->tail->nextNode = (Node*) calloc(1, sizeof(Node)); 
 
     list->tail = list->tail->nextNode;
-    *(list->size) += 1;
+    list->size += 1;
 }
 
 
@@ -62,10 +61,10 @@ void nullifyLastNodeLinkedList(linkedList *list) {
  */
 void printAllBoxesLinkedList(linkedList *list) { 
     Node *currentNode = list->head;
-    for (int i = 0; i < *(list->size); i++) { 
+    for (int i = 0; i < list->size; i++) { 
         box *currentBoxPointer = (box*) currentNode->currentItem;
         printNBytes(currentBoxPointer->boxType, 4, "box type: ", "\t");
-        printf("box size: %10u\n", *(currentBoxPointer->boxSize));
+        printf("box size: %10u\n", currentBoxPointer->boxSize);
         currentNode = currentNode->nextNode;
     }
 }
@@ -81,7 +80,7 @@ box *getBoxFromLinkedList(linkedList *list, char boxReturnType[]) {
     box *boxToReturn = NULL;
     list->current = list->head;
 
-    for (int i = 0; i < *(list->size); i++) {
+    for (int i = 0; i < list->size; i++) {
         box *currentBoxPointer = (box*) list->current->currentItem;
 
         if ((compareNBytes(currentBoxPointer->boxType, boxReturnType, 4) == 1)) {
@@ -123,7 +122,6 @@ void freeBox(box *boxStruct) {
     // this is only required for boxes who's 
     // fields are allocations and not references
     // to their parent container
-    free(boxStruct->boxSize);
     free(boxStruct->boxType);
     free(boxStruct->boxData);
 
@@ -162,7 +160,7 @@ void freeLinkedList(linkedList *list, char type[]) {
 
     // stopping right before last element to avoid 
     // attempting to free a NULL created by nullifyLastNodeLinkedList
-    for (int i = 0; i < *(list->size) - 1; i++) {
+    for (int i = 0; i < list->size - 1; i++) {
         if (strncmp(type, "box", 3)) { 
             currentNode = freeBoxNode(currentNode);
             // DEBUG printf("%d %d\n", currentNode, currentNode->nextNode);
