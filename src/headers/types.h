@@ -58,16 +58,6 @@ typedef struct linkedList {
 
 // Specialized MPEG-4 Structs //
 
-/**
- * @brief Dinf box sub container
- */
-typedef struct dataReference { 
-    unsigned int *size; 
-    char *type;
-    char *version;
-    char *flags;
-    char *data;
-} dataReference;
 
 
 /**
@@ -105,6 +95,24 @@ typedef struct elstTableEntry {
 } elstTableEntry;
 
 
+/**
+ * @brief Dinf box sub container
+ */
+typedef struct dataReferenceTableEntry { 
+    unsigned int *size; 
+    char *type;
+    char *version;
+    char *flags;
+    char *data;
+} dataReferenceTableEntry;
+
+
+typedef struct timeToSampleTableEntry { 
+    unsigned int *sampleCount; 
+    unsigned int *sampleDuration;
+} timeToSampleTableEntry;
+
+
 // Main Storage Structs //
 
 /**
@@ -133,4 +141,10 @@ typedef struct MPEG_Data {
     // from mdhdParseBox
     unsigned int *mdhdTimeScale;
     unsigned int *mdhdDuration;
+
+    // from dinfParseBox->drefParseBox
+    dataReferenceTableEntry **dataReferenceTable;
+
+    // from sttsParseBox
+    timeToSampleTableEntry **timeToSampleTable;
 } MPEG_Data; 
