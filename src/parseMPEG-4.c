@@ -25,13 +25,13 @@ void dinfParseBox(box *dinfBox, MPEG_Data *videoData);
 box *getVideTrak(linkedList *moovLL);
 unsigned int realTimeToMediaTime(unsigned int time, unsigned int newTimeScale);
 unsigned int mediaTimeToSampleNumber(unsigned int mediaTime, timeToSampleTableEntry **timeToSampleTable);
-unsigned int sampleNumberToChunkNumber(unsigned int sampleNumber, sampleToChunkTableEntry **sampleToChunkTable);
+unsigned int sampleNumberToChunkNumber(unsigned int sampleNumber, sampleToChunkTableEntry **sampleToChunkTable, unsigned int numberOfSamples);
 void sampleSearch(unsigned int time, MPEG_Data *videoData);
 
 void stsdParseBox(box *stsdBox);
 void stszParseBox(box *stszBox);
 void stscParseBox(box *stscBox, MPEG_Data *videoData);
-void stcoParseBox(box *stcoBox);
+void stcoParseBox(box *stcoBox, MPEG_Data *videoData);
 void sttsParseBox(box *sttsBox, MPEG_Data *videoData);
 void stssParseBox(box *stssBox);
 void cttsParseBox(box *cttsBox);
@@ -40,7 +40,7 @@ void videoMediaBox();
 int main(int argc, char **argv) { 
     linkedList *topBoxesLL = initLinkedList();
     // fopen taken in a relative path from executable location
-    readMainBoxes("local_files/op.mp4", topBoxesLL);
+    readMainBoxes("local_files/op2.mp4", topBoxesLL);
 
     MPEG_Data *videoData = (MPEG_Data*) malloc(sizeof(MPEG_Data));
 
@@ -132,8 +132,8 @@ int main(int argc, char **argv) {
 
 
     printf(">--------STSD CHILD LEVEL--------\n");
-    /* box *stco = getBoxFromLinkedList(stblLL, "stco");
-    stcoParseBox(stco); */
+    box *stco = getBoxFromLinkedList(stblLL, "stco");
+    stcoParseBox(stco, videoData);
     /* box *stsz = getBoxFromLinkedList(stblLL, "stsz");
     stszParseBox(stsz); */
     box *stsc = getBoxFromLinkedList(stblLL, "stsc");
@@ -200,6 +200,8 @@ unsigned int realTimeToMediaTime(unsigned int realTimeInSeconds, unsigned int me
     // can put the to seconds conversion here later once interface is decided
     // need to use milliseconds too.  ideally a web interface would allow for 
     // precise time input.
+
+    // it's hard to get the time for the exact last sample in a movie
     unsigned int convertedTime = realTimeInSeconds * mediaTimeScale;
     //printf("converted time: %d\n", convertedTime);
     return convertedTime;
@@ -233,12 +235,54 @@ unsigned int mediaTimeToSampleNumber(unsigned int mediaTime, timeToSampleTableEn
 }
 
 
-unsigned int sampleNumberToChunkNumber(unsigned int sampleNumber, sampleToChunkTableEntry **sampleToChunkTable) { 
+unsigned int sampleNumberToChunkNumber(unsigned int sampleNumber, sampleToChunkTableEntry **sampleToChunkTable, unsigned int numberOfSamples) { 
     unsigned int i = 0;
-    unsigned int totalSamples;
-    unsigned int samplesInChunk = sampleToChunkTable[i]->firstChunk * sampleToChunkTable[i]->samplesPerChunk;
-    //if ()
+    unsigned int chunkNumb = 0;
+    unsigned int totalSamples = 0;
+
+    while (sampleToChunkTable[i] != NULL) { 
+        unsigned int firstChunk = sampleToChunkTable[i]->firstChunk;
+        unsigned int samplesPerChunk = sampleToChunkTable[i]->samplesPerChunk;
+        
+        unsigned int lastChunk; 
+
+        if (sampleToChunkTable[i + 1] != NULL) { 
+            lastChunk = sampleToChunkTable[i + 1]->firstChunk - 1;
+        } else { 
+            lastChunk = (numberOfSamples / samplesPerChunk);
+        }
+
+        unsigned int chunksInChunkRange = lastChunk - firstChunk + 1;
+        unsigned int samplesInChunkRange = chunksInChunkRange * samplesPerChunk;
+        // DEBUG printf("%d %d %d %d %d\n", lastChunk, firstChunk, samplesPerChunk, samplesInChunkRange, totalSamples);
+
+        if (sampleNumber <= (samplesInChunkRange + totalSamples)) { 
+            for (int j = firstChunk; j <= lastChunk; j++) { 
+                // DEBUG printf("total samples loop: %d\n", totalSamples);
+                chunkNumb++;
+                totalSamples += samplesPerChunk;
+                if (sampleNumber <= totalSamples) { 
+                    return chunkNumb;
+                }
+            }
+        } else { 
+            totalSamples += samplesInChunkRange;
+            chunkNumb += chunksInChunkRange;
+            // DEBUG printf("%d\n", chunkNumb);
+        }
+        
+        i++;
+    }
+
+    // DEBUG printf("total samples: %d\n", totalSamples);
+    return 1; // error return
 }
+
+
+unsigned int chunkNumberToChunkOffset(unsigned int chunkNumber, chunkOffsetTableEntry **chunkOffsetTable) { 
+    return chunkOffsetTable[chunkNumber + 1]->offset;
+}
+
 
 void sampleSearch(unsigned int time, MPEG_Data *videoData) { 
     //printf("media duration: %d\n", *(videoData->mdhdDuration));
@@ -247,11 +291,13 @@ void sampleSearch(unsigned int time, MPEG_Data *videoData) {
 
     unsigned int mediaTime = realTimeToMediaTime(time, videoData->mdhdTimeScale);
     unsigned int sampleNumber = mediaTimeToSampleNumber(mediaTime, videoData->timeToSampleTable);
-    unsigned int chunkNumber = sampleNumberToChunkNumber(sampleNumber, videoData->sampleToChunkTable);
+    unsigned int chunkNumber = sampleNumberToChunkNumber(sampleNumber, videoData->sampleToChunkTable, videoData->numberOfSamples);
+    unsigned int chunkOffset = chunkNumberToChunkOffset(chunkNumber, videoData->chunkOffsetTable);
 
     printf("media time: %d\n", mediaTime);
     printf("sample: %d\n", sampleNumber);
-    printf("sample: %d\n", chunkNumber);
+    printf("chunk: %d\n", chunkNumber);
+    printf("chunk offset: %d\n", chunkOffset);
 
 }
 
@@ -415,6 +461,7 @@ void stszParseBox(box *stszBox) { //sample size required
  * Furthermore, each of the samples in these chunks must use the same sample description. Whenever the number of 
  * samples per chunk or the sample description changes, you must create a new table entry. If all the chunks have 
  * the same number of samples per chunk and use the same sample description, this table has one entry.
+ * @note path: moov->trak->mdia->minf->stbl->stsc
  * @param stscBox       -   the box
  * @param *videoData    -   to store sample-to-chunk table
  */
@@ -454,13 +501,21 @@ void stscParseBox(box *stscBox, MPEG_Data *videoData) { //sample to chunk requir
 
         sampleToChunkTable[i] = sampleToChunkEntry;
 
-        printf("%d \t\t %d \t\t %d \n", firstChunkInt, samplesPerChunkInt, sampleDescriptionIdInt);
+        //printf("%d \t\t %d \t\t %d \n", firstChunkInt, samplesPerChunkInt, sampleDescriptionIdInt);
     }
 
     videoData->sampleToChunkTable = sampleToChunkTable;
 }
 
-void stcoParseBox(box *stcoBox) { //chunk offset required
+/**
+ * @brief chunk offset. REQUIRED.
+ * gives location of chunk data in media as file offsets, not offsets within
+ * any atom. 
+ * @note path: moov->trak->mdia->minf->stbl->stco
+ * @param stcoBox       -   the box
+ * @param videoData     -   to store chunk offset table
+ */
+void stcoParseBox(box *stcoBox, MPEG_Data *videoData) { //chunk offset required
     unsigned int boxDataSize = stcoBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = stcoBox->boxData;
 
@@ -470,16 +525,24 @@ void stcoParseBox(box *stcoBox) { //chunk offset required
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
-    printf("%d\n", *numberOfEntriesInt);
+    unsigned int numberOfEntriesInt = bigEndianCharToLittleEndianUnsignedInt(numberOfEntries);
+    // DEBUG printf("%d\n", numberOfEntriesInt);
     
-    printf("Chunk: Offset\n");
-    for (int i = 1; i <= 10; i++) {
-        char *offset = referenceNBytes(4, boxData, &bytesRead);
-        unsigned int *offsetInt = charToUnsignedInt(offset);
+    chunkOffsetTableEntry **chunkOffsetTable = (chunkOffsetTableEntry**) calloc(numberOfEntriesInt + 1, sizeof(chunkOffsetTableEntry*));
+    chunkOffsetTable[numberOfEntriesInt] = NULL;
 
-        printf("%d: %d\n", i, *offsetInt);
+    for (int i = 0; i < numberOfEntriesInt; i++) {
+        char *offset = referenceNBytes(4, boxData, &bytesRead);
+        unsigned int offsetInt = bigEndianCharToLittleEndianUnsignedInt(offset);
+
+        chunkOffsetTableEntry *chunkOffsetEntry = (chunkOffsetTableEntry*) malloc(sizeof(chunkOffsetTableEntry));
+        chunkOffsetEntry->offset = offsetInt;
+
+        chunkOffsetTable[i] = chunkOffsetEntry;
+        // DEBUG printf("%d: %d\n", i, offsetInt);
     }
+
+    videoData->chunkOffsetTable = chunkOffsetTable;
 }
 
 /**

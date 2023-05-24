@@ -119,6 +119,9 @@ typedef struct sampleToChunkTableEntry {
     unsigned int sampleDescriptionId;
 } sampleToChunkTableEntry;
 
+typedef struct chunkOffsetTableEntry { 
+    unsigned int offset;
+} chunkOffsetTableEntry;
 
 
 
@@ -156,10 +159,13 @@ typedef struct MPEG_Data {
 
     // from sttsParseBox
     timeToSampleTableEntry **timeToSampleTable;
-    unsigned int numberOfSamples; // unsure if want to keep here or make pointer
+    unsigned int numberOfSamples; 
 
     // from stscParseBox
     sampleToChunkTableEntry **sampleToChunkTable;
+
+    // from stcoParseBox
+    chunkOffsetTableEntry **chunkOffsetTable;
 
 
 } MPEG_Data; 
