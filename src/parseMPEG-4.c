@@ -25,11 +25,15 @@ void dinfParseBox(box *dinfBox, MPEG_Data *videoData);
 box *getVideTrak(linkedList *moovLL);
 unsigned int realTimeToMediaTime(unsigned int time, unsigned int newTimeScale);
 unsigned int mediaTimeToSampleNumber(unsigned int mediaTime, timeToSampleTableEntry **timeToSampleTable);
-unsigned int sampleNumberToChunkNumber(unsigned int sampleNumber, sampleToChunkTableEntry **sampleToChunkTable, unsigned int numberOfSamples);
+unsigned int sampleNumberToChunkNumber(sampleInfo *sample, sampleToChunkTableEntry **sampleToChunkTable, unsigned int numberOfSamples);
+unsigned int sampleNumberToSampleSize(unsigned int sampleNumber, unsigned int sampleSizeDefault, sampleSizeTableEntry **sampleSizeTable);
+unsigned int getSampleOffsetInChunk(sampleInfo *sample, unsigned int sampleSizeDefault, sampleSizeTableEntry **sampleSizeTable);
+
+
 void sampleSearch(unsigned int time, MPEG_Data *videoData);
 
 void stsdParseBox(box *stsdBox);
-void stszParseBox(box *stszBox);
+void stszParseBox(box *stszBox, MPEG_Data *videoData);
 void stscParseBox(box *stscBox, MPEG_Data *videoData);
 void stcoParseBox(box *stcoBox, MPEG_Data *videoData);
 void sttsParseBox(box *sttsBox, MPEG_Data *videoData);
@@ -134,8 +138,8 @@ int main(int argc, char **argv) {
     printf(">--------STSD CHILD LEVEL--------\n");
     box *stco = getBoxFromLinkedList(stblLL, "stco");
     stcoParseBox(stco, videoData);
-    /* box *stsz = getBoxFromLinkedList(stblLL, "stsz");
-    stszParseBox(stsz); */
+    box *stsz = getBoxFromLinkedList(stblLL, "stsz");
+    stszParseBox(stsz, videoData);
     box *stsc = getBoxFromLinkedList(stblLL, "stsc");
     stscParseBox(stsc, videoData);
     /* box *stss = getBoxFromLinkedList(stblLL, "stss");
@@ -147,7 +151,7 @@ int main(int argc, char **argv) {
     /* box *stsd = getBoxFromLinkedList(stblLL, "stsd");
     stsdParseBox(stsd); */
 
-    sampleSearch(89, videoData);
+    sampleSearch(90, videoData);
 
     // free every linked list created
     /* freeLinkedList(topBoxesLL, "box");
@@ -201,6 +205,9 @@ unsigned int realTimeToMediaTime(unsigned int realTimeInSeconds, unsigned int me
     // need to use milliseconds too.  ideally a web interface would allow for 
     // precise time input.
 
+    // testing adding milliseconds
+    // unsigned int convertedTime = ((double) realTimeInSeconds + 0.058) * mediaTimeScale;
+    
     // it's hard to get the time for the exact last sample in a movie
     unsigned int convertedTime = realTimeInSeconds * mediaTimeScale;
     //printf("converted time: %d\n", convertedTime);
@@ -231,19 +238,24 @@ unsigned int mediaTimeToSampleNumber(unsigned int mediaTime, timeToSampleTableEn
         timeToSampleEntryNumber++;
     }
 
-    return 1; // error return
+    return 0; // error return
 }
 
 
-unsigned int sampleNumberToChunkNumber(unsigned int sampleNumber, sampleToChunkTableEntry **sampleToChunkTable, unsigned int numberOfSamples) { 
+unsigned int sampleNumberToChunkNumber(sampleInfo *sample, 
+                                       sampleToChunkTableEntry **sampleToChunkTable, 
+                                       unsigned int numberOfSamples) { 
     unsigned int i = 0;
-    unsigned int chunkNumb = 0;
+    unsigned int sampleNumber = sample->sampleNumber;
+    unsigned int chunkNumber = 0;
+    unsigned int sampleIndexInChunk = 0;
     unsigned int totalSamples = 0;
 
     while (sampleToChunkTable[i] != NULL) { 
         unsigned int firstChunk = sampleToChunkTable[i]->firstChunk;
         unsigned int samplesPerChunk = sampleToChunkTable[i]->samplesPerChunk;
         
+        // "last" refers to the last chunk in this range before next table entry
         unsigned int lastChunk; 
 
         if (sampleToChunkTable[i + 1] != NULL) { 
@@ -259,15 +271,26 @@ unsigned int sampleNumberToChunkNumber(unsigned int sampleNumber, sampleToChunkT
         if (sampleNumber <= (samplesInChunkRange + totalSamples)) { 
             for (int j = firstChunk; j <= lastChunk; j++) { 
                 // DEBUG printf("total samples loop: %d\n", totalSamples);
-                chunkNumb++;
-                totalSamples += samplesPerChunk;
-                if (sampleNumber <= totalSamples) { 
-                    return chunkNumb;
+                chunkNumber++;
+                
+                if (sampleNumber <= (samplesPerChunk + totalSamples)) { 
+                    // NOTE: may be replacable by an equation
+                    for (int i = 0; i < samplesPerChunk; i++) { 
+                        totalSamples += 1;
+                        sampleIndexInChunk += 1;
+                        if (sampleNumber <= totalSamples) { 
+                            sample->sampleIndexInChunk = sampleIndexInChunk;
+                            sample->chunkNumber = chunkNumber;
+                            return chunkNumber;
+                        }
+                    }
+                } else { 
+                    totalSamples += samplesPerChunk;
                 }
             }
         } else { 
             totalSamples += samplesInChunkRange;
-            chunkNumb += chunksInChunkRange;
+            chunkNumber += chunksInChunkRange;
             // DEBUG printf("%d\n", chunkNumb);
         }
         
@@ -275,7 +298,9 @@ unsigned int sampleNumberToChunkNumber(unsigned int sampleNumber, sampleToChunkT
     }
 
     // DEBUG printf("total samples: %d\n", totalSamples);
-    return 1; // error return
+    sample->sampleIndexInChunk = sampleIndexInChunk;
+    sample->chunkNumber = chunkNumber;
+    return 0; // error return
 }
 
 
@@ -284,20 +309,62 @@ unsigned int chunkNumberToChunkOffset(unsigned int chunkNumber, chunkOffsetTable
 }
 
 
+/**
+ * @brief to allow for defualt sample size check incase no sample size table present
+ * @param sampleNumber  -   the sample whose size is requested
+ * @param videoData     -   for accessing sampleSize and sampleSizeTable
+ * @return  the size corresponding to the sample number
+ */
+unsigned int sampleNumberToSampleSize(unsigned int sampleNumber, unsigned int sampleSizeDefault, sampleSizeTableEntry **sampleSizeTable) { 
+    if (sampleSizeDefault != 0) { 
+        return sampleSizeDefault;
+    } 
+
+    return sampleSizeTable[sampleNumber + 1]->size;
+}
+
+
+unsigned int getSampleOffsetInChunk(sampleInfo *sample, unsigned int sampleSizeDefault, sampleSizeTableEntry **sampleSizeTable) { 
+    // for general case when not in array
+
+    unsigned int offsetAccumulator = 0;
+    unsigned int sampleNumber = sample->sampleNumber;
+
+    for (int i = 1; i < sample->sampleIndexInChunk; i++) { 
+        offsetAccumulator += sampleNumberToSampleSize(sampleNumber - i, sampleSizeDefault, sampleSizeTable);
+    }
+
+    return offsetAccumulator;
+}
+
 void sampleSearch(unsigned int time, MPEG_Data *videoData) { 
     //printf("media duration: %d\n", *(videoData->mdhdDuration));
     //printf("media time scale: %d\n", *(videoData->mdhdTimeScale));
 
 
+    // videoData can be passed as a whole to all of these functions to simplify interface, 
+    // but allowing access to other data doesn't seem like a good idea
+
+    sampleInfo *sample = (sampleInfo*) malloc(sizeof(sampleInfo));
+
     unsigned int mediaTime = realTimeToMediaTime(time, videoData->mdhdTimeScale);
     unsigned int sampleNumber = mediaTimeToSampleNumber(mediaTime, videoData->timeToSampleTable);
-    unsigned int chunkNumber = sampleNumberToChunkNumber(sampleNumber, videoData->sampleToChunkTable, videoData->numberOfSamples);
+    sample->sampleNumber = sampleNumber;
+
+    unsigned int chunkNumber = sampleNumberToChunkNumber(sample, videoData->sampleToChunkTable, videoData->numberOfSamples);
     unsigned int chunkOffset = chunkNumberToChunkOffset(chunkNumber, videoData->chunkOffsetTable);
+    unsigned int sampleSize = sampleNumberToSampleSize(sampleNumber, videoData->sampleSizeDefault, videoData->sampleSizeTable);
+    unsigned int sampleOffsetInChunk = getSampleOffsetInChunk(sample, videoData->sampleSizeDefault, videoData->sampleSizeTable);
+
 
     printf("media time: %d\n", mediaTime);
     printf("sample: %d\n", sampleNumber);
     printf("chunk: %d\n", chunkNumber);
     printf("chunk offset: %d\n", chunkOffset);
+    printf("sample size: %d\n", sampleSize);
+    printf("sample index in chunk: %d\n", sample->sampleIndexInChunk);
+    printf("sample offset in chunk: %d\n", sampleOffsetInChunk);
+    printf("total samples: %d\n", videoData->numberOfSamples);
 
 }
 
@@ -424,7 +491,20 @@ void stsdParseBox(box *stsdBox) { //sample description required
 } */
 
 
-void stszParseBox(box *stszBox) { //sample size required
+/**
+ * @brief sample size. REQUIRED.
+ * to get size of each sample in media
+ * @note path: moov->trak->mdia->minf->stbl->stsz
+ * @param stszBox       -   the box
+ * @param videoData     -   to store the following three things: 
+ * sampleSizeInt, sampleSizeTable, and numberOfEntriesInt.
+ * sampleSizeInt: if 0 then indicates that sample size table contains an entry 
+ * for each sample. if non-zero then indicated the size of all samples.
+ * sampleSizeTable: a table with an entry for each sample indicating 
+ * it's size in bytes.
+ * numberOfEntriesInt: equivalent to number of samples in media trak.
+ */
+void stszParseBox(box *stszBox, MPEG_Data *videoData) { //sample size required
     unsigned int boxDataSize = stszBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = stszBox->boxData;
 
@@ -433,25 +513,39 @@ void stszParseBox(box *stszBox) { //sample size required
 
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
+
     char *sampleSize = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *sampleSizeInt = charToUnsignedInt(sampleSize);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
-    printf("%d\n", *sampleSizeInt);
-    printf("%d\n", *numberOfEntriesInt);
-    printf("%u %u\n", boxDataSize, bytesRead);
-    //for (int i = 1; i <= *numberOfEntriesInt; i++) { 
-    for (int i = 1; i <= 10; i++) { 
-        char *size = referenceNBytes(4, boxData, &bytesRead);
-        unsigned int *sizeInt = charToUnsignedInt(size);
-
-        printf("%d: %u\n", i, *sizeInt);
     
-        // calloc array of number of entries * size of usngiend int
-        // set each index 
-    }
-}
+    // If all the samples are the same size, this field contains that size value. 
+    // If this field is set to 0, then the samples have different sizes, and those 
+    // sizes are stored in the sample size table.
+    unsigned int sampleSizeInt = bigEndianCharToLittleEndianUnsignedInt(sampleSize);
 
+    // equivalent to the number of samples in the media
+    unsigned int numberOfEntriesInt = bigEndianCharToLittleEndianUnsignedInt(numberOfEntries);
+
+    //printf("%d\n", sampleSizeInt);
+    //printf("%d\n", numberOfEntriesInt);
+    
+    sampleSizeTableEntry **sampleSizeTable = (sampleSizeTableEntry**) calloc(numberOfEntriesInt + 1, sizeof(sampleSizeTableEntry*));
+    sampleSizeTable[numberOfEntriesInt] = NULL;
+
+    for (int i = 0; i < numberOfEntriesInt; i++) { 
+        char *size = referenceNBytes(4, boxData, &bytesRead);
+        unsigned int sizeInt = bigEndianCharToLittleEndianUnsignedInt(size);
+
+        sampleSizeTableEntry *sampleSizeEntry = (sampleSizeTableEntry*) malloc(sizeof(sampleSizeTableEntry));
+        sampleSizeEntry->size = sizeInt;
+
+        sampleSizeTable[i] = sampleSizeEntry;
+        //printf("%d: %u\n", i + 1, sizeInt);
+    }
+
+    videoData->sampleSizeDefault = sampleSizeInt;
+    videoData->sampleSizeTable = sampleSizeTable;
+    videoData->numberOfSamples = numberOfEntriesInt;
+}
 
 /**
  * @brief sample to chunk. REQUIRED.
@@ -501,7 +595,7 @@ void stscParseBox(box *stscBox, MPEG_Data *videoData) { //sample to chunk requir
 
         sampleToChunkTable[i] = sampleToChunkEntry;
 
-        //printf("%d \t\t %d \t\t %d \n", firstChunkInt, samplesPerChunkInt, sampleDescriptionIdInt);
+        // printf("%d \t\t %d \t\t %d \n", firstChunkInt, samplesPerChunkInt, sampleDescriptionIdInt);
     }
 
     videoData->sampleToChunkTable = sampleToChunkTable;
@@ -552,7 +646,7 @@ void stcoParseBox(box *stcoBox, MPEG_Data *videoData) { //chunk offset required
  * corresponding data sample.
  * @note path: moov->trak->mdia->minf->stbl->stts
  * @param sttsBox       -   the box
- * @param videoData     -   for storing time-to-sample table
+ * @param videoData     -   to store time-to-sample table
  */
 void sttsParseBox(box *sttsBox, MPEG_Data *videoData) { //time to sample
     unsigned int boxDataSize = sttsBox->boxSize - BOX_HEADER_SIZE;
@@ -567,7 +661,7 @@ void sttsParseBox(box *sttsBox, MPEG_Data *videoData) { //time to sample
     unsigned int numberOfEntriesInt = bigEndianCharToLittleEndianUnsignedInt(numberOfEntries);
     // DEBUG printf("%d\n", *numberOfEntriesInt);
 
-    unsigned int numberOfSamples = 0;
+    // unsigned int numberOfSamples = 0; Done without accumulator in stsz
 
     timeToSampleTableEntry **timeToSampleTable = (timeToSampleTableEntry**) calloc(numberOfEntriesInt + 1, sizeof(timeToSampleTableEntry*));
     timeToSampleTable[numberOfEntriesInt] = NULL;
@@ -579,7 +673,7 @@ void sttsParseBox(box *sttsBox, MPEG_Data *videoData) { //time to sample
         unsigned int sampleCountInt = bigEndianCharToLittleEndianUnsignedInt(sampleCount);
         unsigned int sampleDurationInt = bigEndianCharToLittleEndianUnsignedInt(sampleDuration);
         
-        numberOfSamples += sampleCountInt;
+        // numberOfSamples += sampleCountInt;
 
         timeToSampleTableEntry *timeToSampleEntry = (timeToSampleTableEntry*) malloc(sizeof(timeToSampleTableEntry));
         timeToSampleEntry->sampleCount = sampleCountInt; 
@@ -589,7 +683,7 @@ void sttsParseBox(box *sttsBox, MPEG_Data *videoData) { //time to sample
     }
 
     videoData->timeToSampleTable = timeToSampleTable;
-    videoData->numberOfSamples = numberOfSamples;
+    // videoData->numberOfSamples = numberOfSamples; 
     // DEBUG printf("%d %d\n", videoData->timeToSampleTable[0]->sampleCount, videoData->timeToSampleTable[0]->sampleDuration);
 }
 

@@ -119,11 +119,25 @@ typedef struct sampleToChunkTableEntry {
     unsigned int sampleDescriptionId;
 } sampleToChunkTableEntry;
 
+
 typedef struct chunkOffsetTableEntry { 
     unsigned int offset;
 } chunkOffsetTableEntry;
 
 
+typedef struct sampleSizeTableEntry { 
+    unsigned int size;
+} sampleSizeTableEntry;
+
+
+typedef struct sampleInfo { 
+    unsigned int sampleNumber;
+    unsigned int chunkNumber;
+    unsigned int chunkOffset;
+    unsigned int sampleSize;
+    unsigned int sampleIndexInChunk;
+    unsigned int sampleOffsetInChunk;
+} sampleInfo;
 
 // Main Storage Structs //
 
@@ -159,13 +173,17 @@ typedef struct MPEG_Data {
 
     // from sttsParseBox
     timeToSampleTableEntry **timeToSampleTable;
-    unsigned int numberOfSamples; 
 
     // from stscParseBox
     sampleToChunkTableEntry **sampleToChunkTable;
 
     // from stcoParseBox
     chunkOffsetTableEntry **chunkOffsetTable;
+
+    // from stszParseBox
+    sampleSizeTableEntry **sampleSizeTable;
+    unsigned int sampleSizeDefault;
+    unsigned int numberOfSamples; 
 
 
 } MPEG_Data; 
