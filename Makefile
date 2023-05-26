@@ -1,7 +1,11 @@
-all: parseMPEG-4.o linkedList.o bitUtility.o printUtility.o src/headers/linkedList.h src/headers/bitUtility.h
-	gcc -o a.out parseMPEG-4.o linkedList.o bitUtility.o printUtility.o
+all: parseMPEG-4.o processMPEG-4.o linkedList.o bitUtility.o printUtility.o \
+	 src/headers/linkedList.h src/headers/bitUtility.h src/headers/printUtility.h \
+	 src/headers/processMPEG-4.h
+	gcc -o a.out parseMPEG-4.o processMPEG-4.o linkedList.o bitUtility.o printUtility.o
 parseMPEG-4.o: src/parseMPEG-4.c
 	gcc -c src/parseMPEG-4.c
+processMPEG-4.o: src/processMPEG-4.c
+	gcc -c src/processMPEG-4.c
 linkedList.o: src/linkedList.c
 	gcc -c src/linkedList.c
 bitUtility.o: src/bitUtility.c
@@ -9,4 +13,4 @@ bitUtility.o: src/bitUtility.c
 printUtility.o: src/printUtility.c
 	gcc -c src/printUtility.c
 clean: 
-	rm parseMPEG-4.o linkedList.o bitUtility.o printUtility.o a.out
+	rm parseMPEG-4.o processMPEG-4.o linkedList.o bitUtility.o printUtility.o a.out

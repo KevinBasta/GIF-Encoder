@@ -1,7 +1,3 @@
-#ifndef MPEG_HEAD
-    // This may be unnecessary
-    #include "types.h"
-#endif
 
 linkedList* initLinkedList();
 void appendNodeLinkedList(linkedList *list, void *item);

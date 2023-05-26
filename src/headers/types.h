@@ -130,7 +130,9 @@ typedef struct sampleSizeTableEntry {
 } sampleSizeTableEntry;
 
 
-typedef struct sampleInfo { 
+typedef struct sampleInfo {
+    unsigned int realTime; 
+    unsigned int mediaTime;
     unsigned int sampleNumber;
     unsigned int chunkNumber;
     unsigned int chunkOffset;
