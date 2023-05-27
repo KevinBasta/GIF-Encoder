@@ -1,162 +1,15 @@
-#define MPEG_HEAD
-#include <stdio.h>
-#include <stdlib.h>
-//#include <string.h>
+#ifndef MPEG_HEAD
+    #include <stdio.h>
+    #include <stdlib.h>
+    //#include <string.h>
 
-#include "headers/types.h"
-#include "headers/printUtility.h"
-#include "headers/bitUtility.h"
-#include "headers/linkedList.h"
-#include "headers/processMPEG-4.h"
-
-void readMainBoxes(char fileName[], linkedList *list);
-void parseChildBoxes(box *parentBox, linkedList *list);
-void parseNestedChildBoxes(char *boxData, unsigned int *bytesRead, unsigned int endIndex, linkedList *list);
-box *parseSingleNestedChildBox(char *boxData, unsigned int *bytesRead);
-void ftypParseBox(box *ftypBox);
-void mvhdParseBox(box *mvhdBox, MPEG_Data *videoData);
-void tkhdParseBox(box *trakBox, MPEG_Data *videoData);
-void elstParseBox(box *elstBox, MPEG_Data *videoData);
-void edtsParseBox(box *edtsBox, MPEG_Data *videoData);
-void mdhdParseBox(box *mdhdBox, MPEG_Data *videoData);
-char *hdlrParseBox(box *hdlrBox);
-void vmhdParseBox(box *vmhdBox);
-void drefParseBox(box *drefBox, MPEG_Data *videoData);
-void dinfParseBox(box *dinfBox, MPEG_Data *videoData);
-box *getVideTrak(linkedList *moovLL);
-
-void stsdParseBox(box *stsdBox);
-void stszParseBox(box *stszBox, MPEG_Data *videoData);
-void stscParseBox(box *stscBox, MPEG_Data *videoData);
-void stcoParseBox(box *stcoBox, MPEG_Data *videoData);
-void sttsParseBox(box *sttsBox, MPEG_Data *videoData);
-void stssParseBox(box *stssBox);
-void cttsParseBox(box *cttsBox);
-void videoMediaBox();
-
-int main(int argc, char **argv) { 
-    linkedList *topBoxesLL = initLinkedList();
-    // fopen taken in a relative path from executable location
-    readMainBoxes("local_files/op2.mp4", topBoxesLL);
-
-    MPEG_Data *videoData = (MPEG_Data*) malloc(sizeof(MPEG_Data));
-
-
-    printf("----------TOP LEVEL----------\n");
-    printAllBoxesLinkedList(topBoxesLL);
-    
-
-    printf("----------MOOV LEVEL----------\n");
-    box *moovBox = getBoxFromLinkedList(topBoxesLL, "moov");
-    
-    linkedList *moovLL = initLinkedList();
-    parseChildBoxes(moovBox, moovLL);
-    printAllBoxesLinkedList(moovLL);
-
-
-    printf(">----------MVHD LEVEL----------\n");
-    box *mvhdBox = getBoxFromLinkedList(moovLL, "mvhd");
-    mvhdParseBox(mvhdBox, videoData);
-
-
-
-    printf("----------TRAK LEVEL----------\n");
-    box *trakBox = getVideTrak(moovLL);
-
-    linkedList *trakLL = initLinkedList();
-    parseChildBoxes(trakBox, trakLL);
-    printAllBoxesLinkedList(trakLL);
-
-
-
-    
-    printf(">----------TKHD LEVEL----------\n");
-    box *tkhdBox = getBoxFromLinkedList(trakLL, "tkhd");
-    tkhdParseBox(tkhdBox, videoData);
-
-
-    printf(">----------EDTS LEVEL----------\n");
-    box *edtsBox = getBoxFromLinkedList(trakLL, "edts");
-    edtsParseBox(edtsBox, videoData);
-
-
-
-
-    printf("----------MDIA LEVEL----------\n");
-    box *mdia = getBoxFromLinkedList(trakLL, "mdia");
-
-    linkedList *mdiaLL = initLinkedList();
-    parseChildBoxes(mdia, mdiaLL);
-    printAllBoxesLinkedList(mdiaLL);
-
-
-
-
-    printf(">----------MDHD LEVEL----------\n");
-    box *mdhdBox = getBoxFromLinkedList(mdiaLL, "mdhd");
-    mdhdParseBox(mdhdBox, videoData);
-
-
-    printf(">----------HDLR LEVEL----------\n");
-    box *hdlrBox = getBoxFromLinkedList(mdiaLL, "hdlr");
-    hdlrParseBox(hdlrBox);
-
-
-
-
-
-    printf("----------MINF LEVEL----------\n");
-    box *minf = getBoxFromLinkedList(mdiaLL, "minf");
-
-    linkedList *minfLL = initLinkedList();
-    parseChildBoxes(minf, minfLL);
-    printAllBoxesLinkedList(minfLL);
-
-
-
-    printf(">----------DINF LEVEL----------\n");
-    box *dinfBox = getBoxFromLinkedList(minfLL, "dinf");
-    dinfParseBox(dinfBox, videoData);
-
-
-
-    printf("----------STBL LEVEL----------\n");
-    box *stbl = getBoxFromLinkedList(minfLL, "stbl");
-
-    linkedList *stblLL = initLinkedList();
-    parseChildBoxes(stbl, stblLL);
-    printAllBoxesLinkedList(stblLL);
-
-
-    printf(">--------STSD CHILD LEVEL--------\n");
-    box *stco = getBoxFromLinkedList(stblLL, "stco");
-    stcoParseBox(stco, videoData);
-    box *stsz = getBoxFromLinkedList(stblLL, "stsz");
-    stszParseBox(stsz, videoData);
-    box *stsc = getBoxFromLinkedList(stblLL, "stsc");
-    stscParseBox(stsc, videoData);
-    /* box *stss = getBoxFromLinkedList(stblLL, "stss");
-    stssParseBox(stss); */
-    /* box *ctts = getBoxFromLinkedList(stblLL, "ctts");
-    cttsParseBox(ctts); */
-    box *stts = getBoxFromLinkedList(stblLL, "stts");
-    sttsParseBox(stts, videoData);
-    /* box *stsd = getBoxFromLinkedList(stblLL, "stsd");
-    stsdParseBox(stsd); */
-
-    sampleSearch(90, videoData);
-
-    // free every linked list created
-    /* freeLinkedList(topBoxesLL, "box");
-    freeLinkedList(moovLL, "box");
-    freeLinkedList(trakLL, "box");
-    freeLinkedList(mdiaLL, "box");
-    freeLinkedList(minfLL, "box");
-    freeLinkedList(stblLL, "box"); */
-    printf("end of script\n");
-    return 0;
-}
-
+    #include "headers/types.h"
+    #include "headers/printUtility.h"
+    #include "headers/bitUtility.h"
+    #include "headers/linkedList.h"
+    #include "headers/parseMPEG-4.h"
+    #include "headers/processMPEG-4.h"
+#endif
 
 /**
  * @brief 
@@ -187,6 +40,7 @@ box *getVideTrak(linkedList *moovLL) {
 
     return NULL;
 }
+
 
 
 //https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap2/qtff2.html#//apple_ref/doc/uid/TP40000939-CH204-25680
@@ -502,7 +356,18 @@ void sttsParseBox(box *sttsBox, MPEG_Data *videoData) { //time to sample
     // DEBUG printf("%d %d\n", videoData->timeToSampleTable[0]->sampleCount, videoData->timeToSampleTable[0]->sampleDuration);
 }
 
-void stssParseBox(box *stssBox) { //sync sample
+/**
+ * @brief sync sample.
+ * https://wiki.multimedia.cx/index.php/QuickTime_container#stss
+ * @param stssBox 
+ * @param videoData 
+ */
+void stssParseBox(box *stssBox, MPEG_Data *videoData) { //sync sample
+    if (stssBox == NULL) { 
+        videoData->syncSampleTable = NULL;
+        return;
+    }
+
     unsigned int boxDataSize = stssBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = stssBox->boxData;
 
@@ -512,17 +377,42 @@ void stssParseBox(box *stssBox) { //sync sample
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
-    printf("%d\n", *numberOfEntriesInt);
-    for (int i = 0; i < *numberOfEntriesInt; i++) { 
+    unsigned int numberOfEntriesInt = bigEndianCharToLittleEndianUnsignedInt(numberOfEntries);
+    // DEBUG printf("%d\n", numberOfEntriesInt);
+
+    syncSampleTableEntry **syncSampleTable = (syncSampleTableEntry**) calloc(numberOfEntriesInt + 1, sizeof(syncSampleTableEntry*));
+    syncSampleTable[numberOfEntriesInt] = NULL;
+
+    for (int i = 0; i < numberOfEntriesInt; i++) { 
         char *entry = referenceNBytes(4, boxData, &bytesRead);
-        unsigned int *entryInt = charToUnsignedInt(entry);
-        printf("%d\n", *entryInt);
+        unsigned int entryInt = bigEndianCharToLittleEndianUnsignedInt(entry);
+        
+        syncSampleTableEntry *syncSampleEntry = (syncSampleTableEntry*) malloc(sizeof(syncSampleTableEntry));
+        syncSampleEntry->number = entryInt;
+
+        syncSampleTable[i] = syncSampleEntry;
+
+        printf("%d\n", entryInt);
     }
 
+    videoData->syncSampleTable = syncSampleTable;
+    videoData->syncSampleTableEntries = numberOfEntriesInt;
 }
 
-void cttsParseBox(box *cttsBox) { //composition offset
+/**
+ * @brief composition offset.
+ * Video samples in encoded formats have a decode order and presentation order.
+ * presentation order == composition order == display order. 
+ * This box is used when there are out of order video samples.
+ * If the decode and presentation orders are the same, this box will 
+ * not be present.
+ * If video samples are stored out of presenation order, this box 
+ * contains the time of presentation as a delta on sample by sample basis.
+ * DisplayTime = MediaTime + DisplayTimeDelta
+ * @param cttsBox       -   the box
+ * @param videoData     -   to store compositionOffsetTable
+ */
+void cttsParseBox(box *cttsBox, MPEG_Data *videoData) { //composition offset
     unsigned int boxDataSize = cttsBox->boxSize - BOX_HEADER_SIZE;
     char *boxData = cttsBox->boxData;
 
@@ -532,19 +422,30 @@ void cttsParseBox(box *cttsBox) { //composition offset
     char *version = referenceNBytes(1, boxData, &bytesRead);
     char *flags = referenceNBytes(3, boxData, &bytesRead);
     char *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    unsigned int *numberOfEntriesInt = charToUnsignedInt(numberOfEntries);
-    printf("%d\n", *numberOfEntriesInt);
-    printf("Sample Count \t\t Composition Offset\n");
-    for (int i = 0; i < *numberOfEntriesInt; i++) { 
+    unsigned int numberOfEntriesInt = bigEndianCharToLittleEndianUnsignedInt(numberOfEntries);
+    // printf("%d\n", numberOfEntriesInt);
+    // printf("Sample Count \t\t Composition Offset\n");
+
+    compositionOffsetTableEntry **compositionOffsetTable = (compositionOffsetTableEntry**) calloc(numberOfEntriesInt + 1, sizeof(compositionOffsetTableEntry*));
+    compositionOffsetTable[numberOfEntriesInt] = NULL;
+    
+    for (int i = 0; i < numberOfEntriesInt; i++) { 
         char *sampleCount = referenceNBytes(4, boxData, &bytesRead);
         char *compositionOffset = referenceNBytes(4, boxData, &bytesRead);
         
-        unsigned int *sampleCountInt = charToUnsignedInt(sampleCount);
-        unsigned int *compositionOffsetInt = charToUnsignedInt(compositionOffset);
-        printf("%d \t\t %d\n", *sampleCountInt, *compositionOffsetInt);
-        free(sampleCountInt);
-        free(compositionOffsetInt);
+        unsigned int sampleCountInt = bigEndianCharToLittleEndianUnsignedInt(sampleCount);
+        int compositionOffsetInt = bigEndianCharToLittleEndianInt(compositionOffset);
+
+        compositionOffsetTableEntry *compositionOffsetEntry = (compositionOffsetTableEntry*) malloc(sizeof(compositionOffsetTableEntry));
+        compositionOffsetEntry->sampleCount = sampleCountInt;
+        compositionOffsetEntry->compositionOffset = compositionOffsetInt;
+
+        compositionOffsetTable[i] = compositionOffsetEntry;
+        
+        // printf("%d \t\t %d\n", sampleCountInt, compositionOffsetInt);
     }
+
+    videoData->compositionOffsetTable = compositionOffsetTable;
 }
 
 void videoMediaBox() { 

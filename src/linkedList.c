@@ -71,6 +71,32 @@ void printAllBoxesLinkedList(linkedList *list) {
 
 
 /**
+ * @brief accumulates all box sizes until finds boxCompareType
+ * @param list              -   the linkedList to search in
+ * @param boxCompareType    -   box to stop accumulating at
+ * @return the sum of the sizes of all boxes preceding boxCompareType
+ */
+unsigned int getOffsetToBoxLinkedList(linkedList *list, char boxCompareType[]) { 
+    unsigned int offsetAccumulator = 0;
+    
+    Node *currentNode = list->head;
+    for (int i = 0; i < list->size; i++) { 
+        box *currentBoxPointer = (box*) currentNode->currentItem;
+
+        if ((compareNBytes(currentBoxPointer->boxType, boxCompareType, 4) == TRUE)) {
+            return offsetAccumulator;
+        } else { 
+            offsetAccumulator += currentBoxPointer->boxSize;
+        }
+
+        currentNode = currentNode->nextNode;
+    }
+
+    return offsetAccumulator;
+}
+
+
+/**
  * @brief find and return box by its boxType
  * @param *list             -   the linkedList searched
  * @param *boxReturnType    -   the type to find    
@@ -83,7 +109,7 @@ box *getBoxFromLinkedList(linkedList *list, char boxReturnType[]) {
     for (int i = 0; i < list->size; i++) {
         box *currentBoxPointer = (box*) list->current->currentItem;
 
-        if ((compareNBytes(currentBoxPointer->boxType, boxReturnType, 4) == 1)) {
+        if ((compareNBytes(currentBoxPointer->boxType, boxReturnType, 4) == TRUE)) {
             // DEBUG printf("True, returning\n");
             boxToReturn = list->current->currentItem;
 

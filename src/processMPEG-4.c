@@ -3,6 +3,7 @@
     #include <stdlib.h>
 
     #include "headers/types.h"
+    #include "headers/typesUtility.h"
     #include "headers/printUtility.h"
     #include "headers/bitUtility.h"
     #include "headers/linkedList.h"
@@ -35,9 +36,9 @@ unsigned int realTimeToMediaTime(unsigned int realTimeInSeconds, unsigned int me
 
 /**
  * @brief 
- * @param mediaTime 
- * @param timeToSampleTable 
- * @return 
+ * @param mediaTime             -   time to search for
+ * @param timeToSampleTable     -   table to search in
+ * @return sampleNumber
  */
 unsigned int mediaTimeToSampleNumber(unsigned int mediaTime, timeToSampleTableEntry **timeToSampleTable) { 
     // need to consider edge cases here
@@ -68,7 +69,8 @@ unsigned int mediaTimeToSampleNumber(unsigned int mediaTime, timeToSampleTableEn
 
 
 /**
- * @brief to allow for default sample size check incase no sample size table present
+ * @brief to allow for default sample size check incase no sample size table present.
+ * +1 is needed to convert from 0 indexed array to 1 indexed tables.
  * @param sampleNumber  -   the sample whose size is requested
  * @param videoData     -   for accessing sampleSize and sampleSizeTable
  * @return  the size corresponding to the sample number
@@ -83,13 +85,14 @@ unsigned int sampleNumberToSampleSize(unsigned int sampleNumber, unsigned int sa
 
 
 /**
- * @brief 
- * @param sample    -   used to read sampleNumber and store chunkNumber, sampleIndexInChunkNumber, and sampleOffsetInChunkNumber
- * @param sampleToChunkTable 
- * @param numberOfSamples 
- * @param sampleSizeTable 
- * @param sampleSizeDefault 
- * @return 
+ * @brief sample needs to be passed in since multiple sampleInfo fields are populated
+ * @param sample                -   used to read sampleNumber and store chunkNumber, 
+ * sampleIndexInChunkNumber, and sampleOffsetInChunkNumber
+ * @param sampleToChunkTable    -   for getting chunkNumber
+ * @param numberOfSamples       -   for calculating lastChunk
+ * @param sampleSizeTable       -   for calculating sampleOffsetInChunk
+ * @param sampleSizeDefault     -   for calculating sampleOffsetInChunk
+ * @return the chunkNumber that the sampleNumber resides in
  */
 unsigned int sampleNumberToChunkNumber(sampleInfo *sample, 
                                        sampleToChunkTableEntry **sampleToChunkTable, 
@@ -164,16 +167,18 @@ unsigned int sampleNumberToChunkNumber(sampleInfo *sample,
 }
 
 
-
+/**
+ * @brief mainly to avoid forgetting +1 since the table is 1 indexed but the array is 0 indexed
+ * @param chunkNumber           -   chunk to search for
+ * @param chunkOffsetTable      -   table to search in
+ * @return chunk offset relative to the start of the file. NOT relative to any box.
+ */
 unsigned int chunkNumberToChunkOffset(unsigned int chunkNumber, chunkOffsetTableEntry **chunkOffsetTable) { 
     return chunkOffsetTable[chunkNumber + 1]->offset;
 }
 
 
-
-
-
-
+// sampleSizeAndChunkOffsetToSampleOffsetInChunk
 unsigned int getSampleOffsetInChunk(sampleInfo *sample, unsigned int sampleSizeDefault, sampleSizeTableEntry **sampleSizeTable) { 
     // for general case when not in array
 
@@ -188,37 +193,79 @@ unsigned int getSampleOffsetInChunk(sampleInfo *sample, unsigned int sampleSizeD
 }
 
 
+unsigned int offsetDataToSampleMdatOffset(unsigned int chunkOffset, unsigned int sampleOffsetInChunk, unsigned int mdatOffsetInFile) { 
+    unsigned int sampleMdatOffset = chunkOffset + sampleOffsetInChunk - mdatOffsetInFile;
+    return sampleMdatOffset;
+}
 
+
+
+// Interface for working with a sampleInfo struct //
+
+/**
+ * @brief dependant on sample realTime
+ */
 void sampleRealTimeToMediaTime(sampleInfo *sample, MPEG_Data *videoData) {
     sample->mediaTime = realTimeToMediaTime(sample->realTime, videoData->mdhdTimeScale);
 }
 
+/**
+ * @brief dependant on sampleRealTimeToMediaTime
+ */
 void sampleMediaTimeToSampleNumber(sampleInfo *sample, MPEG_Data *videoData) { 
     sample->sampleNumber = mediaTimeToSampleNumber(sample->mediaTime, videoData->timeToSampleTable);
 }
 
+/**
+ * @brief dependant on sampleMediaTimeToSampleNumber
+ */
 void sampleSampleNumberToChunkNumber(sampleInfo *sample, MPEG_Data *videoData) { 
     sampleNumberToChunkNumber(sample, videoData->sampleToChunkTable, videoData->numberOfSamples, 
                               videoData->sampleSizeTable, videoData->sampleSizeDefault);
 }
 
+/**
+ * @brief dependant on sampleSampleNumberToChunkNumber
+ */
 void sampleChunkNumberToChunkOffset(sampleInfo *sample, MPEG_Data *videoData) { 
     sample->chunkOffset = chunkNumberToChunkOffset(sample->chunkNumber, videoData->chunkOffsetTable);
 }
 
+/**
+ * @brief dependant on sampleMediaTimeToSampleNumber or just sampleNumber
+ */
 void sampleSampleNumberToSampleSize(sampleInfo *sample, MPEG_Data *videoData) { 
     sample->sampleSize = sampleNumberToSampleSize(sample->sampleNumber, videoData->sampleSizeDefault, videoData->sampleSizeTable);
 }
 
+/**
+ * @brief dependant on sampleSampleNumberToChunkNumber
+ */
+void sampleOffsetDataToSampleMdatOffset(sampleInfo *sample, MPEG_Data *videoData) { 
+    sample->sampleOffsetInMdat = offsetDataToSampleMdatOffset(sample->chunkOffset, sample->sampleOffsetInChunk, videoData->mdatOffsetInFile);
+}
 
-void sampleSearch(unsigned int time, MPEG_Data *videoData) { 
-    //printf("media duration: %d\n", *(videoData->mdhdDuration));
-    //printf("media time scale: %d\n", *(videoData->mdhdTimeScale));
 
 
-    // videoData can be passed as a whole to all of these functions to simplify interface, 
-    // but allowing access to other data doesn't seem like a good idea
 
+void getVideoDataRange(unsigned int startTime, unsigned int endTime, MPEG_Data *videoData) { 
+    sampleInfo *startSample = sampleSearchByTime(startTime, videoData);
+    sampleInfo *endSample = sampleSearchByTime(endTime, videoData);
+
+    unsigned int sampleRange = endSample->sampleNumber - startSample->sampleNumber;
+    sampleInfo **sampleRangeArray = (sampleInfo**) calloc(sampleRange + 1, sizeof(sampleInfo*));
+    sampleRangeArray[sampleRange] = NULL;
+    sampleRangeArray[0] = startSample;
+    sampleRangeArray[sampleRange - 1] = endSample;
+
+    unsigned int iterSampleNumber = startSample->sampleNumber;
+    for (int i = 1; i < (sampleRange - 1); i++) {
+        iterSampleNumber += 1;
+        sampleRangeArray[i] = sampleSearchBySampleNumber(iterSampleNumber, videoData);
+    }
+}
+
+sampleInfo *sampleSearchByTime(unsigned int time, MPEG_Data *videoData) { 
     sampleInfo *sample = (sampleInfo*) malloc(sizeof(sampleInfo));
     sample->realTime = time;
     sampleRealTimeToMediaTime(sample, videoData);
@@ -226,6 +273,7 @@ void sampleSearch(unsigned int time, MPEG_Data *videoData) {
     sampleSampleNumberToChunkNumber(sample, videoData);
     sampleChunkNumberToChunkOffset(sample, videoData);
     sampleSampleNumberToSampleSize(sample, videoData);
+    sampleOffsetDataToSampleMdatOffset(sample, videoData);
 
     printf("media time: %d\n", sample->mediaTime);
     printf("sample: %d\n", sample->sampleNumber);
@@ -236,9 +284,37 @@ void sampleSearch(unsigned int time, MPEG_Data *videoData) {
     printf("sample offset in chunk: %d\n", sample->sampleOffsetInChunk);
     printf("total samples: %d\n", videoData->numberOfSamples);
 
+    return sample;
+}
+
+sampleInfo *sampleSearchBySampleNumber(unsigned int sampleNumber, MPEG_Data *videoData) { 
+    sampleInfo *sample = (sampleInfo*) malloc(sizeof(sampleInfo));
+    sample->sampleNumber = sampleNumber;
+
+    sampleSampleNumberToChunkNumber(sample, videoData);
+    sampleChunkNumberToChunkOffset(sample, videoData);
+    sampleSampleNumberToSampleSize(sample, videoData);
+    sampleOffsetDataToSampleMdatOffset(sample, videoData);
+
+    return sample;
 }
 
 
-void keyFrameSearch() { 
-    
+
+
+sampleInfo *keyFrameSearch(unsigned int time, MPEG_Data *videoData) { 
+    sampleInfo *sample = (sampleInfo*) malloc(sizeof(sampleInfo));
+    sample->realTime = time;
+
+    sampleRealTimeToMediaTime(sample, videoData);
+    sampleMediaTimeToSampleNumber(sample, videoData);
+    unsigned int keyframe = binarySearch(sample->sampleNumber, videoData->syncSampleTable, videoData->syncSampleTableEntries);
+    printf("keyframe: %d\n", keyframe);
+
+    sampleSampleNumberToChunkNumber(sample, videoData);
+    sampleChunkNumberToChunkOffset(sample, videoData);
+    sampleSampleNumberToSampleSize(sample, videoData);
+    sampleOffsetDataToSampleMdatOffset(sample, videoData);
+
+    return sample;
 }

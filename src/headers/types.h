@@ -129,9 +129,18 @@ typedef struct sampleSizeTableEntry {
     unsigned int size;
 } sampleSizeTableEntry;
 
+typedef struct syncSampleTableEntry { 
+    unsigned int number;
+} syncSampleTableEntry;
+
+typedef struct compositionOffsetTableEntry { 
+    unsigned int sampleCount;
+    int compositionOffset;
+} compositionOffsetTableEntry;
+
 
 typedef struct sampleInfo {
-    unsigned int realTime; 
+    unsigned int realTime; // may remove 
     unsigned int mediaTime;
     unsigned int sampleNumber;
     unsigned int chunkNumber;
@@ -139,6 +148,7 @@ typedef struct sampleInfo {
     unsigned int sampleSize;
     unsigned int sampleIndexInChunk;
     unsigned int sampleOffsetInChunk;
+    unsigned int sampleOffsetInMdat;
 } sampleInfo;
 
 // Main Storage Structs //
@@ -187,5 +197,15 @@ typedef struct MPEG_Data {
     unsigned int sampleSizeDefault;
     unsigned int numberOfSamples; 
 
+    // from stssParseBox
+    syncSampleTableEntry **syncSampleTable;
+    unsigned int syncSampleTableEntries;
+
+    // from cttsParseBox
+    compositionOffsetTableEntry **compositionOffsetTable;
+
+    // mdat Data
+    box *mdatBox;
+    unsigned int mdatOffsetInFile;
 
 } MPEG_Data; 
