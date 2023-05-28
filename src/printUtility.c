@@ -2,7 +2,9 @@
     #define MPEG_HEAD
     #include <stdio.h>
     #include <stdlib.h>
+    #include <stdint.h>
 
+    #include "headers/types.h"
     #include "headers/bitUtility.h"
 #endif
 
@@ -14,9 +16,9 @@
  *  @param prefixString:    a char array to print before
  *  @param postfixString:   a char array to print after
  */
-void printNBytes(char *string, int bytesToPrint, char prefixString[], char postfixString[]) { 
+void printNBytes(u8 *string, u32 bytesToPrint, u8 prefixString[], u8 postfixString[]) { 
     printf("%s", prefixString);
-    for (int i = 0; i < bytesToPrint; i++) { 
+    for (u32 i = 0; i < bytesToPrint; i++) { 
         printf("%c", string[i]);
     }
     printf("%s", postfixString);
@@ -28,9 +30,9 @@ void printNBytes(char *string, int bytesToPrint, char prefixString[], char postf
  *  @param *string:         a pointer to first element in a character array
  *  @param bytesToPrint:    the number of bytes to print from a char array
  */
-void printHexNBytes(char *string, int bytesToPrint) { 
+void printHexNBytes(u8 *string, u32 bytesToPrint) { 
     // 15 == (0000 1111), masks the low 4 bits in a byte
-    for (int i = 0; i < bytesToPrint; i++) {
+    for (u32 i = 0; i < bytesToPrint; i++) {
         printf("%X", (string[i] >> 4) & 15);
         printf("%X ", string[i] & 15);
     }
@@ -41,9 +43,9 @@ void printHexNBytes(char *string, int bytesToPrint) {
  *  prints binary bits of a 4 byte char array
  *  @param bitPattern:  a 4 byte char array
  */
-void printCharArrayBits(char *bitPattern) { 
-    for (int j = 0; j < 4; j++) {
-        for (int i = 7; i >= 0; i--) {
+void printCharArrayBits(u8 *bitPattern) { 
+    for (u32 j = 0; j < 4; j++) {
+        for (u32 i = 7; i >= 0; i--) {
             printf("%d", (bitPattern[j] >> i) & 1);
         }
         printf(" ");
@@ -58,9 +60,9 @@ void printCharArrayBits(char *bitPattern) {
  *  @param ptr:     a pointer to an element of any type
  */
 void printBits(void const * const ptr, size_t const size) {
-    unsigned char *b = (unsigned char*) ptr;
-    unsigned char byte;
-    int i, j;
+    u8 *b = (u8*) ptr;
+    u8 byte;
+    i32 i, j;
     
     for (i = size-1; i >= 0; i--) {
         for (j = 7; j >= 0; j--) {

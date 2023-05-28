@@ -1,6 +1,7 @@
 #ifndef MPEG_HEAD
     #include <stdio.h>
     #include <stdlib.h>
+    #include <stdint.h>
 
     #include "headers/types.h"
     #include "headers/typesUtility.h"
@@ -19,16 +20,16 @@
  * @param mediaTimeScale        -   used for conversion
  * @return the time in media timescale that corresponds to the real time
  */
-unsigned int realTimeToMediaTime(unsigned int realTimeInSeconds, unsigned int mediaTimeScale) { 
+u32 realTimeToMediaTime(u32 realTimeInSeconds, u32 mediaTimeScale) { 
     // can put the to seconds conversion here later once interface is decided
     // need to use milliseconds too.  ideally a web interface would allow for 
     // precise time input.
 
     // testing adding milliseconds
-    // unsigned int convertedTime = ((double) realTimeInSeconds + 0.058) * mediaTimeScale;
+    // u32 convertedTime = ((double) realTimeInSeconds + 0.058) * mediaTimeScale;
     
     // it's hard to get the time for the exact last sample in a movie
-    unsigned int convertedTime = realTimeInSeconds * mediaTimeScale;
+    u32 convertedTime = realTimeInSeconds * mediaTimeScale;
     //printf("converted time: %d\n", convertedTime);
     return convertedTime;
 }
@@ -40,18 +41,18 @@ unsigned int realTimeToMediaTime(unsigned int realTimeInSeconds, unsigned int me
  * @param timeToSampleTable     -   table to search in
  * @return sampleNumber
  */
-unsigned int mediaTimeToSampleNumber(unsigned int mediaTime, timeToSampleTableEntry **timeToSampleTable) { 
+u32 mediaTimeToSampleNumber(u32 mediaTime, timeToSampleTableEntry **timeToSampleTable) { 
     // need to consider edge cases here
-    unsigned int sampleNumber = 0; 
-    unsigned int sampleTimeAccumulator = 0;
+    u32 sampleNumber = 0; 
+    u32 sampleTimeAccumulator = 0;
 
-    int timeToSampleEntryNumber = 0;
+    i32 timeToSampleEntryNumber = 0;
     while (timeToSampleTable[timeToSampleEntryNumber] != NULL) { 
-        unsigned int sampleCountInTableEntry = timeToSampleTable[timeToSampleEntryNumber]->sampleCount;
-        unsigned int sampleDurationInTableEntry = timeToSampleTable[timeToSampleEntryNumber]->sampleDuration;
+        u32 sampleCountInTableEntry = timeToSampleTable[timeToSampleEntryNumber]->sampleCount;
+        u32 sampleDurationInTableEntry = timeToSampleTable[timeToSampleEntryNumber]->sampleDuration;
         
         
-        for (int i = 0; i < sampleCountInTableEntry; i++) { 
+        for (u32 i = 0; i < sampleCountInTableEntry; i++) { 
             if (sampleTimeAccumulator + sampleDurationInTableEntry <= mediaTime){ 
                 sampleNumber++;
                 sampleTimeAccumulator += sampleDurationInTableEntry;
@@ -75,7 +76,7 @@ unsigned int mediaTimeToSampleNumber(unsigned int mediaTime, timeToSampleTableEn
  * @param videoData     -   for accessing sampleSize and sampleSizeTable
  * @return  the size corresponding to the sample number
  */
-unsigned int sampleNumberToSampleSize(unsigned int sampleNumber, unsigned int sampleSizeDefault, sampleSizeTableEntry **sampleSizeTable) { 
+u32 sampleNumberToSampleSize(u32 sampleNumber, u32 sampleSizeDefault, sampleSizeTableEntry **sampleSizeTable) { 
     if (sampleSizeDefault != 0) { 
         return sampleSizeDefault;
     } 
@@ -94,28 +95,28 @@ unsigned int sampleNumberToSampleSize(unsigned int sampleNumber, unsigned int sa
  * @param sampleSizeDefault     -   for calculating sampleOffsetInChunk
  * @return the chunkNumber that the sampleNumber resides in
  */
-unsigned int sampleNumberToChunkNumber(sampleInfo *sample, 
+u32 sampleNumberToChunkNumber(sampleInfo *sample, 
                                        sampleToChunkTableEntry **sampleToChunkTable, 
-                                       unsigned int numberOfSamples, 
+                                       u32 numberOfSamples, 
                                        sampleSizeTableEntry **sampleSizeTable, 
-                                       unsigned int sampleSizeDefault) { 
+                                       u32 sampleSizeDefault) { 
     // Data read from sample
-    unsigned int sampleNumber = sample->sampleNumber;
+    u32 sampleNumber = sample->sampleNumber;
     
     // Data written to sample
-    unsigned int chunkNumber = 0;
-    unsigned int sampleIndexInChunk = 0;
-    unsigned int sampleOffsetInChunk = 0;
+    u32 chunkNumber = 0;
+    u32 sampleIndexInChunk = 0;
+    u32 sampleOffsetInChunk = 0;
 
-    unsigned int totalSamples = 0;
+    u32 totalSamples = 0;
 
-    unsigned int i = 0;
+    u32 i = 0;
     while (sampleToChunkTable[i] != NULL) { 
-        unsigned int firstChunk = sampleToChunkTable[i]->firstChunk;
-        unsigned int samplesPerChunk = sampleToChunkTable[i]->samplesPerChunk;
+        u32 firstChunk = sampleToChunkTable[i]->firstChunk;
+        u32 samplesPerChunk = sampleToChunkTable[i]->samplesPerChunk;
         
         // "last" refers to the last chunk in this range before next table entry
-        unsigned int lastChunk; 
+        u32 lastChunk; 
 
         if (sampleToChunkTable[i + 1] != NULL) { 
             lastChunk = sampleToChunkTable[i + 1]->firstChunk - 1;
@@ -123,18 +124,18 @@ unsigned int sampleNumberToChunkNumber(sampleInfo *sample,
             lastChunk = (numberOfSamples / samplesPerChunk);
         }
 
-        unsigned int chunksInChunkRange = lastChunk - firstChunk + 1;
-        unsigned int samplesInChunkRange = chunksInChunkRange * samplesPerChunk;
+        u32 chunksInChunkRange = lastChunk - firstChunk + 1;
+        u32 samplesInChunkRange = chunksInChunkRange * samplesPerChunk;
         // DEBUG printf("%d %d %d %d %d\n", lastChunk, firstChunk, samplesPerChunk, samplesInChunkRange, totalSamples);
 
         if (sampleNumber <= (samplesInChunkRange + totalSamples)) { 
-            for (int j = firstChunk; j <= lastChunk; j++) { 
+            for (u32 j = firstChunk; j <= lastChunk; j++) { 
                 // DEBUG printf("total samples loop: %d\n", totalSamples);
                 chunkNumber++;
                 
                 if (sampleNumber <= (samplesPerChunk + totalSamples)) { 
                     // NOTE: may be replacable by an equation
-                    for (int i = 0; i < samplesPerChunk; i++) { 
+                    for (u32 i = 0; i < samplesPerChunk; i++) { 
                         totalSamples += 1;
                         sampleIndexInChunk += 1;
                         if (sampleNumber <= totalSamples) { 
@@ -173,19 +174,19 @@ unsigned int sampleNumberToChunkNumber(sampleInfo *sample,
  * @param chunkOffsetTable      -   table to search in
  * @return chunk offset relative to the start of the file. NOT relative to any box.
  */
-unsigned int chunkNumberToChunkOffset(unsigned int chunkNumber, chunkOffsetTableEntry **chunkOffsetTable) { 
+u32 chunkNumberToChunkOffset(u32 chunkNumber, chunkOffsetTableEntry **chunkOffsetTable) { 
     return chunkOffsetTable[chunkNumber + 1]->offset;
 }
 
 
 // sampleSizeAndChunkOffsetToSampleOffsetInChunk
-unsigned int getSampleOffsetInChunk(sampleInfo *sample, unsigned int sampleSizeDefault, sampleSizeTableEntry **sampleSizeTable) { 
+u32 getSampleOffsetInChunk(sampleInfo *sample, u32 sampleSizeDefault, sampleSizeTableEntry **sampleSizeTable) { 
     // for general case when not in array
 
-    unsigned int offsetAccumulator = 0;
-    unsigned int sampleNumber = sample->sampleNumber;
+    u32 offsetAccumulator = 0;
+    u32 sampleNumber = sample->sampleNumber;
 
-    for (int i = 1; i < sample->sampleIndexInChunk; i++) { 
+    for (u32 i = 1; i < sample->sampleIndexInChunk; i++) { 
         offsetAccumulator += sampleNumberToSampleSize(sampleNumber - i, sampleSizeDefault, sampleSizeTable);
     }
 
@@ -193,8 +194,8 @@ unsigned int getSampleOffsetInChunk(sampleInfo *sample, unsigned int sampleSizeD
 }
 
 
-unsigned int offsetDataToSampleMdatOffset(unsigned int chunkOffset, unsigned int sampleOffsetInChunk, unsigned int mdatOffsetInFile) { 
-    unsigned int sampleMdatOffset = chunkOffset + sampleOffsetInChunk - mdatOffsetInFile;
+u32 offsetDataToSampleMdatOffset(u32 chunkOffset, u32 sampleOffsetInChunk, u32 mdatOffsetInFile) { 
+    u32 sampleMdatOffset = chunkOffset + sampleOffsetInChunk - mdatOffsetInFile;
     return sampleMdatOffset;
 }
 
@@ -248,24 +249,24 @@ void sampleOffsetDataToSampleMdatOffset(sampleInfo *sample, MPEG_Data *videoData
 
 
 
-void getVideoDataRange(unsigned int startTime, unsigned int endTime, MPEG_Data *videoData) { 
+void getVideoDataRange(u32 startTime, u32 endTime, MPEG_Data *videoData) { 
     sampleInfo *startSample = sampleSearchByTime(startTime, videoData);
     sampleInfo *endSample = sampleSearchByTime(endTime, videoData);
 
-    unsigned int sampleRange = endSample->sampleNumber - startSample->sampleNumber;
+    u32 sampleRange = endSample->sampleNumber - startSample->sampleNumber;
     sampleInfo **sampleRangeArray = (sampleInfo**) calloc(sampleRange + 1, sizeof(sampleInfo*));
     sampleRangeArray[sampleRange] = NULL;
     sampleRangeArray[0] = startSample;
     sampleRangeArray[sampleRange - 1] = endSample;
 
-    unsigned int iterSampleNumber = startSample->sampleNumber;
-    for (int i = 1; i < (sampleRange - 1); i++) {
+    u32 iterSampleNumber = startSample->sampleNumber;
+    for (u32 i = 1; i < (sampleRange - 1); i++) {
         iterSampleNumber += 1;
         sampleRangeArray[i] = sampleSearchBySampleNumber(iterSampleNumber, videoData);
     }
 }
 
-sampleInfo *sampleSearchByTime(unsigned int time, MPEG_Data *videoData) { 
+sampleInfo *sampleSearchByTime(u32 time, MPEG_Data *videoData) { 
     sampleInfo *sample = (sampleInfo*) malloc(sizeof(sampleInfo));
     sample->realTime = time;
     sampleRealTimeToMediaTime(sample, videoData);
@@ -287,7 +288,7 @@ sampleInfo *sampleSearchByTime(unsigned int time, MPEG_Data *videoData) {
     return sample;
 }
 
-sampleInfo *sampleSearchBySampleNumber(unsigned int sampleNumber, MPEG_Data *videoData) { 
+sampleInfo *sampleSearchBySampleNumber(u32 sampleNumber, MPEG_Data *videoData) { 
     sampleInfo *sample = (sampleInfo*) malloc(sizeof(sampleInfo));
     sample->sampleNumber = sampleNumber;
 
@@ -302,13 +303,13 @@ sampleInfo *sampleSearchBySampleNumber(unsigned int sampleNumber, MPEG_Data *vid
 
 
 
-sampleInfo *keyFrameSearch(unsigned int time, MPEG_Data *videoData) { 
+sampleInfo *keyFrameSearch(u32 time, MPEG_Data *videoData) { 
     sampleInfo *sample = (sampleInfo*) malloc(sizeof(sampleInfo));
     sample->realTime = time;
 
     sampleRealTimeToMediaTime(sample, videoData);
     sampleMediaTimeToSampleNumber(sample, videoData);
-    unsigned int keyframe = binarySearch(sample->sampleNumber, videoData->syncSampleTable, videoData->syncSampleTableEntries);
+    u32 keyframe = binarySearch(sample->sampleNumber, videoData->syncSampleTable, videoData->syncSampleTableEntries);
     printf("keyframe: %d\n", keyframe);
 
     sampleSampleNumberToChunkNumber(sample, videoData);

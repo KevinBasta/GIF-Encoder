@@ -2,6 +2,7 @@
     #define MPEG_HEAD
     #include <stdio.h>
     #include <stdlib.h>
+    #include <stdint.h>
     #include <string.h>
 
     #include "headers/types.h"
@@ -61,7 +62,7 @@ void nullifyLastNodeLinkedList(linkedList *list) {
  */
 void printAllBoxesLinkedList(linkedList *list) { 
     Node *currentNode = list->head;
-    for (int i = 0; i < list->size; i++) { 
+    for (u32 i = 0; i < list->size; i++) { 
         box *currentBoxPointer = (box*) currentNode->currentItem;
         printNBytes(currentBoxPointer->boxType, 4, "box type: ", "\t");
         printf("box size: %10u\n", currentBoxPointer->boxSize);
@@ -76,11 +77,11 @@ void printAllBoxesLinkedList(linkedList *list) {
  * @param boxCompareType    -   box to stop accumulating at
  * @return the sum of the sizes of all boxes preceding boxCompareType
  */
-unsigned int getOffsetToBoxLinkedList(linkedList *list, char boxCompareType[]) { 
-    unsigned int offsetAccumulator = 0;
+u32 getOffsetToBoxLinkedList(linkedList *list, u8 boxCompareType[]) { 
+    u32 offsetAccumulator = 0;
     
     Node *currentNode = list->head;
-    for (int i = 0; i < list->size; i++) { 
+    for (u32 i = 0; i < list->size; i++) { 
         box *currentBoxPointer = (box*) currentNode->currentItem;
 
         if ((compareNBytes(currentBoxPointer->boxType, boxCompareType, 4) == TRUE)) {
@@ -102,11 +103,11 @@ unsigned int getOffsetToBoxLinkedList(linkedList *list, char boxCompareType[]) {
  * @param *boxReturnType    -   the type to find    
  * @return NULL or box pointer to a box of type *boxReturnType
  */
-box *getBoxFromLinkedList(linkedList *list, char boxReturnType[]) { 
+box *getBoxFromLinkedList(linkedList *list, u8 boxReturnType[]) { 
     box *boxToReturn = NULL;
     list->current = list->head;
 
-    for (int i = 0; i < list->size; i++) {
+    for (u32 i = 0; i < list->size; i++) {
         box *currentBoxPointer = (box*) list->current->currentItem;
 
         if ((compareNBytes(currentBoxPointer->boxType, boxReturnType, 4) == TRUE)) {
@@ -180,13 +181,13 @@ Node *freeBoxNode(Node *nodeStruct) {
  * @param list  -   list to free
  * @param type  -   type of items contained in linkedList
  */
-void freeLinkedList(linkedList *list, char type[]) { 
+void freeLinkedList(linkedList *list, u8 type[]) { 
 
     Node *currentNode = list->head;
 
     // stopping right before last element to avoid 
     // attempting to free a NULL created by nullifyLastNodeLinkedList
-    for (int i = 0; i < list->size - 1; i++) {
+    for (u32 i = 0; i < list->size - 1; i++) {
         if (strncmp(type, "box", 3)) { 
             currentNode = freeBoxNode(currentNode);
             // DEBUG printf("%d %d\n", currentNode, currentNode->nextNode);

@@ -2,6 +2,7 @@
     #define MPEG_HEAD
     #include <stdio.h>
     #include <stdlib.h>
+    #include <stdint.h>
 
     #include "headers/printUtility.h"
     #include "headers/types.h"
@@ -35,9 +36,9 @@
  *  something like this could read the bytes in the right order 
  *  intead of the one liner used in readMainBoxes, a modified version
  *  of this function would still be needed to just map the bits to 
- *  an unsigned int
+ *  an u32
  *
- *  unsigned int *headerSize = (unsigned int*) malloc(BOX_HEADER_HALF_SIZE);
+ *  u32 *headerSize = (u32*) malloc(BOX_HEADER_HALF_SIZE);
  *  chunksread = fread(&headerSize[3], BOX_HEADER_HALF_SIZE, 1, video);
  *  chunksread = fread(&headerSize[2], BOX_HEADER_HALF_SIZE, 1, video);
  *  chunksread = fread(&headerSize[1], BOX_HEADER_HALF_SIZE, 1, video);
@@ -45,7 +46,7 @@
  *  printBits(4, headerSize);
  *  Although the bit manipulation in this function is interesting, upon 
  *  further investigation, the integers stored in the file can 
- *  simply be read straight into an unsigned int as shown. A future refactor
+ *  simply be read straight into an u32 as shown. A future refactor
  *  will be needed. Additionally, the current bit manipulation may be 
  *  unecessary anyways if the bytes of char and int can simply be matched. 
  *
@@ -60,12 +61,12 @@
  *  A much simplier way to do the conversion is discussed above.
  *  @param *integerAsCharArray:     the 4 byte character array
  */
-unsigned int *charToUnsignedInt(char *integerAsCharArray) { 
-    unsigned int *fullBoxSize = (unsigned int*) malloc(sizeof(unsigned int));
+u32 *charToUnsignedInt(u8 *integerAsCharArray) { 
+    u32 *fullBoxSize = (u32*) malloc(sizeof(u32));
     *fullBoxSize = 0;
 
-    for (int headerByte = 0; headerByte < 4; headerByte++) {
-        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+    for (u32 headerByte = 0; headerByte < 4; headerByte++) {
+        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
             /*
                 currentBit (integerAsCharArray[headerByte] >> bitInHeaderByte) & 1
                 shifts the desired bit to the lsb and masks it with the binary
@@ -76,8 +77,8 @@ unsigned int *charToUnsignedInt(char *integerAsCharArray) {
 
                 if the currentBit is 1, then will set that bit in the integer number
             */
-            int currentBit = (integerAsCharArray[headerByte] >> bitInHeaderByte) & 1;
-            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+            i32 currentBit = (integerAsCharArray[headerByte] >> bitInHeaderByte) & 1;
+            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
             // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
 
             if (currentBit == 1) {
@@ -90,14 +91,14 @@ unsigned int *charToUnsignedInt(char *integerAsCharArray) {
 }
 
 
-int *charToInt(char *integerAsCharArray) { 
-    int *fullBoxSize = (unsigned int*) malloc(sizeof(unsigned int));
+i32 *charToInt(u8 *integerAsCharArray) { 
+    i32 *fullBoxSize = (u32*) malloc(sizeof(u32));
     *fullBoxSize = 0;
 
-    for (int headerByte = 0; headerByte < 4; headerByte++) {
-        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-            int currentBit = (integerAsCharArray[headerByte] >> bitInHeaderByte) & 1;
-            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+    for (u32 headerByte = 0; headerByte < 4; headerByte++) {
+        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            i32 currentBit = (integerAsCharArray[headerByte] >> bitInHeaderByte) & 1;
+            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
 
             if (currentBit == 1) {
                 *fullBoxSize = *fullBoxSize | (currentBit << bitOffset);
@@ -116,13 +117,13 @@ int *charToInt(char *integerAsCharArray) {
 
 
 
-int bigEndianCharToLittleEndianInt(char *bigEndianCharArray) { 
-    unsigned int littleEndianInt = 0;
+i32 bigEndianCharToLittleEndianInt(u8 *bigEndianCharArray) { 
+    u32 littleEndianInt = 0;
 
-    for (int headerByte = 0; headerByte < 4; headerByte++) {
-        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
-            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+    for (u32 headerByte = 0; headerByte < 4; headerByte++) {
+        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
             // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
 
             if (currentBit == 1) {
@@ -134,13 +135,13 @@ int bigEndianCharToLittleEndianInt(char *bigEndianCharArray) {
     return littleEndianInt;
 }
 
-int *bigEndianCharToLittleEndianIntHeap(char *bigEndianCharArray) { 
-    int *littleEndianInt = (int*) malloc(sizeof(int));
+i32 *bigEndianCharToLittleEndianIntHeap(u8 *bigEndianCharArray) { 
+    i32 *littleEndianInt = (i32*) malloc(sizeof(i32));
 
-    for (int headerByte = 0; headerByte < 4; headerByte++) {
-        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
-            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+    for (u32 headerByte = 0; headerByte < 4; headerByte++) {
+        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
             // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
 
             if (currentBit == 1) {
@@ -155,13 +156,13 @@ int *bigEndianCharToLittleEndianIntHeap(char *bigEndianCharArray) {
 
 
 
-unsigned int bigEndianCharToLittleEndianUnsignedInt(char *bigEndianCharArray) { 
-    unsigned int littleEndianUnsignedInt = 0;
+u32 bigEndianCharToLittleEndianUnsignedInt(u8 *bigEndianCharArray) { 
+    u32 littleEndianUnsignedInt = 0;
 
-    for (int headerByte = 0; headerByte < 4; headerByte++) {
-        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
-            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+    for (u32 headerByte = 0; headerByte < 4; headerByte++) {
+        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
             // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
 
             if (currentBit == 1) {
@@ -173,13 +174,13 @@ unsigned int bigEndianCharToLittleEndianUnsignedInt(char *bigEndianCharArray) {
     return littleEndianUnsignedInt;
 }
 
-unsigned int *bigEndianCharToLittleEndianUnsignedIntHeap(char *bigEndianCharArray) { 
-    unsigned int *littleEndianUnsignedInt = (unsigned int*) malloc(sizeof(unsigned int));
+u32 *bigEndianCharToLittleEndianUnsignedIntHeap(u8 *bigEndianCharArray) { 
+    u32 *littleEndianUnsignedInt = (u32*) malloc(sizeof(u32));
 
-    for (int headerByte = 0; headerByte < 4; headerByte++) {
-        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
-            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+    for (u32 headerByte = 0; headerByte < 4; headerByte++) {
+        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
             // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
 
             if (currentBit == 1) {
@@ -192,13 +193,13 @@ unsigned int *bigEndianCharToLittleEndianUnsignedIntHeap(char *bigEndianCharArra
 }
 
 
-int bigEndianCharToLittleEndianGeneralized(char *bigEndianCharArray, int numberOfBytes) { 
-    int littleEndianInt = 0;
+i32 bigEndianCharToLittleEndianGeneralized(u8 *bigEndianCharArray, i32 numberOfBytes) { 
+    i32 littleEndianInt = 0;
 
-    for (int headerByte = 0; headerByte < numberOfBytes; headerByte++) {
-        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
-            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+    for (u32 headerByte = 0; headerByte < numberOfBytes; headerByte++) {
+        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
             // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
 
             if (currentBit == 1) {
@@ -211,13 +212,13 @@ int bigEndianCharToLittleEndianGeneralized(char *bigEndianCharArray, int numberO
 }
 
 
-int *bigEndianCharToLittleEndianGeneralizedHeap(char *bigEndianCharArray, int numberOfBytes) { 
-    int *littleEndianInt = (unsigned int*) malloc(sizeof(unsigned int));
+i32 *bigEndianCharToLittleEndianGeneralizedHeap(u8 *bigEndianCharArray, i32 numberOfBytes) { 
+    i32 *littleEndianInt = (u32*) malloc(sizeof(u32));
 
-    for (int headerByte = 0; headerByte < numberOfBytes; headerByte++) {
-        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
-            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+    for (u32 headerByte = 0; headerByte < numberOfBytes; headerByte++) {
+        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
             // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
 
             if (currentBit == 1) {
@@ -231,13 +232,13 @@ int *bigEndianCharToLittleEndianGeneralizedHeap(char *bigEndianCharArray, int nu
 
 
 ///////////////////////////////// DELETE THE FOLLOWING //////////////////////////////
-int *bigEndianCharToLittleEndianBytedInt(char *bigEndianCharArray, int numberOfBytes) { 
-    int *littleEndianInt = (int*) malloc(sizeof(int));
+i32 *bigEndianCharToLittleEndianBytedInt(u8 *bigEndianCharArray, i32 numberOfBytes) { 
+    i32 *littleEndianInt = (i32*) malloc(sizeof(i32));
 
-    for (int headerByte = 0; headerByte < numberOfBytes; headerByte++) {
-        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
-            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+    for (u32 headerByte = 0; headerByte < numberOfBytes; headerByte++) {
+        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
             // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
 
             if (currentBit == 1) {
@@ -256,13 +257,13 @@ union intToFloat
     float    f32; // here_read_float
 };
 
-float *bigEndianCharToLittleEndianFloat(char *bigEndianCharArray) { 
-    unsigned int littleEndianInt = 0;
+float *bigEndianCharToLittleEndianFloat(u8 *bigEndianCharArray) { 
+    u32 littleEndianInt = 0;
 
-    for (int headerByte = 0; headerByte < 4; headerByte++) {
-        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
-            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+    for (u32 headerByte = 0; headerByte < 4; headerByte++) {
+        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
             // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
 
             if (currentBit == 1) {
@@ -281,13 +282,13 @@ float *bigEndianCharToLittleEndianFloat(char *bigEndianCharArray) {
     return littleEndianFloat;
 }
 
-short *bigEndianCharToLittleEndianShort(char *bigEndianCharArray) { 
+short *bigEndianCharToLittleEndianShort(u8 *bigEndianCharArray) { 
     short *littleEndianShort = (short*) malloc(sizeof(short));
 
-    for (int headerByte = 0; headerByte < 2; headerByte++) {
-        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
-            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+    for (u32 headerByte = 0; headerByte < 2; headerByte++) {
+        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
             // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
 
             if (currentBit == 1) {
@@ -300,13 +301,13 @@ short *bigEndianCharToLittleEndianShort(char *bigEndianCharArray) {
 }
 
 // for testing purposes
-unsigned short *bigEndianCharToLittleEndianUnsignedShort(char *bigEndianCharArray) { 
+unsigned short *bigEndianCharToLittleEndianUnsignedShort(u8 *bigEndianCharArray) { 
     unsigned short *littleEndianUnsignedShort = (unsigned short*) malloc(sizeof(unsigned short));
 
-    for (int headerByte = 0; headerByte < 2; headerByte++) {
-        for (int bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-            int currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
-            int bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+    for (u32 headerByte = 0; headerByte < 2; headerByte++) {
+        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
             // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
 
             if (currentBit == 1) {
@@ -319,7 +320,7 @@ unsigned short *bigEndianCharToLittleEndianUnsignedShort(char *bigEndianCharArra
 }
 
 
-/* unsigned int *generalizedCharToInt(char *integerAsCharArray) { 
+/* u32 *generalizedCharToInt(u8 *integerAsCharArray) { 
     for reading more than 4 bytes for the purposes of longer boxes
  }*/
 ////////////////////////////////////DELETE THE ABOVE//////////////////////////////////////////
@@ -328,16 +329,16 @@ unsigned short *bigEndianCharToLittleEndianUnsignedShort(char *bigEndianCharArra
 
 
 /**
- * @brief Compares n bytes of char types. Intended for comparing the 
+ * @brief Compares n bytes of u8 types. Intended for comparing the 
  * types of MPEG boxes.
- * @param *firstItem    -   n byte char array pointer
- * @param secondItem    -   m byte char array (includes '\0')
+ * @param *firstItem    -   n byte u8 array pointer
+ * @param secondItem    -   m byte u8 array (includes '\0')
  * @param numberOfBytes -   the number of bytes to compare
  * @return TRUE or FALSE
  */
-int compareNBytes(char *firstItem, char secondItem[], int numberOfBytes) {     
-    int isEqual = TRUE;
-    for (int i = 0; i < numberOfBytes; i++) {
+i32 compareNBytes(u8 *firstItem, u8 secondItem[], u32 numberOfBytes) {     
+    i32 isEqual = TRUE;
+    for (u32 i = 0; i < numberOfBytes; i++) {
         if (firstItem[i] != secondItem[i]) {
             isEqual = FALSE;
             break;
@@ -359,9 +360,9 @@ int compareNBytes(char *firstItem, char secondItem[], int numberOfBytes) {
  * @note redundand memory usage if parent array persists.
  * @note it might be benifitial to add a terminating char.
  */
-char *copyNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset) {
-    char *infoCopy = (char*) malloc(numberOfBytes);
-    for (int i = 0; i < numberOfBytes; i++) {
+u8 *copyNBytes(u32 numberOfBytes, u8 *originalData, u32 *byteOffset) {
+    u8 *infoCopy = (u8*) malloc(numberOfBytes);
+    for (u32 i = 0; i < numberOfBytes; i++) {
         infoCopy[i] = originalData[*byteOffset];
         *byteOffset += 1;
     }
@@ -381,12 +382,12 @@ char *copyNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset
  * @note if parent array is freed data will be lost.
  * @note will need to manually determine where each reference array ends.
  */
-char *referenceNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset) {
-    char *infoReference = &(originalData[*byteOffset]);
+u8 *referenceNBytes(u32 numberOfBytes, u8 *originalData, u32 *byteOffset) {
+    u8 *infoReference = &(originalData[*byteOffset]);
     *byteOffset += numberOfBytes;
 
     // checking if referenced properly
-    /* for (int i = 0; i < numberOfBytes; i++) { 
+    /* for (u32 i = 0; i < numberOfBytes; i++) { 
         assert(&(infoReference[i]) == &(originalData[(*byteOffset) - numberOfBytes + i]));
         assert(infoReference[i] == originalData[(*byteOffset) - numberOfBytes + i]);
     } */

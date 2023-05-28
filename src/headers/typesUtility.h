@@ -1,4 +1,4 @@
 
-int binarySearch(unsigned int sampleNumber, syncSampleTableEntry **syncSampleTable, unsigned int syncSampleTableEntries);
+u32 binarySearch(u32 sampleNumber, syncSampleTableEntry **syncSampleTable, u32 syncSampleTableEntries);
 void freeTable(void **table);
 void freeDataReferenceTable(dataReferenceTableEntry **dataReferenceTable);

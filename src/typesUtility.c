@@ -1,6 +1,7 @@
 #ifndef MPEG_HEAD
     #include <stdio.h>
     #include <stdlib.h>
+    #include <stdint.h>
 
     #include "headers/types.h"
     #include "headers/printUtility.h"
@@ -9,10 +10,10 @@
 
 // search algorithm for stss/sync sample
 // returns the preceeding 
-unsigned int binarySearch(unsigned int sampleNumber, syncSampleTableEntry **syncSampleTable, unsigned int syncSampleTableEntries) { 
-    unsigned int low = 0;
-    unsigned int high = syncSampleTableEntries;
-    unsigned int mid; 
+u32 binarySearch(u32 sampleNumber, syncSampleTableEntry **syncSampleTable, u32 syncSampleTableEntries) { 
+    u32 low = 0;
+    u32 high = syncSampleTableEntries;
+    u32 mid; 
     
     while (low <= high) { 
         mid = (low + high) / 2;
@@ -38,7 +39,7 @@ unsigned int binarySearch(unsigned int sampleNumber, syncSampleTableEntry **sync
 // for tables with no pointer values
 // cast param passed using (void**)
 void freeTable(void **table) {
-    int i = 0;
+    u32 i = 0;
     while (table[i] != NULL) { 
         free(table[i]);
         i++;
@@ -47,7 +48,7 @@ void freeTable(void **table) {
 }
 
 void freeDataReferenceTable(dataReferenceTableEntry **dataReferenceTable) { 
-    int i = 0;
+    u32 i = 0;
     while (dataReferenceTable[i] != NULL) { 
         free(dataReferenceTable[i]->type);
         free(dataReferenceTable[i]->version);

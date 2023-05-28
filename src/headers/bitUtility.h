@@ -1,22 +1,22 @@
 
-unsigned int bigEndianCharToLittleEndianUnsignedInt(char *bigEndianCharArray);
-unsigned int *bigEndianCharToLittleEndianUnsignedIntHeap(char *bigEndianCharArray);
+u32 bigEndianCharToLittleEndianUnsignedInt(u8 *bigEndianCharArray);
+u32 *bigEndianCharToLittleEndianUnsignedIntHeap(u8 *bigEndianCharArray);
 
-int bigEndianCharToLittleEndianInt(char *bigEndianCharArray);
-int *bigEndianCharToLittleEndianIntHeap(char *bigEndianCharArray);
+i32 bigEndianCharToLittleEndianInt(u8 *bigEndianCharArray);
+i32 *bigEndianCharToLittleEndianIntHeap(u8 *bigEndianCharArray);
 
-//void bigEndianCharToLittleEndianGeneralized(char *bigEndianCharArray, int numberOfBytes);
-//void *bigEndianCharToLittleEndianGeneralizedHeap(char *bigEndianCharArray, int numberOfBytes);
+//void bigEndianCharToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 numberOfBytes);
+//void *bigEndianCharToLittleEndianGeneralizedHeap(u8 *bigEndianCharArray, u32 numberOfBytes);
 
-//unsigned short *bigEndianCharToLittleEndianUnsignedShort(char *bigEndianCharArray);
-//int *bigEndianCharToLittleEndianBytedInt(char *bigEndianCharArray, int numberOfBytes);
-//float *bigEndianCharToLittleEndianFloat(char *bigEndianCharArray);
-//short *bigEndianCharToLittleEndianShort(char *bigEndianCharArray);
+//unsigned short *bigEndianCharToLittleEndianUnsignedShort(u8 *bigEndianCharArray);
+//i32 *bigEndianCharToLittleEndianBytedInt(u8 *bigEndianCharArray, u32 numberOfBytes);
+//float *bigEndianCharToLittleEndianFloat(u8 *bigEndianCharArray);
+//short *bigEndianCharToLittleEndianShort(u8 *bigEndianCharArray);
 
 
-int compareNBytes(char *firstItem, char secondItem[], int numberOfBytes);
-char *copyNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset);
-char *referenceNBytes(int numberOfBytes, char *originalData, unsigned int *byteOffset);
+i32 compareNBytes(u8 *firstItem, u8 secondItem[], u32 numberOfBytes);
+u8 *copyNBytes(u32 numberOfBytes, u8 *originalData, u32 *byteOffset);
+u8 *referenceNBytes(u32 numberOfBytes, u8 *originalData, u32 *byteOffset);
 
-unsigned int *charToUnsignedInt(char *integerAsCharArray);
-int *charToInt(char *integerAsCharArray);
+u32 *charToUnsignedInt(u8 *integerAsCharArray);
+i32 *charToInt(u8 *integerAsCharArray);

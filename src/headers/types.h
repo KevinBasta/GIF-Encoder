@@ -8,6 +8,18 @@
 #define FLAG_SIZE 3
 
 
+// renaming stdint types
+typedef int8_t i8;
+typedef int16_t i16;
+typedef int32_t i32;
+typedef int64_t i64;
+
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+
+
 // General Structs //
 
 /**
@@ -21,9 +33,9 @@
  * @note boxType does NOT include the null terminator '\0'.
  */
 typedef struct box { 
-    unsigned int boxSize;
-    char *boxType;
-    char *boxData;
+    u32 boxSize;
+    u8 *boxType;
+    u8 *boxData;
 } box;
 
 
@@ -48,7 +60,7 @@ typedef struct Node {
  * @note interface defined in linkedList.c/h
  */
 typedef struct linkedList {
-    unsigned int size;
+    u32 size;
     Node *head;
     Node *tail;
     Node *current;
@@ -64,9 +76,9 @@ typedef struct linkedList {
  * @brief Sample boxes sub container
  */
 typedef struct sampleDescription { 
-    unsigned int *size; 
-    char *dataFormat;
-    char *reserved;
+    u32 *size; 
+    u8 *dataFormat;
+    u8 *reserved;
     unsigned short dataReferenceIndex;
 } sampleDescription;
 
@@ -76,7 +88,7 @@ typedef struct sampleDescription {
  * table entry struct arrays instead.
  */
 /* typedef struct table { 
-    unsigned int *numberOfEntries;
+    u32 *numberOfEntries;
     void *tableArray;
 } table; */
 
@@ -89,9 +101,9 @@ typedef struct sampleDescription {
  * to this edit segment. Cannot be 0 or negative.
  */
 typedef struct elstTableEntry { 
-    unsigned int trackDuration;
-    int mediaTime;
-    unsigned int mediaRate;
+    u32 trackDuration;
+    i32 mediaTime;
+    u32 mediaRate;
 } elstTableEntry;
 
 
@@ -99,56 +111,56 @@ typedef struct elstTableEntry {
  * @brief Dinf box sub container
  */
 typedef struct dataReferenceTableEntry { 
-    unsigned int size; 
-    char *type;
-    char *version;
-    char *flags;
-    char *data;
+    u32 size; 
+    u8 *type;
+    u8 *version;
+    u8 *flags;
+    u8 *data;
 } dataReferenceTableEntry;
 
 
 typedef struct timeToSampleTableEntry { 
-    unsigned int sampleCount; 
-    unsigned int sampleDuration;
+    u32 sampleCount; 
+    u32 sampleDuration;
 } timeToSampleTableEntry;
 
 
 typedef struct sampleToChunkTableEntry { 
-    unsigned int firstChunk;
-    unsigned int samplesPerChunk;
-    unsigned int sampleDescriptionId;
+    u32 firstChunk;
+    u32 samplesPerChunk;
+    u32 sampleDescriptionId;
 } sampleToChunkTableEntry;
 
 
 typedef struct chunkOffsetTableEntry { 
-    unsigned int offset;
+    u32 offset;
 } chunkOffsetTableEntry;
 
 
 typedef struct sampleSizeTableEntry { 
-    unsigned int size;
+    u32 size;
 } sampleSizeTableEntry;
 
 typedef struct syncSampleTableEntry { 
-    unsigned int number;
+    u32 number;
 } syncSampleTableEntry;
 
 typedef struct compositionOffsetTableEntry { 
-    unsigned int sampleCount;
-    int compositionOffset;
+    u32 sampleCount;
+    i32 compositionOffset;
 } compositionOffsetTableEntry;
 
 
 typedef struct sampleInfo {
-    unsigned int realTime; // may remove 
-    unsigned int mediaTime;
-    unsigned int sampleNumber;
-    unsigned int chunkNumber;
-    unsigned int chunkOffset;
-    unsigned int sampleSize;
-    unsigned int sampleIndexInChunk;
-    unsigned int sampleOffsetInChunk;
-    unsigned int sampleOffsetInMdat;
+    u32 realTime; // may remove 
+    u32 mediaTime;
+    u32 sampleNumber;
+    u32 chunkNumber;
+    u32 chunkOffset;
+    u32 sampleSize;
+    u32 sampleIndexInChunk;
+    u32 sampleOffsetInChunk;
+    u32 sampleOffsetInMdat;
 } sampleInfo;
 
 // Main Storage Structs //
@@ -167,18 +179,18 @@ typedef struct sampleInfo {
  */
 typedef struct MPEG_Data { 
     // from mvhdParseBox
-    unsigned int mvhdTimeScale; 
-    unsigned int mvhdDuration;
+    u32 mvhdTimeScale; 
+    u32 mvhdDuration;
     
     // from tkhdParseBox
-    unsigned int tkhdTrackDuration;
+    u32 tkhdTrackDuration;
     
     // from edtsParseBox->elstParseBox
     elstTableEntry **elstTable;
     
     // from mdhdParseBox
-    unsigned int mdhdTimeScale;
-    unsigned int mdhdDuration;
+    u32 mdhdTimeScale;
+    u32 mdhdDuration;
 
     // from dinfParseBox->drefParseBox
     dataReferenceTableEntry **dataReferenceTable;
@@ -194,18 +206,18 @@ typedef struct MPEG_Data {
 
     // from stszParseBox
     sampleSizeTableEntry **sampleSizeTable;
-    unsigned int sampleSizeDefault;
-    unsigned int numberOfSamples; 
+    u32 sampleSizeDefault;
+    u32 numberOfSamples; 
 
     // from stssParseBox
     syncSampleTableEntry **syncSampleTable;
-    unsigned int syncSampleTableEntries;
+    u32 syncSampleTableEntries;
 
     // from cttsParseBox
     compositionOffsetTableEntry **compositionOffsetTable;
 
     // mdat Data
     box *mdatBox;
-    unsigned int mdatOffsetInFile;
+    u32 mdatOffsetInFile;
 
 } MPEG_Data; 
