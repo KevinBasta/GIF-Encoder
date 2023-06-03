@@ -107,6 +107,8 @@ typedef struct elstTableEntry {
 } elstTableEntry;
 
 
+
+// Need to finalize the following types //
 /**
  * @brief Dinf box sub container
  */
@@ -119,36 +121,74 @@ typedef struct dataReferenceTableEntry {
 } dataReferenceTableEntry;
 
 
-typedef struct timeToSampleTableEntry { 
-    u32 sampleCount; 
-    u32 sampleDuration;
-} timeToSampleTableEntry;
+typedef struct sampleToChunkTable { 
+    u32 totalEntries;
+    u32 *firstChunkArr;
+    u32 *samplesPerChunkArr;
+    u32 *sampleDescriptionIdArr;
+} sampleToChunkTable;
 
 
-typedef struct sampleToChunkTableEntry { 
-    u32 firstChunk;
-    u32 samplesPerChunk;
-    u32 sampleDescriptionId;
-} sampleToChunkTableEntry;
+typedef struct chunkOffsetTable { 
+    u32 totalEntries; 
+    u32 *offsetArr;
+} chunkOffsetTable;
 
 
-typedef struct chunkOffsetTableEntry { 
-    u32 offset;
-} chunkOffsetTableEntry;
+typedef struct sampleSizeTable { 
+    u32 totalEntries;
+    u32 sampleSizeDefault;
+    u32 *sizeArr;
+} sampleSizeTable;
 
 
-typedef struct sampleSizeTableEntry { 
-    u32 size;
-} sampleSizeTableEntry;
 
-typedef struct syncSampleTableEntry { 
-    u32 number;
-} syncSampleTableEntry;
+// Two main types of MPEG types //
 
-typedef struct compositionOffsetTableEntry { 
-    u32 sampleCount;
-    i32 compositionOffset;
-} compositionOffsetTableEntry;
+
+// First type: Compressed Data
+// Stored as array of type entries
+typedef struct timeToSampleTableCompressed { 
+    u32 totalEntries;
+    u32 *sampleCountArr; 
+    u32 *sampleDurationArr;
+} timeToSampleTableCompressed;
+
+typedef struct compositionOffsetTableCompressed { 
+    u32 totalEntries;
+    u32 *sampleCountArr;
+    i32 *compositionOffsetArr;
+} compositionOffsetTableCompressed;
+
+
+
+// Second type: uncompressed Data
+// Stored as a type containing arrays
+typedef struct syncSampleTable { 
+    u32 totalEntries;
+    u32 *sampleNumberArr;
+} syncSampleTable;
+
+
+typedef struct timeToSampleTable { 
+    u32 totalEntries;
+    u32 *sampleDurationArr;
+    u32 *sampleDeltaArr;
+} timeToSampleTable;
+
+
+typedef struct compositionOffsetTable { 
+    u32 totalEntries;
+    i32 *compositionOffsetArr;
+} compositionOffsetTable;
+
+
+typedef struct displayTimeToSampleTable { 
+    u32 totalEntries;
+    u32 *displayTimeArr;
+} displayTimeToSampleTable;
+
+
 
 
 typedef struct sampleInfo {
@@ -196,28 +236,31 @@ typedef struct MPEG_Data {
     dataReferenceTableEntry **dataReferenceTable;
 
     // from sttsParseBox
-    timeToSampleTableEntry **timeToSampleTable;
+    timeToSampleTableCompressed *timeToSampleTableCompressed;
+    timeToSampleTable *timeToSampleTable;
 
     // from stscParseBox
-    sampleToChunkTableEntry **sampleToChunkTable;
+    sampleToChunkTable *sampleToChunkTable;
 
     // from stcoParseBox
-    chunkOffsetTableEntry **chunkOffsetTable;
+    chunkOffsetTable *chunkOffsetTable;
 
     // from stszParseBox
-    sampleSizeTableEntry **sampleSizeTable;
-    u32 sampleSizeDefault;
+    sampleSizeTable *sampleSizeTable;
     u32 numberOfSamples; 
 
     // from stssParseBox
-    syncSampleTableEntry **syncSampleTable;
-    u32 syncSampleTableEntries;
+    syncSampleTable *syncSampleTable;
 
     // from cttsParseBox
-    compositionOffsetTableEntry **compositionOffsetTable;
+    compositionOffsetTableCompressed *compositionOffsetTableCompressed;
+    compositionOffsetTable *compositionOffsetTable;
 
     // mdat Data
     box *mdatBox;
     u32 mdatOffsetInFile;
 
-} MPEG_Data; 
+    // 
+    displayTimeToSampleTable *displayTimeToSampleTable;
+
+} MPEG_Data;

@@ -41,16 +41,15 @@ u32 realTimeToMediaTime(u32 realTimeInSeconds, u32 mediaTimeScale) {
  * @param timeToSampleTable     -   table to search in
  * @return sampleNumber
  */
-u32 mediaTimeToSampleNumber(u32 mediaTime, timeToSampleTableEntry **timeToSampleTable) { 
+u32 mediaTimeToDecodeSampleNumber(u32 mediaTime, timeToSampleTableCompressed *timeToSampleTable) { 
     // need to consider edge cases here
     u32 sampleNumber = 0; 
     u32 sampleTimeAccumulator = 0;
 
-    i32 timeToSampleEntryNumber = 0;
-    while (timeToSampleTable[timeToSampleEntryNumber] != NULL) { 
-        u32 sampleCountInTableEntry = timeToSampleTable[timeToSampleEntryNumber]->sampleCount;
-        u32 sampleDurationInTableEntry = timeToSampleTable[timeToSampleEntryNumber]->sampleDuration;
-        
+    u32 timeToSampleEntryNumber = 0;
+    for (u32 i = 0; i < timeToSampleTable->totalEntries; i++) {
+        u32 sampleCountInTableEntry = timeToSampleTable->sampleCountArr[i];
+        u32 sampleDurationInTableEntry = timeToSampleTable->sampleDurationArr[i];
         
         for (u32 i = 0; i < sampleCountInTableEntry; i++) { 
             if (sampleTimeAccumulator + sampleDurationInTableEntry <= mediaTime){ 
@@ -69,6 +68,11 @@ u32 mediaTimeToSampleNumber(u32 mediaTime, timeToSampleTableEntry **timeToSample
 }
 
 
+u32 mediaTimeToDisplaySampleNumber(u32 mediaTime, displayTimeToSampleTable **presentationTimeToSampleTable) { 
+
+}
+
+
 /**
  * @brief to allow for default sample size check incase no sample size table present.
  * +1 is needed to convert from 0 indexed array to 1 indexed tables.
@@ -76,12 +80,12 @@ u32 mediaTimeToSampleNumber(u32 mediaTime, timeToSampleTableEntry **timeToSample
  * @param videoData     -   for accessing sampleSize and sampleSizeTable
  * @return  the size corresponding to the sample number
  */
-u32 sampleNumberToSampleSize(u32 sampleNumber, u32 sampleSizeDefault, sampleSizeTableEntry **sampleSizeTable) { 
-    if (sampleSizeDefault != 0) { 
-        return sampleSizeDefault;
+u32 sampleNumberToSampleSize(u32 sampleNumber, sampleSizeTable *sampleSizeTable) { 
+    if (sampleSizeTable->sampleSizeDefault != 0) { 
+        return sampleSizeTable->sampleSizeDefault;
     } 
 
-    return sampleSizeTable[sampleNumber + 1]->size;
+    return sampleSizeTable->sizeArr[sampleNumber + 1];
 }
 
 
@@ -95,11 +99,7 @@ u32 sampleNumberToSampleSize(u32 sampleNumber, u32 sampleSizeDefault, sampleSize
  * @param sampleSizeDefault     -   for calculating sampleOffsetInChunk
  * @return the chunkNumber that the sampleNumber resides in
  */
-u32 sampleNumberToChunkNumber(sampleInfo *sample, 
-                                       sampleToChunkTableEntry **sampleToChunkTable, 
-                                       u32 numberOfSamples, 
-                                       sampleSizeTableEntry **sampleSizeTable, 
-                                       u32 sampleSizeDefault) { 
+u32 sampleNumberToChunkNumber(sampleInfo *sample, sampleToChunkTable *sampleToChunkTable, sampleSizeTable *sampleSizeTable, u32 numberOfSamples) { 
     // Data read from sample
     u32 sampleNumber = sample->sampleNumber;
     
@@ -110,18 +110,17 @@ u32 sampleNumberToChunkNumber(sampleInfo *sample,
 
     u32 totalSamples = 0;
 
-    u32 i = 0;
-    while (sampleToChunkTable[i] != NULL) { 
-        u32 firstChunk = sampleToChunkTable[i]->firstChunk;
-        u32 samplesPerChunk = sampleToChunkTable[i]->samplesPerChunk;
+    for (u32 i = 0; i < sampleToChunkTable->totalEntries; i++) {
+        u32 firstChunk = sampleToChunkTable->firstChunkArr[i];
+        u32 samplesPerChunk = sampleToChunkTable->samplesPerChunkArr[i];
         
         // "last" refers to the last chunk in this range before next table entry
         u32 lastChunk; 
 
-        if (sampleToChunkTable[i + 1] != NULL) { 
-            lastChunk = sampleToChunkTable[i + 1]->firstChunk - 1;
+        if (i + 1 <= sampleToChunkTable->totalEntries) { 
+            lastChunk = sampleToChunkTable->firstChunkArr[i + 1] - 1;
         } else { 
-            lastChunk = (numberOfSamples / samplesPerChunk);
+            lastChunk = firstChunk + (numberOfSamples / samplesPerChunk);
         }
 
         u32 chunksInChunkRange = lastChunk - firstChunk + 1;
@@ -144,7 +143,7 @@ u32 sampleNumberToChunkNumber(sampleInfo *sample,
                             sample->chunkNumber = chunkNumber;
                             return chunkNumber;
                         } else { 
-                            sampleOffsetInChunk = sampleNumberToSampleSize(totalSamples, sampleSizeDefault, sampleSizeTable);
+                            sampleOffsetInChunk = sampleNumberToSampleSize(totalSamples, sampleSizeTable);
                         }
                     }
                 } else { 
@@ -174,20 +173,20 @@ u32 sampleNumberToChunkNumber(sampleInfo *sample,
  * @param chunkOffsetTable      -   table to search in
  * @return chunk offset relative to the start of the file. NOT relative to any box.
  */
-u32 chunkNumberToChunkOffset(u32 chunkNumber, chunkOffsetTableEntry **chunkOffsetTable) { 
-    return chunkOffsetTable[chunkNumber + 1]->offset;
+u32 chunkNumberToChunkOffset(u32 chunkNumber, chunkOffsetTable *chunkOffsetTable) { 
+    return chunkOffsetTable->offsetArr[chunkNumber + 1];
 }
 
 
 // sampleSizeAndChunkOffsetToSampleOffsetInChunk
-u32 getSampleOffsetInChunk(sampleInfo *sample, u32 sampleSizeDefault, sampleSizeTableEntry **sampleSizeTable) { 
+u32 getSampleOffsetInChunk(sampleInfo *sample, u32 sampleSizeDefault, sampleSizeTable *sampleSizeTable) { 
     // for general case when not in array
 
     u32 offsetAccumulator = 0;
     u32 sampleNumber = sample->sampleNumber;
 
     for (u32 i = 1; i < sample->sampleIndexInChunk; i++) { 
-        offsetAccumulator += sampleNumberToSampleSize(sampleNumber - i, sampleSizeDefault, sampleSizeTable);
+        offsetAccumulator += sampleNumberToSampleSize(sampleNumber - i, sampleSizeTable);
     }
 
     return offsetAccumulator;
@@ -213,16 +212,19 @@ void sampleRealTimeToMediaTime(sampleInfo *sample, MPEG_Data *videoData) {
 /**
  * @brief dependant on sampleRealTimeToMediaTime
  */
-void sampleMediaTimeToSampleNumber(sampleInfo *sample, MPEG_Data *videoData) { 
-    sample->sampleNumber = mediaTimeToSampleNumber(sample->mediaTime, videoData->timeToSampleTable);
+void sampleMediaTimeToDecodeSampleNumber(sampleInfo *sample, MPEG_Data *videoData) { 
+    sample->sampleNumber = mediaTimeToDecodeSampleNumber(sample->mediaTime, videoData->timeToSampleTableCompressed);
+}
+
+void sampleMediaTimeToPlaybackSampleNumber(sampleInfo *sample, MPEG_Data *videoData) { 
+    sample->sampleNumber;
 }
 
 /**
  * @brief dependant on sampleMediaTimeToSampleNumber
  */
 void sampleSampleNumberToChunkNumber(sampleInfo *sample, MPEG_Data *videoData) { 
-    sampleNumberToChunkNumber(sample, videoData->sampleToChunkTable, videoData->numberOfSamples, 
-                              videoData->sampleSizeTable, videoData->sampleSizeDefault);
+    sampleNumberToChunkNumber(sample, videoData->sampleToChunkTable, videoData->sampleSizeTable, videoData->numberOfSamples);
 }
 
 /**
@@ -236,7 +238,7 @@ void sampleChunkNumberToChunkOffset(sampleInfo *sample, MPEG_Data *videoData) {
  * @brief dependant on sampleMediaTimeToSampleNumber or just sampleNumber
  */
 void sampleSampleNumberToSampleSize(sampleInfo *sample, MPEG_Data *videoData) { 
-    sample->sampleSize = sampleNumberToSampleSize(sample->sampleNumber, videoData->sampleSizeDefault, videoData->sampleSizeTable);
+    sample->sampleSize = sampleNumberToSampleSize(sample->sampleNumber, videoData->sampleSizeTable);
 }
 
 /**
@@ -244,6 +246,28 @@ void sampleSampleNumberToSampleSize(sampleInfo *sample, MPEG_Data *videoData) {
  */
 void sampleOffsetDataToSampleMdatOffset(sampleInfo *sample, MPEG_Data *videoData) { 
     sample->sampleOffsetInMdat = offsetDataToSampleMdatOffset(sample->chunkOffset, sample->sampleOffsetInChunk, videoData->mdatOffsetInFile);
+}
+
+
+void expandAndBuildNewTable(MPEG_Data *videoData) { 
+    // expand out time to sample
+    // expand out composition offset
+    u32 numberOfSamples = videoData->numberOfSamples;
+
+    displayTimeToSampleTable *table = (displayTimeToSampleTable*) malloc(sizeof(displayTimeToSampleTable));
+    u32 *displayTimeArr = (u32*) calloc(numberOfSamples, sizeof(u32));
+
+    for (u32 i = 0; i < numberOfSamples; i++) { 
+        displayTimeArr[i] = videoData->timeToSampleTable->sampleDeltaArr[i] + videoData->compositionOffsetTable->compositionOffsetArr[i];
+    }
+
+    table->displayTimeArr = displayTimeArr;
+    table->totalEntries = numberOfSamples;
+
+    // for each entry of both, add them, and store the result time in 
+    // a struct along with the sample number
+
+    // sort based on the result time
 }
 
 
@@ -270,7 +294,7 @@ sampleInfo *sampleSearchByTime(u32 time, MPEG_Data *videoData) {
     sampleInfo *sample = (sampleInfo*) malloc(sizeof(sampleInfo));
     sample->realTime = time;
     sampleRealTimeToMediaTime(sample, videoData);
-    sampleMediaTimeToSampleNumber(sample, videoData);
+    sampleMediaTimeToDecodeSampleNumber(sample, videoData);
     sampleSampleNumberToChunkNumber(sample, videoData);
     sampleChunkNumberToChunkOffset(sample, videoData);
     sampleSampleNumberToSampleSize(sample, videoData);
@@ -308,8 +332,8 @@ sampleInfo *keyFrameSearch(u32 time, MPEG_Data *videoData) {
     sample->realTime = time;
 
     sampleRealTimeToMediaTime(sample, videoData);
-    sampleMediaTimeToSampleNumber(sample, videoData);
-    u32 keyframe = binarySearch(sample->sampleNumber, videoData->syncSampleTable, videoData->syncSampleTableEntries);
+    sampleMediaTimeToDecodeSampleNumber(sample, videoData);
+    u32 keyframe = binarySearch(sample->sampleNumber, videoData->syncSampleTable->sampleNumberArr, videoData->syncSampleTable->totalEntries);
     printf("keyframe: %d\n", keyframe);
 
     sampleSampleNumberToChunkNumber(sample, videoData);

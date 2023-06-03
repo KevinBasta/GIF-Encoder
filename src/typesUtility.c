@@ -10,27 +10,30 @@
 
 // search algorithm for stss/sync sample
 // returns the preceeding 
-u32 binarySearch(u32 sampleNumber, syncSampleTableEntry **syncSampleTable, u32 syncSampleTableEntries) { 
+u32 binarySearch(u32 target, u32 *table, u32 totalEntries) { 
     u32 low = 0;
-    u32 high = syncSampleTableEntries;
+    u32 high = totalEntries;
     u32 mid; 
     
     while (low <= high) { 
         mid = (low + high) / 2;
 
-        if (sampleNumber == syncSampleTable[mid]->number) { 
+        if (target == table[mid]) { 
             return mid;
-        } else if (sampleNumber < syncSampleTable[mid]->number) { 
+        } else if (target < table[mid]) { 
             high = mid - 1;
-        } else if (sampleNumber > syncSampleTable[mid]->number) { 
+        } else if (target > table[mid]) { 
             low = mid + 1;
         }
 
         //printf("%d %d %d %d %d\n", low, high, mid, sampleNumber, syncSampleTable[mid]->number);
     }
 
-    return low; // since the preceeding key frame is required
+    return low;
 }
+
+
+
 
 
 

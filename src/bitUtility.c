@@ -4,8 +4,8 @@
     #include <stdlib.h>
     #include <stdint.h>
 
-    #include "headers/printUtility.h"
     #include "headers/types.h"
+    #include "headers/printUtility.h"
 #endif
 
 
