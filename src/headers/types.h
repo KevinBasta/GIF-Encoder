@@ -76,7 +76,7 @@ typedef struct linkedList {
  * @brief Sample boxes sub container
  */
 typedef struct sampleDescription { 
-    u32 *size; 
+    u32 size; 
     u8 *dataFormat;
     u8 *reserved;
     unsigned short dataReferenceIndex;
@@ -100,11 +100,12 @@ typedef struct sampleDescription {
  * @param *mediaRate        -   realtive rate which to play the media corresponding
  * to this edit segment. Cannot be 0 or negative.
  */
-typedef struct elstTableEntry { 
-    u32 trackDuration;
-    i32 mediaTime;
-    u32 mediaRate;
-} elstTableEntry;
+typedef struct elstTable { 
+    u32 totalEntries;
+    u32 *trackDurationArr;
+    i32 *mediaTimeArr;
+    u32 *mediaRateArr;
+} elstTable;
 
 
 
@@ -186,6 +187,7 @@ typedef struct compositionOffsetTable {
 typedef struct displayTimeToSampleTable { 
     u32 totalEntries;
     u32 *displayTimeArr;
+    u32 *sampleNumberArr;
 } displayTimeToSampleTable;
 
 
@@ -226,7 +228,7 @@ typedef struct MPEG_Data {
     u32 tkhdTrackDuration;
     
     // from edtsParseBox->elstParseBox
-    elstTableEntry **elstTable;
+    elstTable *elstTable;
     
     // from mdhdParseBox
     u32 mdhdTimeScale;

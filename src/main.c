@@ -132,9 +132,10 @@ int main(int argc, char **argv) {
     sttsParseBox(stts, videoData);
     /* box *stsd = getBoxFromLinkedList(stblLL, "stsd");
     stsdParseBox(stsd); */
-
-    getVideoDataRange(15, 20, videoData);
-    keyFrameSearch(79, videoData);
+    createDisplayTimeToSampleTable(videoData);
+    sampleSearchByTime(15, videoData);
+    //getVideoDataRange(15, 20, videoData);
+    //keyFrameSearch(79, videoData);
 
     // free every linked list created
     /* freeLinkedList(topBoxesLL, "box");

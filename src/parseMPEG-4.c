@@ -207,8 +207,8 @@ void stszParseBox(box *stszBox, MPEG_Data *videoData) { //sample size required
     
     sampleSizeTable *table = (sampleSizeTable*) calloc(numberOfEntriesInt, sizeof(sampleSizeTable));
     u32 *sizeArr = (u32*) calloc(numberOfEntriesInt, sizeof(u32));
-    table->sampleSizeDefault = sampleSizeInt;
     table->totalEntries = numberOfEntriesInt;
+    table->sampleSizeDefault = sampleSizeInt;
     table->sizeArr = sizeArr;
 
     for (i32 i = 0; i < numberOfEntriesInt; i++) { 
@@ -372,6 +372,7 @@ void sttsParseBox(box *sttsBox, MPEG_Data *videoData) { //time to sample
         for (u32 j = 0; j < sampleCountInt; j++) { 
             uncompressedSampleDurationArr[uncompressedIterator] = sampleDurationInt;
             uncompressedSampleDeltaArr[uncompressedIterator] = uncompressedDeltaAccumulator;
+            // printf("%d %d\n", uncompressedIterator, uncompressedSampleDeltaArr[uncompressedIterator]);
             
             uncompressedDeltaAccumulator += sampleDurationInt;
             uncompressedIterator++;
@@ -380,7 +381,6 @@ void sttsParseBox(box *sttsBox, MPEG_Data *videoData) { //time to sample
         compressedSampleCountArr[i] = sampleCountInt;
         compressedSampleDurationArr[i] = sampleDurationInt;
 
-        //printf("%d %d\n", sampleCountInt, sampleDurationInt);
     }
 
     videoData->timeToSampleTableCompressed = compressedTable;
@@ -489,7 +489,7 @@ void cttsParseBox(box *cttsBox, MPEG_Data *videoData) { //composition offset
         compressedSampleCountArr[i] = sampleCountInt;
         compressedCompositionOffsetArr[i] = compositionOffsetInt;
 
-        //printf("%d \t\t %d\n", sampleCountInt, compositionOffsetInt);
+        // printf("%d \t\t %d\n", sampleCountInt, compositionOffsetInt);
     }
 
     videoData->compositionOffsetTableCompressed = compressedTable;
@@ -701,8 +701,14 @@ void elstParseBox(box *elstBox, MPEG_Data *videoData) {
     
     //table *elstTable = (table*) malloc(sizeof(table));
 
-    elstTableEntry **elstTable = calloc(numberOfEntriesInt + 1, sizeof(elstTableEntry*));
-    elstTable[numberOfEntriesInt] = NULL;
+    elstTable *table = (elstTable*) malloc(sizeof(elstTable));
+    u32 *trackDurationArr = (u32*) calloc(numberOfEntriesInt, sizeof(u32));
+    u32 *mediaTimeArr = (u32*) calloc(numberOfEntriesInt, sizeof(u32));
+    u32 *mediaRateArr = (u32*) calloc(numberOfEntriesInt, sizeof(u32));
+    table->totalEntries = numberOfEntriesInt;
+    table->trackDurationArr = trackDurationArr;
+    table->mediaTimeArr = mediaTimeArr;
+    table->mediaRateArr = mediaRateArr;
 
     for (i32 i = 0; i < numberOfEntriesInt; i++) { 
         u8 *trackDuration = referenceNBytes(4, boxData, &bytesRead);
@@ -712,17 +718,14 @@ void elstParseBox(box *elstBox, MPEG_Data *videoData) {
         u32 trackDurationInt = bigEndianCharToLittleEndianUnsignedInt(trackDuration);
         i32 mediaTimeInt = bigEndianCharToLittleEndianInt(mediaTime);
         u32 mediaRateInt = bigEndianCharToLittleEndianUnsignedInt(mediaRate);
-        printf("%d %d %d\n", trackDurationInt, mediaTimeInt, mediaRateInt);
+        // DEBUG printf("%d %d %d\n", trackDurationInt, mediaTimeInt, mediaRateInt);
 
-        elstTableEntry *elstEntry = (elstTableEntry*) malloc(sizeof(elstTableEntry));
-        elstEntry->trackDuration = trackDurationInt;
-        elstEntry->mediaTime = mediaTimeInt;
-        elstEntry->mediaRate = mediaRateInt;
-        
-        elstTable[i] = elstEntry;
+        trackDurationArr[i] = trackDurationInt;
+        mediaTimeArr[i] = mediaTimeInt;
+        mediaRateArr[i] = mediaRateInt;
     }
     
-    videoData->elstTable = elstTable;
+    videoData->elstTable = table;
 
 
     /* { 

@@ -11,7 +11,7 @@
     #include "headers/processMPEG-4.h"
 #endif
 
-
+#include <time.h>
 
 /**
  * @brief converts a real time in a real time coordinate system
@@ -46,30 +46,33 @@ u32 mediaTimeToDecodeSampleNumber(u32 mediaTime, timeToSampleTableCompressed *ti
     u32 sampleNumber = 0; 
     u32 sampleTimeAccumulator = 0;
 
-    u32 timeToSampleEntryNumber = 0;
     for (u32 i = 0; i < timeToSampleTable->totalEntries; i++) {
         u32 sampleCountInTableEntry = timeToSampleTable->sampleCountArr[i];
         u32 sampleDurationInTableEntry = timeToSampleTable->sampleDurationArr[i];
         
         for (u32 i = 0; i < sampleCountInTableEntry; i++) { 
-            if (sampleTimeAccumulator + sampleDurationInTableEntry <= mediaTime){ 
+            if (sampleTimeAccumulator + sampleDurationInTableEntry < mediaTime){ 
                 sampleNumber++;
                 sampleTimeAccumulator += sampleDurationInTableEntry;
+                //printf("%d %d\n", sampleCountInTableEntry);
             } else { 
-                //printf("samples total: %d\n", sampleCountInTableEntry);
+                printf("samples total: %d\n", sampleCountInTableEntry);
                 return sampleNumber;
             }
         }
-
-        timeToSampleEntryNumber++;
     }
 
     return 0; // error return
 }
 
 
-u32 mediaTimeToDisplaySampleNumber(u32 mediaTime, displayTimeToSampleTable **presentationTimeToSampleTable) { 
-
+u32 mediaTimeToDisplaySampleNumber(u32 mediaTime, displayTimeToSampleTable *displayTimeToSampleTable) { 
+    float startTime = (float)clock()/CLOCKS_PER_SEC;
+    u32 index = binarySearch(mediaTime, displayTimeToSampleTable->displayTimeArr, displayTimeToSampleTable->totalEntries, compu32);
+    float endTime = (float)clock()/CLOCKS_PER_SEC;
+    float timeElapsed = endTime - startTime;
+    printf("search elapsed: %f\n", timeElapsed);
+    return displayTimeToSampleTable->sampleNumberArr[index];
 }
 
 
@@ -216,8 +219,8 @@ void sampleMediaTimeToDecodeSampleNumber(sampleInfo *sample, MPEG_Data *videoDat
     sample->sampleNumber = mediaTimeToDecodeSampleNumber(sample->mediaTime, videoData->timeToSampleTableCompressed);
 }
 
-void sampleMediaTimeToPlaybackSampleNumber(sampleInfo *sample, MPEG_Data *videoData) { 
-    sample->sampleNumber;
+void sampleMediaTimeToDisplaySampleNumber(sampleInfo *sample, MPEG_Data *videoData) { 
+    sample->sampleNumber = mediaTimeToDisplaySampleNumber(sample->mediaTime, videoData->displayTimeToSampleTable);
 }
 
 /**
@@ -249,25 +252,34 @@ void sampleOffsetDataToSampleMdatOffset(sampleInfo *sample, MPEG_Data *videoData
 }
 
 
-void expandAndBuildNewTable(MPEG_Data *videoData) { 
+void createDisplayTimeToSampleTable(MPEG_Data *videoData) { 
     // expand out time to sample
     // expand out composition offset
     u32 numberOfSamples = videoData->numberOfSamples;
 
     displayTimeToSampleTable *table = (displayTimeToSampleTable*) malloc(sizeof(displayTimeToSampleTable));
     u32 *displayTimeArr = (u32*) calloc(numberOfSamples, sizeof(u32));
+    u32 *sampleNumberArr = (u32*) calloc(numberOfSamples, sizeof(u32));
+    table->totalEntries = numberOfSamples;
+    table->displayTimeArr = displayTimeArr;
+    table->sampleNumberArr = sampleNumberArr;
 
     for (u32 i = 0; i < numberOfSamples; i++) { 
         displayTimeArr[i] = videoData->timeToSampleTable->sampleDeltaArr[i] + videoData->compositionOffsetTable->compositionOffsetArr[i];
+        sampleNumberArr[i] = i; // should make it i + 1?
     }
 
-    table->displayTimeArr = displayTimeArr;
-    table->totalEntries = numberOfSamples;
+    float startTime = (float)clock()/CLOCKS_PER_SEC;
+    //quickSort(displayTimeArr, sampleNumberArr, 0, numberOfSamples - 1);
+    bubbleSort(displayTimeArr, sampleNumberArr, numberOfSamples);
+    float endTime = (float)clock()/CLOCKS_PER_SEC;
+    float timeElapsed = endTime - startTime;
+    printf("sort elapsed: %f\n", timeElapsed);
+    /* for (int i = 0; i < 20; i++) { 
+        printf("%d %d \n", displayTimeArr[i], sampleNumberArr[i]);
+    } */
 
-    // for each entry of both, add them, and store the result time in 
-    // a struct along with the sample number
-
-    // sort based on the result time
+    videoData->displayTimeToSampleTable = table;
 }
 
 
@@ -294,14 +306,17 @@ sampleInfo *sampleSearchByTime(u32 time, MPEG_Data *videoData) {
     sampleInfo *sample = (sampleInfo*) malloc(sizeof(sampleInfo));
     sample->realTime = time;
     sampleRealTimeToMediaTime(sample, videoData);
-    sampleMediaTimeToDecodeSampleNumber(sample, videoData);
+    //sampleMediaTimeToDecodeSampleNumber(sample, videoData);
+    sampleMediaTimeToDisplaySampleNumber(sample, videoData);
+    
+    printf("sample: %d\n", sample->sampleNumber);
+
     sampleSampleNumberToChunkNumber(sample, videoData);
     sampleChunkNumberToChunkOffset(sample, videoData);
     sampleSampleNumberToSampleSize(sample, videoData);
     sampleOffsetDataToSampleMdatOffset(sample, videoData);
 
     printf("media time: %d\n", sample->mediaTime);
-    printf("sample: %d\n", sample->sampleNumber);
     printf("chunk: %d\n", sample->chunkNumber);
     printf("chunk offset: %d\n", sample->chunkOffset);
     printf("sample size: %d\n", sample->sampleSize);
@@ -333,7 +348,7 @@ sampleInfo *keyFrameSearch(u32 time, MPEG_Data *videoData) {
 
     sampleRealTimeToMediaTime(sample, videoData);
     sampleMediaTimeToDecodeSampleNumber(sample, videoData);
-    u32 keyframe = binarySearch(sample->sampleNumber, videoData->syncSampleTable->sampleNumberArr, videoData->syncSampleTable->totalEntries);
+    u32 keyframe = binarySearch(sample->sampleNumber, videoData->syncSampleTable->sampleNumberArr, videoData->syncSampleTable->totalEntries, compu32);
     printf("keyframe: %d\n", keyframe);
 
     sampleSampleNumberToChunkNumber(sample, videoData);
