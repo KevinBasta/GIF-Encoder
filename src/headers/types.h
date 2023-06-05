@@ -63,6 +63,7 @@ typedef struct linkedList {
     u32 size;
     Node *head;
     Node *tail;
+    Node *last;
     Node *current;
 } linkedList;
 

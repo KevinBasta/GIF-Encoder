@@ -21,6 +21,7 @@ linkedList* initLinkedList() {
     newLinkedList->size = 0;
 
     newLinkedList->head = (Node*) calloc(1, sizeof(Node));
+    newLinkedList->last = newLinkedList->head;
     newLinkedList->tail = newLinkedList->head;
     newLinkedList->current = newLinkedList->head;
 
@@ -34,7 +35,8 @@ linkedList* initLinkedList() {
  * @param *item     -   the item to add to the tail node's currentItem
  */
 void appendNodeLinkedList(linkedList *list, void *item) {
-    list->tail->currentItem = item; 
+    list->tail->currentItem = item;
+    list->last = list->tail;
     list->tail->nextNode = (Node*) calloc(1, sizeof(Node)); 
 
     list->tail = list->tail->nextNode;

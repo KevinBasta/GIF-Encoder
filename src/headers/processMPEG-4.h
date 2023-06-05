@@ -16,7 +16,9 @@ void sampleSampleNumberToSampleSize(sampleInfo *sample, MPEG_Data *videoData);
 void sampleOffsetDataToSampleMdatOffset(sampleInfo *sample, MPEG_Data *videoData);
 void createDisplayTimeToSampleTable(MPEG_Data *videoData);
 
-void getVideoDataRange(u32 startTime, u32 endTime, MPEG_Data *videoData);
-sampleInfo *sampleSearchByTime(u32 time, MPEG_Data *videoData);
+void getVideoDataRangeByMediaTime(u32 startTime, u32 endTime, MPEG_Data *videoData);
+void getVideoDataRangeBySampleNumber(u32 startTime, u32 endTime, MPEG_Data *videoData); 
+sampleInfo *sampleSearchByRealTime(u32 time, MPEG_Data *videoData);
+sampleInfo *sampleSearchByMediaTime(u32 mediaTime, u32 previousSampleNumber, MPEG_Data *videoData);
 sampleInfo *sampleSearchBySampleNumber(u32 sampleNumber, MPEG_Data *videoData);
 sampleInfo *keyFrameSearch(u32 time, MPEG_Data *videoData);

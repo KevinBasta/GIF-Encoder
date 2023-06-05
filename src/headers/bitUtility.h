@@ -5,8 +5,8 @@ u32 *bigEndianCharToLittleEndianUnsignedIntHeap(u8 *bigEndianCharArray);
 i32 bigEndianCharToLittleEndianInt(u8 *bigEndianCharArray);
 i32 *bigEndianCharToLittleEndianIntHeap(u8 *bigEndianCharArray);
 
-//void bigEndianCharToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 numberOfBytes);
-//void *bigEndianCharToLittleEndianGeneralizedHeap(u8 *bigEndianCharArray, u32 numberOfBytes);
+i32 bigEndianCharToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 numberOfBytes);
+i32 *bigEndianCharToLittleEndianGeneralizedHeap(u8 *bigEndianCharArray, u32 numberOfBytes);
 
 //unsigned short *bigEndianCharToLittleEndianUnsignedShort(u8 *bigEndianCharArray);
 //i32 *bigEndianCharToLittleEndianBytedInt(u8 *bigEndianCharArray, u32 numberOfBytes);

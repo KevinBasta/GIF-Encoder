@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <time.h>
 //#include <string.h>
 
 #include "headers/types.h"
@@ -19,10 +20,11 @@ int main(int argc, char **argv) {
 
     // Use parseMPEG-4 interface to get video frame information
     // "pipe" that information into a the gif interface functional style
-
+    
+    float startTime = (float)clock()/CLOCKS_PER_SEC;
     linkedList *topBoxesLL = initLinkedList();
     // fopen taken in a relative path from executable location
-    readMainBoxes("local_files/op2.mp4", topBoxesLL);
+    readMainBoxes("local_files/op.mp4", topBoxesLL);
 
     MPEG_Data *videoData = (MPEG_Data*) malloc(sizeof(MPEG_Data));
     videoData->mdatBox = getBoxFromLinkedList(topBoxesLL, "mdat");
@@ -130,11 +132,24 @@ int main(int argc, char **argv) {
     cttsParseBox(ctts, videoData);
     box *stts = getBoxFromLinkedList(stblLL, "stts");
     sttsParseBox(stts, videoData);
-    /* box *stsd = getBoxFromLinkedList(stblLL, "stsd");
-    stsdParseBox(stsd); */
+    printf("=====================================\n");
+    box *stsd = getBoxFromLinkedList(stblLL, "stsd");
+    stsdParseBox(stsd);
+    printf("=====================================\n");
+    float endTime = (float)clock()/CLOCKS_PER_SEC;
+    float timeElapsed = endTime - startTime;
+    printf("DATA PARSING OPERATION elapsed: %f\n", timeElapsed);
+
+
     createDisplayTimeToSampleTable(videoData);
-    sampleSearchByTime(15, videoData);
-    //getVideoDataRange(15, 20, videoData);
+    //sampleSearchByRealTime(15, videoData);
+    
+    
+    startTime = (float)clock()/CLOCKS_PER_SEC;
+    getVideoDataRangeByMediaTime(15, 20, videoData);
+    endTime = (float)clock()/CLOCKS_PER_SEC;
+    timeElapsed = endTime - startTime;
+    printf("DATA PROCESSING OPERATION elapsed: %f\n", timeElapsed);
     //keyFrameSearch(79, videoData);
 
     // free every linked list created

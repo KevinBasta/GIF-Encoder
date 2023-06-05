@@ -69,89 +69,81 @@ void stsdParseBox(box *stsdBox) { //sample description required
     u8 *version = referenceNBytes(1, boxData, &bytesRead);
     u8 *flags = referenceNBytes(3, boxData, &bytesRead);
     u8 *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-
     u32 numberOfEntriesInt = bigEndianCharToLittleEndianUnsignedInt(numberOfEntries);
     // DEBUG printf("%d\n", *numberOfEntriesInt);
     
-    /* linkedList sampleDescriptions;
-    printf("entries: %d\n", *numberOfEntriesInt);
-    for (i32 i = 0; i < *numberOfEntriesInt; i++) { 
-        u8 *sampleDescriptionSizeChar = referenceNBytes(4, boxData, &bytesRead);
-        u32 *sampleDescriptionSize = charToUnsignedInt(sampleDescriptionSizeChar);
-        u32 absoluteEndOfSampleDescription = bytesRead + *sampleDescriptionSize - 4;
-        printf("total %d\n", boxDataSize);
+    linkedList *sampleDescriptionsLL = initLinkedList();
 
+    for (u32 i = 0; i < numberOfEntriesInt; i++) { 
+        // General Structure Of A Sample Description
+        u8 *sampleDescriptionSize = referenceNBytes(4, boxData, &bytesRead);
+        
+        u32 sampleDescriptionSizeInt = bigEndianCharToLittleEndianUnsignedInt(sampleDescriptionSize);
+        u32 absoluteEndOfThisSampleDescription = bytesRead + sampleDescriptionSizeInt - 4; // 4 for sampleDescriptionSize
+        
+        // data format indicates the type of compression that was used to compress 
+        // the image data, or the color space representation of uncompressed video data
         u8 *dataFormat = referenceNBytes(4, boxData, &bytesRead);
         u8 *reserved = referenceNBytes(6, boxData, &bytesRead);
         u8 *dataReferenceIndex = referenceNBytes(2, boxData, &bytesRead); 
-        i32 *dataReferenceIndexInt = bigEndianCharToLittleEndianBytedInt(dataReferenceIndex, 2); 
 
-        printf("%d\n", *sampleDescriptionSize);
-        printNBytes(dataFormat, 4, "", "\n");
-        printf("%d\n", *dataReferenceIndexInt);
+        u32 dataFormatInt = bigEndianCharToLittleEndianUnsignedInt(dataFormat);
+        i32 dataReferenceIndexInt = bigEndianCharToLittleEndianGeneralized(dataReferenceIndex, 2); 
+
+        printf("sample des size: %d\n", sampleDescriptionSizeInt);
+        printNBytes(dataFormat, 4, "data format: ", "\n");
+        printf("data reference index: %d\n", dataReferenceIndexInt);
 
         // The following fields assume that this stsd box belongs to a video trak 
-        u8 *version =         referenceNBytes(2, boxData, &bytesRead);
-        u8 *revisionLevel =   referenceNBytes(2, boxData, &bytesRead);
-        u8 *vendor =          referenceNBytes(4, boxData, &bytesRead);
-        // the following return value passing is only permissible since the data is a 
-        // reference in the bigger array and not separatly allocated memory that would need freeing
-        i32 *temporalQuality =      bigEndianCharToLittleEndianBytedInt(referenceNBytes(4, boxData, &bytesRead), 4);
-        i32 *spatialQuality =       bigEndianCharToLittleEndianBytedInt(referenceNBytes(4, boxData, &bytesRead), 4);
-        i32 *width =                bigEndianCharToLittleEndianBytedInt(referenceNBytes(2, boxData, &bytesRead), 2);
-        i32 *height =               bigEndianCharToLittleEndianBytedInt(referenceNBytes(2, boxData, &bytesRead), 2);
-
-        u8 *horizontalResolutionChar =  referenceNBytes(4, boxData, &bytesRead);
-        u8 *verticalResolutionChar =    referenceNBytes(4, boxData, &bytesRead);
-        float *horizontalResolution =  bigEndianCharToLittleEndianFloat(horizontalResolutionChar);
-        //float *verticalResolution =    bigEndianCharToLittleEndianFloat(verticalResolutionChar);
+        u8 *version         = referenceNBytes(2, boxData, &bytesRead);
+        u8 *revisionLevel   = referenceNBytes(2, boxData, &bytesRead);
+        u8 *vendor          = referenceNBytes(4, boxData, &bytesRead);
         
-        i32 *dataSize =             bigEndianCharToLittleEndianBytedInt(referenceNBytes(4, boxData, &bytesRead), 4);
-        i32 *frameCount =           bigEndianCharToLittleEndianBytedInt(referenceNBytes(2, boxData, &bytesRead), 2);
+        i32 temporalQuality = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
+        i32 spatialQuality  = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
+        i32 width           = bigEndianCharToLittleEndianGeneralized(referenceNBytes(2, boxData, &bytesRead), 2);
+        i32 height          = bigEndianCharToLittleEndianGeneralized(referenceNBytes(2, boxData, &bytesRead), 2);
+        printf("t s w h %d %d %d %d\n", temporalQuality, spatialQuality, width, height);
+
+        u8 *horizontalResolution = referenceNBytes(4, boxData, &bytesRead);
+        u8 *verticalResolution   = referenceNBytes(4, boxData, &bytesRead);
         
-        u8 *compressorName =      referenceNBytes(4, boxData, &bytesRead);
+        i32 dataSize    = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
+        i32 frameCount  = bigEndianCharToLittleEndianGeneralized(referenceNBytes(2, boxData, &bytesRead), 2);
+        printf("fc %d\n", frameCount);
 
-        i32 *depth =              bigEndianCharToLittleEndianBytedInt(referenceNBytes(2, boxData, &bytesRead), 2);
-        i32 *colorTableID =       bigEndianCharToLittleEndianBytedInt(referenceNBytes(2, boxData, &bytesRead), 2);
+        u8 *compressorName = referenceNBytes(4, boxData, &bytesRead);
+        printNBytes(compressorName, 4, "compressor name: ", "\n");
 
 
-        printf("width height: %d %d\n", *width, *height);
-        printf("%f\n", *horizontalResolution);
-        //printf("horizontal vertical resolution: %f %f\n", *horizontalResolution, *verticalResolution);
-        printBits(horizontalResolutionChar, 4);
-        //printBits(verticalResolutionChar, 4);
-        printBits(horizontalResolution, 4);
-        //printBits(verticalResolution, 4);
-        printf("frame count: %d\n", *frameCount);
+        i32 depth = bigEndianCharToLittleEndianGeneralized(referenceNBytes(2, boxData, &bytesRead), 2);
+        i32 colorTableID = bigEndianCharToLittleEndianGeneralized(referenceNBytes(2, boxData, &bytesRead), 2);
+        printf("depth %d\n", depth);
+        printf("color id %d\n", colorTableID);
         
-        printf("read: %d, end: %d\n", bytesRead, absoluteEndOfSampleDescription);
+        printf("read: %d, end: %d\n", bytesRead, absoluteEndOfThisSampleDescription);
         
         //    Unspecified 28 bytes of all 0 bits not mentioned in spesification
         //    the last 4 bytes contains some unknown non-zero bits
-        
-        u8 *emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
-        emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
-        emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
-        emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
-        emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
-        emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
-        emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
-        printBits(emptyFourBytes, 4);
-        printNBytes(emptyFourBytes, 4, "", "\n");
-        u32 *test = charToUnsignedInt(emptyFourBytes);
-        printf("%d\n", *test);
+        for (u32 i = 0; i < 7; i++) { 
+            u8 *emptyFourBytes = referenceNBytes(4, boxData, &bytesRead);
+            printBits(emptyFourBytes, 4);
+            //printNBytes(emptyFourBytes, 4, "", "\n");
+            //u32 *test = charToUnsignedInt(emptyFourBytes);
+            //printf("%d\n", *test);
+        }
 
-        printf("read: %d, end: %d\n", bytesRead, absoluteEndOfSampleDescription);
-        if (bytesRead != absoluteEndOfSampleDescription) {
+        printf("read: %d, end: %d\n", bytesRead, absoluteEndOfThisSampleDescription);
+        if (bytesRead != absoluteEndOfThisSampleDescription) {
             printf("not end\n"); 
             linkedList *stsdVideoExtention = initLinkedList();
-            parseNestedChildBoxes(boxData, &bytesRead, absoluteEndOfSampleDescription, stsdVideoExtention);
+            parseNestedChildBoxes(boxData, &bytesRead, absoluteEndOfThisSampleDescription, stsdVideoExtention);
             printAllBoxesLinkedList(stsdVideoExtention);
 
             // parse video sample description extensions
         }
 
-    } */
+    }
     
 
 }
@@ -444,6 +436,12 @@ void stssParseBox(box *stssBox, MPEG_Data *videoData) { //sync sample
  * @param videoData     -   to store compositionOffsetTable
  */
 void cttsParseBox(box *cttsBox, MPEG_Data *videoData) { //composition offset
+    if (cttsBox == NULL) { 
+        videoData->compositionOffsetTableCompressed = NULL;
+        videoData->compositionOffsetTable = NULL;
+        return;
+    }
+    
     u32 boxDataSize = cttsBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = cttsBox->boxData;
 
@@ -746,6 +744,11 @@ void elstParseBox(box *elstBox, MPEG_Data *videoData) {
  */
 void edtsParseBox(box *edtsBox, MPEG_Data *videoData) {
     //Note: If the edit atom or the edit list atom is missing, you can assume that the entire media is used by the track.
+    if (edtsBox == NULL) { 
+        videoData->elstTable = NULL;
+        return;
+    }
+   
     u32 boxDataSize = edtsBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = edtsBox->boxData;
 
