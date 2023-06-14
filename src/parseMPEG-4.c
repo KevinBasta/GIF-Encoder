@@ -135,17 +135,105 @@ void stsdParseBox(box *stsdBox) { //sample description required
 
         printf("read: %d, end: %d\n", bytesRead, absoluteEndOfThisSampleDescription);
         if (bytesRead != absoluteEndOfThisSampleDescription) {
-            printf("not end\n"); 
-            linkedList *stsdVideoExtention = initLinkedList();
-            parseNestedChildBoxes(boxData, &bytesRead, absoluteEndOfThisSampleDescription, stsdVideoExtention);
-            printAllBoxesLinkedList(stsdVideoExtention);
+            linkedList *stsdVideoExtentions = initLinkedList();
+            parseNestedChildBoxes(boxData, &bytesRead, absoluteEndOfThisSampleDescription, stsdVideoExtentions);
+            printAllBoxesLinkedList(stsdVideoExtentions);
 
-            // parse video sample description extensions
+            box *avccBox = getBoxFromLinkedList(stsdVideoExtentions, "avcC");
+            box *paspBox = getBoxFromLinkedList(stsdVideoExtentions, "pasp");
+            paspParseBox(paspBox);
+            box *btrtBox = getBoxFromLinkedList(stsdVideoExtentions, "btrt");
+            btrtParseBox(btrtBox);
+            box *colrBox = getBoxFromLinkedList(stsdVideoExtentions, "colr");
+            colrParseBox(colrBox);
+
         }
-
     }
-    
 
+}
+
+void avccParseBox(box *avccBox) { 
+    u32 boxDataSize = avccBox->boxSize - BOX_HEADER_SIZE;
+    u8 *boxData = avccBox->boxData;
+
+    u32 bytesRead;
+    bytesRead = 0;
+
+    u8 *version = referenceNBytes(1, boxData, &bytesRead);
+    u8 *profileIndication = referenceNBytes(1, boxData, &bytesRead);
+    u8 *profileCompatibility = referenceNBytes(1, boxData, &bytesRead);
+    u8 *levelIndication = referenceNBytes(1, boxData, &bytesRead);
+
+    u8 *reservedAndLengthSizeMinusOne = copyNBytes(1, boxData, &bytesRead);
+    u8 reservedOne;
+    u8 lengthSizeMinus1;
+    free(reservedAndLengthSizeMinusOne);
+
+    u8 *reservedAndNumOfSequenceParameterSets = copyNBytes(1, boxData, &bytesRead);
+    u8 reservedTwo;
+    u8 numOfSequenceParameterSets;
+    free(reservedAndNumOfSequenceParameterSets);
+    for (u32 i = 0; i < numOfSequenceParameterSets; i++) { 
+        u16 sequenceParameterSetLength; 
+        u8 *sequenceParameterSetNALUnit; // arr
+    }
+
+
+    u8 *numOfPictureParameterSets = referenceNBytes(1, boxData, &bytesRead);
+    u8 numOfPictureParameterSetsInt;
+    for (u32 i = 0; i < numOfPictureParameterSetsInt; i++) {
+        u16 pictureParameterSetLength;
+        u8 *picutreParameterSetNALUnit; // arr
+    }
+}
+
+void colrParseBox(box *colrBox) { 
+    u32 boxDataSize = colrBox->boxSize - BOX_HEADER_SIZE;
+    u8 *boxData = colrBox->boxData;
+
+    u32 bytesRead;
+    bytesRead = 0;
+    
+    
+}
+
+/**
+ * @brief height to width rattio of pixels found in the video sample. 
+ * required when non-square pixels are used.
+ * @param paspBox 
+ */
+void paspParseBox(box *paspBox) { 
+    u32 boxDataSize = paspBox->boxSize - BOX_HEADER_SIZE;
+    u8 *boxData = paspBox->boxData;
+
+    u32 bytesRead;
+    bytesRead = 0;
+
+    u8 *hSpacing = referenceNBytes(4, boxData, &bytesRead);
+    u8 *vSpacing = referenceNBytes(4, boxData, &bytesRead);
+
+    u32 hSpacingInt = bigEndianCharToLittleEndianUnsignedInt(hSpacing);
+    u32 vSpacingInt = bigEndianCharToLittleEndianUnsignedInt(vSpacing);
+
+    printf("%d %d\n", hSpacingInt, vSpacingInt);
+}
+
+void btrtParseBox(box *btrtBox) { 
+    u32 boxDataSize = btrtBox->boxSize - BOX_HEADER_SIZE;
+    u8 *boxData = btrtBox->boxData;
+
+    u32 bytesRead;
+    bytesRead = 0;
+
+    u8 *bufferSize = referenceNBytes(4, boxData, &bytesRead);
+    u8 *maxBitRate = referenceNBytes(4, boxData, &bytesRead);
+    u8 *averageBitRate = referenceNBytes(4, boxData, &bytesRead);
+    
+    u32 bufferSizeInt = bigEndianCharToLittleEndianUnsignedInt(bufferSize);
+    u32 maxBitRateInt = bigEndianCharToLittleEndianUnsignedInt(maxBitRate);
+    u32 averageBitRateInt = bigEndianCharToLittleEndianUnsignedInt(averageBitRate);
+
+    printf("%d %d %d\n", bufferSizeInt, maxBitRateInt, averageBitRateInt);
 }
 
 /* i32 isNullBytes(u32 numberOfBytes, u8 *data, i32 *index) { 

@@ -23,3 +23,8 @@ void sttsParseBox(box *sttsBox, MPEG_Data *videoData);
 void stssParseBox(box *stssBox, MPEG_Data *videoData);
 void cttsParseBox(box *cttsBox, MPEG_Data *videoData);
 void videoMediaBox();
+
+void paspParseBox(box *paspBox);
+void btrtParseBox(box *btrtBox);
+void colrParseBox(box *colrBox);
+void avccParseBox(box *avccBox);

@@ -136,7 +136,7 @@ int main(int argc, char **argv) {
     box *stsd = getBoxFromLinkedList(stblLL, "stsd");
     stsdParseBox(stsd);
     printf("=====================================\n");
-    float endTime = (float)clock()/CLOCKS_PER_SEC;
+    /* float endTime = (float)clock()/CLOCKS_PER_SEC;
     float timeElapsed = endTime - startTime;
     printf("DATA PARSING OPERATION elapsed: %f\n", timeElapsed);
 
@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
     getVideoDataRangeByMediaTime(15, 20, videoData);
     endTime = (float)clock()/CLOCKS_PER_SEC;
     timeElapsed = endTime - startTime;
-    printf("DATA PROCESSING OPERATION elapsed: %f\n", timeElapsed);
+    printf("DATA PROCESSING OPERATION elapsed: %f\n", timeElapsed); */
     //keyFrameSearch(79, videoData);
 
     // free every linked list created

@@ -8,7 +8,7 @@
     #include "headers/printUtility.h"
 #endif
 
-
+#include <math.h>
 
 // the following conversion functions will be cleaned up when it is clearer what is needed. //
 /**
@@ -393,4 +393,47 @@ u8 *referenceNBytes(u32 numberOfBytes, u8 *originalData, u32 *byteOffset) {
     } */
 
     return infoReference;
+}
+
+
+/* u32 copyNBits(u32 numberOfBits, u8 *originalData, u32 *byteOffset) { 
+    if (numberOfBits > 32) { 
+        return 0;
+    }
+
+    u32 numberOfBytes = ceil((double) numberOfBits/8);
+    u8 *data = referenceNBytes(numberOfBytes, originalData, &byteOffset);
+    u32 result = (u32) bigEndianCharToLittleEndianGeneralized(data, numberOfBytes);
+
+    u32 upperLimit = (numberOfBytes * 8) - numberOfBits;
+    
+
+
+} */
+
+/**
+ * @brief bits 1-8
+ * @param startBit 
+ * @param endBit 
+ * @param data 
+ * @return 
+ */
+u8 getNBits(u32 startBit, u32 endBit, u8 data) { 
+    if (startBit < 1 || startBit > 7 || endBit > 8 || endBit < 2) { 
+        return 0;
+    }
+
+    u8 inter1 = (data << (startBit - 1)); 
+    u8 inter2 = inter1 >> (startBit - 1);
+    u8 inter3 = inter2 >> (8 - endBit);
+    printBits(&data, 1);
+    printBits(&inter1, 1);
+    printBits(&inter2, 1);
+    printBits(&inter3, 1);
+    u8 failtest = inter1 >> ((startBit - 1) + (8 - endBit));
+    printBits(&failtest, 1);
+    u8 leftShift = startBit - 1;
+    u8 rightShift = (startBit - 1) + (8 - endBit);
+    return (data << leftShift) >> rightShift;
+    // or mask the range startBit to endBit and then shift right
 }
