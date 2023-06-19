@@ -59,65 +59,57 @@ box *getVideTrak(linkedList *moovLL) {
 Child boxes of STBL (Sample Table Atom). These define Samples and Chunks in the file.
 
 */
-void stsdParseBox(box *stsdBox) { //sample description required
+void stsdParseBox(box *stsdBox, MPEG_Data *videoData) { //sample description required
     u32 boxDataSize = stsdBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = stsdBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     u8 *version = referenceNBytes(1, boxData, &bytesRead);
     u8 *flags = referenceNBytes(3, boxData, &bytesRead);
     u8 *numberOfEntries = referenceNBytes(4, boxData, &bytesRead);
-    u32 numberOfEntriesInt = bigEndianCharToLittleEndianUnsignedInt(numberOfEntries);
-    // DEBUG printf("%d\n", *numberOfEntriesInt);
+    u32 numberOfEntriesInt = bigEndianU8ArrToLittleEndianU32(numberOfEntries);
+    printf("entries numb: %d\n", numberOfEntriesInt);
     
     linkedList *sampleDescriptionsLL = initLinkedList();
 
     for (u32 i = 0; i < numberOfEntriesInt; i++) { 
-        // General Structure Of A Sample Description
-        u8 *sampleDescriptionSize = referenceNBytes(4, boxData, &bytesRead);
-        
-        u32 sampleDescriptionSizeInt = bigEndianCharToLittleEndianUnsignedInt(sampleDescriptionSize);
+        // General Structure Of A Sample Description        
+        u32 sampleDescriptionSizeInt = bigEndianU8ArrToLittleEndianU32(referenceNBytes(4, boxData, &bytesRead));
         u32 absoluteEndOfThisSampleDescription = bytesRead + sampleDescriptionSizeInt - 4; // 4 for sampleDescriptionSize
         
         // data format indicates the type of compression that was used to compress 
         // the image data, or the color space representation of uncompressed video data
         u8 *dataFormat = referenceNBytes(4, boxData, &bytesRead);
+        
         u8 *reserved = referenceNBytes(6, boxData, &bytesRead);
-        u8 *dataReferenceIndex = referenceNBytes(2, boxData, &bytesRead); 
+        u16 dataReferenceIndexInt = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead)); 
 
-        u32 dataFormatInt = bigEndianCharToLittleEndianUnsignedInt(dataFormat);
-        i32 dataReferenceIndexInt = bigEndianCharToLittleEndianGeneralized(dataReferenceIndex, 2); 
-
-        printf("sample des size: %d\n", sampleDescriptionSizeInt);
         printNBytes(dataFormat, 4, "data format: ", "\n");
-        printf("data reference index: %d\n", dataReferenceIndexInt);
 
         // The following fields assume that this stsd box belongs to a video trak 
         u8 *version         = referenceNBytes(2, boxData, &bytesRead);
         u8 *revisionLevel   = referenceNBytes(2, boxData, &bytesRead);
         u8 *vendor          = referenceNBytes(4, boxData, &bytesRead);
         
-        i32 temporalQuality = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
-        i32 spatialQuality  = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
-        i32 width           = bigEndianCharToLittleEndianGeneralized(referenceNBytes(2, boxData, &bytesRead), 2);
-        i32 height          = bigEndianCharToLittleEndianGeneralized(referenceNBytes(2, boxData, &bytesRead), 2);
+        i32 temporalQuality = bigEndianU8ArrToLittleEndianI32(referenceNBytes(4, boxData, &bytesRead));
+        i32 spatialQuality  = bigEndianU8ArrToLittleEndianI32(referenceNBytes(4, boxData, &bytesRead));
+        u16 width           = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead));
+        u16 height          = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead));
         printf("t s w h %d %d %d %d\n", temporalQuality, spatialQuality, width, height);
 
         u8 *horizontalResolution = referenceNBytes(4, boxData, &bytesRead);
         u8 *verticalResolution   = referenceNBytes(4, boxData, &bytesRead);
         
-        i32 dataSize    = bigEndianCharToLittleEndianInt(referenceNBytes(4, boxData, &bytesRead));
-        i32 frameCount  = bigEndianCharToLittleEndianGeneralized(referenceNBytes(2, boxData, &bytesRead), 2);
-        printf("fc %d\n", frameCount);
-
+        u8 *dataSize       = referenceNBytes(4, boxData, &bytesRead);
+        u16 frameCount     = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead));
         u8 *compressorName = referenceNBytes(4, boxData, &bytesRead);
+        printf("frame count %d\n", frameCount);
+        printBits(compressorName, 4); 
         printNBytes(compressorName, 4, "compressor name: ", "\n");
 
-
-        i32 depth = bigEndianCharToLittleEndianGeneralized(referenceNBytes(2, boxData, &bytesRead), 2);
-        i32 colorTableID = bigEndianCharToLittleEndianGeneralized(referenceNBytes(2, boxData, &bytesRead), 2);
+        u16 depth        = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead));
+        u16 colorTableID = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead));
         printf("depth %d\n", depth);
         printf("color id %d\n", colorTableID);
         
@@ -139,62 +131,118 @@ void stsdParseBox(box *stsdBox) { //sample description required
             parseNestedChildBoxes(boxData, &bytesRead, absoluteEndOfThisSampleDescription, stsdVideoExtentions);
             printAllBoxesLinkedList(stsdVideoExtentions);
 
+            printf("=============== avcc =================\n");
             box *avccBox = getBoxFromLinkedList(stsdVideoExtentions, "avcC");
+            avccParseBox(avccBox, videoData);
+            printf("=============== pasp =================\n");
             box *paspBox = getBoxFromLinkedList(stsdVideoExtentions, "pasp");
-            paspParseBox(paspBox);
+            paspParseBox(paspBox, videoData);
+            printf("=============== btrt =================\n");
             box *btrtBox = getBoxFromLinkedList(stsdVideoExtentions, "btrt");
-            btrtParseBox(btrtBox);
+            btrtParseBox(btrtBox, videoData);
+            printf("=============== colr =================\n");
             box *colrBox = getBoxFromLinkedList(stsdVideoExtentions, "colr");
-            colrParseBox(colrBox);
+            colrParseBox(colrBox, videoData);
 
         }
     }
 
 }
 
-void avccParseBox(box *avccBox) { 
+void avccParseBox(box *avccBox, MPEG_Data *videoData) {
+    if (avccBox == NULL) { 
+        return;
+    }
+
     u32 boxDataSize = avccBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = avccBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
-    u8 *version = referenceNBytes(1, boxData, &bytesRead);
-    u8 *profileIndication = referenceNBytes(1, boxData, &bytesRead);
+    u8 *version              = referenceNBytes(1, boxData, &bytesRead);
+    u8 *profileIndication    = referenceNBytes(1, boxData, &bytesRead);
     u8 *profileCompatibility = referenceNBytes(1, boxData, &bytesRead);
-    u8 *levelIndication = referenceNBytes(1, boxData, &bytesRead);
+    u8 *levelIndication      = referenceNBytes(1, boxData, &bytesRead);
 
     u8 *reservedAndLengthSizeMinusOne = copyNBytes(1, boxData, &bytesRead);
-    u8 reservedOne;
-    u8 lengthSizeMinus1;
+    u8 reservedOne      = getNBits(1, 6, *reservedAndLengthSizeMinusOne);
+    u8 lengthSizeMinus1 = getNBits(7, 8, *reservedAndLengthSizeMinusOne);
+    printBits(reservedAndLengthSizeMinusOne, 1);
+    printf("length %u\n", lengthSizeMinus1);
     free(reservedAndLengthSizeMinusOne);
 
     u8 *reservedAndNumOfSequenceParameterSets = copyNBytes(1, boxData, &bytesRead);
-    u8 reservedTwo;
-    u8 numOfSequenceParameterSets;
+    u8 reservedTwo                  = getNBits(1, 3, *reservedAndNumOfSequenceParameterSets);
+    u8 numOfSequenceParameterSets   = getNBits(4, 8, *reservedAndNumOfSequenceParameterSets);
     free(reservedAndNumOfSequenceParameterSets);
-    for (u32 i = 0; i < numOfSequenceParameterSets; i++) { 
-        u16 sequenceParameterSetLength; 
-        u8 *sequenceParameterSetNALUnit; // arr
+    
+    for (u8 i = 0; i < numOfSequenceParameterSets; i++) { 
+        u16 sequenceParameterSetLengthInt = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead)); 
+        u8 *sequenceParameterSetNALUnit   = referenceNBytes(sequenceParameterSetLengthInt, boxData, &bytesRead); // arr
+    }
+
+    u8 numOfPictureParameterSetsInt = bigEndianU8ArrToLittleEndianU8(referenceNBytes(1, boxData, &bytesRead));    
+    
+    for (u8 i = 0; i < numOfPictureParameterSetsInt; i++) {
+        u16 pictureParameterSetLengthInt = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead));
+        u8 *picutreParameterSetNALUnit   = referenceNBytes(pictureParameterSetLengthInt, boxData, &bytesRead); // arr
     }
 
 
-    u8 *numOfPictureParameterSets = referenceNBytes(1, boxData, &bytesRead);
-    u8 numOfPictureParameterSetsInt;
-    for (u32 i = 0; i < numOfPictureParameterSetsInt; i++) {
-        u16 pictureParameterSetLength;
-        u8 *picutreParameterSetNALUnit; // arr
+    videoData->lengthSizeMinus1 = lengthSizeMinus1;
+    printf("%d %d\n", bytesRead, boxDataSize);
+}
+
+void getSampleFrameData() { 
+    
+}
+
+void parseAVCSample(sampleInfo *sampleData, MPEG_Data *videoData) { 
+    sampleData->mdatPointer = &(videoData->mdatBox->boxData[sampleData->sampleOffsetInMdat]);
+    
+    u32 bytesRead = 0;
+    u32 sampleSize = sampleData->sampleSize;
+    u32 unitLengthFieldSize = videoData->lengthSizeMinus1 + 1;
+    printf("offset: %d\n", sampleData->sampleOffsetInMdat);
+    
+    for (int i = 0; i < sampleSize;) {
+        // since NALUnitLength can be 1, 2, or 4 bytes, will just store it in 4 byte int
+        u8 *NALUnitLength    = referenceNBytes(unitLengthFieldSize, sampleData->mdatPointer, &bytesRead);
+        printHexNBytes(&(videoData->mdatBox->boxData[sampleData->sampleOffsetInMdat]), 4);
+        // generalized is requied here, spesific functions won't work because the byteNumb would be assumed
+        u32 NALUnitLengthInt = bigEndianCharToLittleEndianGeneralized(NALUnitLength, unitLengthFieldSize); 
+        u8 *NALUnit          = referenceNBytes(NALUnitLengthInt, sampleData->mdatPointer, &bytesRead);
+
+        i += unitLengthFieldSize + NALUnitLengthInt;
+
+        printf("sample size: %7d nal unit length: %10u bytes read: %10u \n", sampleSize, NALUnitLengthInt, bytesRead);
     }
 }
 
-void colrParseBox(box *colrBox) { 
+/**
+ * @brief required for uncompressed Y'CbCr data formates. mpas the numerical values of pixels in 
+ * file to a common representation of color in which images can be correctly compared, combined, and
+ * displayed. The common representation is the CIE XYZ tristimulus values.
+ * @param colrBox 
+ * @note if this box and a gamma box are both defined, then ignore the gamma box
+ */
+void colrParseBox(box *colrBox, MPEG_Data *videoData) { 
+    if (colrBox == NULL) { 
+        return;
+    }
+
     u32 boxDataSize = colrBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = colrBox->boxData;
-
-    u32 bytesRead;
-    bytesRead = 0;
     
+    u32 bytesRead = 0;
     
+    u8 *colorParameterType = referenceNBytes(4, boxData, &bytesRead);
+    printNBytes(colorParameterType, 4, "type: ", "\n");
+    
+    u16 primariesIndex        = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead));
+    u16 transferFunctionIndex = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead));
+    u16 matrixIndex           = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead));
+    printf("%d %d %d\n", primariesIndex, transferFunctionIndex, matrixIndex);
 }
 
 /**
@@ -202,12 +250,15 @@ void colrParseBox(box *colrBox) {
  * required when non-square pixels are used.
  * @param paspBox 
  */
-void paspParseBox(box *paspBox) { 
+void paspParseBox(box *paspBox, MPEG_Data *videoData) { 
+    if (paspBox == NULL) { 
+        return;
+    }
+
     u32 boxDataSize = paspBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = paspBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     u8 *hSpacing = referenceNBytes(4, boxData, &bytesRead);
     u8 *vSpacing = referenceNBytes(4, boxData, &bytesRead);
@@ -218,12 +269,16 @@ void paspParseBox(box *paspBox) {
     printf("%d %d\n", hSpacingInt, vSpacingInt);
 }
 
-void btrtParseBox(box *btrtBox) { 
+
+void btrtParseBox(box *btrtBox, MPEG_Data *videoData) { 
+    if (btrtBox == NULL) { 
+        return;
+    }
+
     u32 boxDataSize = btrtBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = btrtBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     u8 *bufferSize = referenceNBytes(4, boxData, &bytesRead);
     u8 *maxBitRate = referenceNBytes(4, boxData, &bytesRead);
@@ -265,8 +320,7 @@ void stszParseBox(box *stszBox, MPEG_Data *videoData) { //sample size required
     u32 boxDataSize = stszBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = stszBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     u8 *version = referenceNBytes(1, boxData, &bytesRead);
     u8 *flags = referenceNBytes(3, boxData, &bytesRead);
@@ -319,8 +373,7 @@ void stscParseBox(box *stscBox, MPEG_Data *videoData) { //sample to chunk requir
     u32 boxDataSize = stscBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = stscBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     u8 *version = referenceNBytes(1, boxData, &bytesRead);
     u8 *flags = referenceNBytes(3, boxData, &bytesRead);
@@ -373,8 +426,7 @@ void stcoParseBox(box *stcoBox, MPEG_Data *videoData) { //chunk offset required
     u32 boxDataSize = stcoBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = stcoBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     u8 *version = referenceNBytes(1, boxData, &bytesRead);
     u8 *flags = referenceNBytes(3, boxData, &bytesRead);
@@ -411,8 +463,7 @@ void sttsParseBox(box *sttsBox, MPEG_Data *videoData) { //time to sample
     u32 boxDataSize = sttsBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = sttsBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     u8 *version = referenceNBytes(1, boxData, &bytesRead);
     u8 *flags = referenceNBytes(3, boxData, &bytesRead);
@@ -484,8 +535,7 @@ void stssParseBox(box *stssBox, MPEG_Data *videoData) { //sync sample
     u32 boxDataSize = stssBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = stssBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     u8 *version = referenceNBytes(1, boxData, &bytesRead);
     u8 *flags = referenceNBytes(3, boxData, &bytesRead);
@@ -533,8 +583,7 @@ void cttsParseBox(box *cttsBox, MPEG_Data *videoData) { //composition offset
     u32 boxDataSize = cttsBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = cttsBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     u8 *version = referenceNBytes(1, boxData, &bytesRead);
     u8 *flags = referenceNBytes(3, boxData, &bytesRead);
@@ -611,8 +660,7 @@ void drefParseBox(box *drefBox, MPEG_Data *videoData) {
     u32 boxDataSize = drefBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = drefBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
     
     u8 *version = referenceNBytes(1, boxData, &bytesRead);
     u8 *flags = referenceNBytes(3, boxData, &bytesRead);
@@ -625,24 +673,24 @@ void drefParseBox(box *drefBox, MPEG_Data *videoData) {
     
     for (i32 i = 0; i < numberOfEntriesInt; i++) { 
         dataReferenceTableEntry *dataReferenceEntry = (dataReferenceTableEntry*) malloc(sizeof(dataReferenceTableEntry));
-        u8 *dataReferenceSize = referenceNBytes(BOX_HEADER_HALF_SIZE, boxData, &bytesRead);
+        u8 *dataReferenceSize = referenceNBytes(BOX_SIZE_SIZE, boxData, &bytesRead);
         dataReferenceEntry->size = bigEndianCharToLittleEndianUnsignedInt(dataReferenceSize);
 
-        dataReferenceEntry->type = copyNBytes(BOX_HEADER_HALF_SIZE, boxData, &bytesRead);
+        dataReferenceEntry->type = copyNBytes(BOX_TYPE_SIZE, boxData, &bytesRead);
 
         // flag is used to indicate that media's data is in same file
-        dataReferenceEntry->version = copyNBytes(VERSION_SIZE, boxData, &bytesRead);
-        dataReferenceEntry->flags = copyNBytes(FLAG_SIZE, boxData, &bytesRead);
+        dataReferenceEntry->version = copyNBytes(BOX_VERSION_SIZE, boxData, &bytesRead);
+        dataReferenceEntry->flags = copyNBytes(BOX_FLAG_SIZE, boxData, &bytesRead);
 
-        u32 dataReferenceDataSize = dataReferenceEntry->size - BOX_HEADER_SIZE - VERSION_SIZE - FLAG_SIZE;
+        u32 dataReferenceDataSize = dataReferenceEntry->size - BOX_HEADER_SIZE - BOX_VERSION_SIZE - BOX_FLAG_SIZE;
         dataReferenceEntry->data = copyNBytes(dataReferenceDataSize, boxData, &bytesRead);
 
         
         dataReferenceTable[i] = dataReferenceEntry;
         
-        /* printNBytes(dataReferenceEntry->type, BOX_HEADER_HALF_SIZE, "", "\n");
+        printNBytes(dataReferenceEntry->type, BOX_TYPE_SIZE, "", "\n");
         printBits(dataReferenceEntry->data, dataReferenceDataSize);
-        printBits(dataReferenceEntry->flags, 3); */
+        printBits(dataReferenceEntry->flags, 3);
     }
 
     videoData->dataReferenceTable = dataReferenceTable;
@@ -660,8 +708,7 @@ void dinfParseBox(box *dinfBox, MPEG_Data *videoData) {
     u32 boxDataSize = dinfBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = dinfBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     box *drefBox = parseSingleNestedChildBox(boxData, &bytesRead);
     drefParseBox(drefBox, videoData);
@@ -700,8 +747,7 @@ u8 *hdlrParseBox(box *hdlrBox) {
     u32 boxDataSize = hdlrBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = hdlrBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     u8 *version = referenceNBytes(1, boxData, &bytesRead);
     u8 *flags = referenceNBytes(3, boxData, &bytesRead);
@@ -734,8 +780,7 @@ void mdhdParseBox(box *mdhdBox, MPEG_Data *videoData) {
     u32 boxDataSize = mdhdBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = mdhdBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     u8 *version = referenceNBytes(1, boxData, &bytesRead);
     u8 *flags = referenceNBytes(3, boxData, &bytesRead);
@@ -773,8 +818,7 @@ void elstParseBox(box *elstBox, MPEG_Data *videoData) {
     u32 boxDataSize = elstBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = elstBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     u8 *version = referenceNBytes(1, boxData, &bytesRead);
     u8 *flags = referenceNBytes(3, boxData, &bytesRead);
@@ -840,8 +884,7 @@ void edtsParseBox(box *edtsBox, MPEG_Data *videoData) {
     u32 boxDataSize = edtsBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = edtsBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     box *elstBox = parseSingleNestedChildBox(boxData, &bytesRead);
     elstParseBox(elstBox, videoData);
@@ -858,8 +901,7 @@ void tkhdParseBox(box *trakBox, MPEG_Data *videoData) {
     u32 boxDataSize = trakBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = trakBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     u8 *version = referenceNBytes(1, boxData, &bytesRead);
     u8 *flags = referenceNBytes(3, boxData, &bytesRead);
@@ -912,8 +954,7 @@ void mvhdParseBox(box *mvhdBox, MPEG_Data *videoData) {
     u32 boxDataSize = mvhdBox->boxSize - BOX_HEADER_SIZE;
     u8 *boxData = mvhdBox->boxData;
 
-    u32 bytesRead;
-    bytesRead = 0;
+    u32 bytesRead = 0;
 
     u8 *version = referenceNBytes(1, boxData, &bytesRead);
     u8 *flags = referenceNBytes(3, boxData, &bytesRead);
@@ -1018,8 +1059,8 @@ void ftypParseBox(box *ftypBox) {
 
 box *parseSingleNestedChildBox(u8 *boxData, u32 *bytesRead) {
     // parsing size and type from header
-    u8 *childBoxHeaderSize = copyNBytes(BOX_HEADER_HALF_SIZE, boxData, bytesRead);
-    u8 *childBoxHeaderType = copyNBytes(BOX_HEADER_HALF_SIZE, boxData, bytesRead);
+    u8 *childBoxHeaderSize = copyNBytes(BOX_SIZE_SIZE, boxData, bytesRead);
+    u8 *childBoxHeaderType = copyNBytes(BOX_TYPE_SIZE, boxData, bytesRead);
     
     // converting size to int and freeing char array
     u32 childFullBoxSize = bigEndianCharToLittleEndianUnsignedInt(childBoxHeaderSize);
@@ -1091,8 +1132,8 @@ void readMainBoxes(u8 fileName[], linkedList *list) {
     size_t chunksread;
     while (!feof(video)) { 
         // reading and storing the size of a box
-        u8 *headerSize = (u8*) malloc(BOX_HEADER_HALF_SIZE);
-        chunksread = fread(&headerSize[0], BOX_HEADER_HALF_SIZE, 1, video);
+        u8 *headerSize = (u8*) malloc(BOX_SIZE_SIZE);
+        chunksread = fread(&headerSize[0], BOX_SIZE_SIZE, 1, video);
         // DEBUG printCharArrayBits(headerSize);
 
         /*
@@ -1107,8 +1148,8 @@ void readMainBoxes(u8 fileName[], linkedList *list) {
         }
 
         // reading and storing the type of a box
-        u8 *headerType = (u8*) malloc(BOX_HEADER_HALF_SIZE);
-        chunksread = fread(&headerType[0], BOX_HEADER_HALF_SIZE, 1, video);
+        u8 *headerType = (u8*) malloc(BOX_TYPE_SIZE);
+        chunksread = fread(&headerType[0], BOX_TYPE_SIZE, 1, video);
         
         // translating the headerSize binary into an integer
         u32 fullBoxSize = bigEndianCharToLittleEndianUnsignedInt(headerSize);

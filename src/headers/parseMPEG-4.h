@@ -15,7 +15,7 @@ void drefParseBox(box *drefBox, MPEG_Data *videoData);
 void dinfParseBox(box *dinfBox, MPEG_Data *videoData);
 box *getVideTrak(linkedList *moovLL);
 
-void stsdParseBox(box *stsdBox);
+void stsdParseBox(box *stsdBox, MPEG_Data *videoData);
 void stszParseBox(box *stszBox, MPEG_Data *videoData);
 void stscParseBox(box *stscBox, MPEG_Data *videoData);
 void stcoParseBox(box *stcoBox, MPEG_Data *videoData);
@@ -24,7 +24,9 @@ void stssParseBox(box *stssBox, MPEG_Data *videoData);
 void cttsParseBox(box *cttsBox, MPEG_Data *videoData);
 void videoMediaBox();
 
-void paspParseBox(box *paspBox);
-void btrtParseBox(box *btrtBox);
-void colrParseBox(box *colrBox);
-void avccParseBox(box *avccBox);
+void paspParseBox(box *paspBox, MPEG_Data *videoData);
+void btrtParseBox(box *btrtBox, MPEG_Data *videoData);
+void colrParseBox(box *colrBox, MPEG_Data *videoData);
+void avccParseBox(box *avccBox, MPEG_Data *videoData);
+
+void parseAVCSample(sampleInfo *sampleData, MPEG_Data *videoData);

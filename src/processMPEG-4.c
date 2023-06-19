@@ -9,6 +9,7 @@
     #include "headers/printUtility.h"
     #include "headers/bitUtility.h"
     #include "headers/linkedList.h"
+    #include "headers/parseMPEG-4.h"
     #include "headers/processMPEG-4.h"
 #endif
 
@@ -137,7 +138,7 @@ u32 sampleNumberToChunkNumber(sampleInfo *sample, sampleToChunkTable *sampleToCh
                 
                 if (sampleNumber <= (samplesPerChunk + totalSamples)) { 
                     // NOTE: may be replacable by an equation
-                    for (u32 i = 0; i < samplesPerChunk; i++) { 
+                    for (u32 k = 0; k < samplesPerChunk; k++) { 
                         totalSamples += 1;
                         if (sampleNumber <= totalSamples) { 
                             sample->sampleIndexInChunk = sampleIndexInChunk;
@@ -159,7 +160,7 @@ u32 sampleNumberToChunkNumber(sampleInfo *sample, sampleToChunkTable *sampleToCh
             // DEBUG printf("%d\n", chunkNumb);
         }
         
-        i++;
+        //i++;
     }
 
     // DEBUG printf("total samples: %d\n", totalSamples);
@@ -196,8 +197,8 @@ u32 getSampleOffsetInChunk(sampleInfo *sample, u32 sampleSizeDefault, sampleSize
 }
 
 
-u32 offsetDataToSampleMdatOffset(u32 chunkOffset, u32 sampleOffsetInChunk, u32 mdatOffsetInFile) { 
-    u32 sampleMdatOffset = chunkOffset + sampleOffsetInChunk - mdatOffsetInFile;
+u32 offsetDataToSampleMdatOffset(u32 chunkOffset, u32 sampleOffsetInChunk, u32 mdatDataOffsetInFile) { 
+    u32 sampleMdatOffset = chunkOffset + sampleOffsetInChunk - mdatDataOffsetInFile;
     return sampleMdatOffset;
 }
 
@@ -248,7 +249,7 @@ void sampleSampleNumberToSampleSize(sampleInfo *sample, MPEG_Data *videoData) {
  * @brief dependant on sampleSampleNumberToChunkNumber
  */
 void sampleOffsetDataToSampleMdatOffset(sampleInfo *sample, MPEG_Data *videoData) { 
-    sample->sampleOffsetInMdat = offsetDataToSampleMdatOffset(sample->chunkOffset, sample->sampleOffsetInChunk, videoData->mdatOffsetInFile);
+    sample->sampleOffsetInMdat = offsetDataToSampleMdatOffset(sample->chunkOffset, sample->sampleOffsetInChunk, videoData->mdatDataOffsetInFile);
 }
 
 
@@ -331,12 +332,16 @@ void getVideoDataRangeByMediaTime(u32 startTime, u32 endTime, MPEG_Data *videoDa
     appendNodeLinkedList(sampleLL, startSample);
 
     u32 previousSampleNumber = startSample->sampleNumber;
+    int j = 0;
     for (u32 i = startSample->mediaTime + 1; i < endSample->mediaTime - 1; i++) {        
         sampleInfo *sample = sampleSearchByMediaTime(i, previousSampleNumber, videoData);
 
         if (sample != NULL) { 
+            j++;
             previousSampleNumber = sample->sampleNumber;
             appendNodeLinkedList(sampleLL, sample);
+            //printf("j: %d\n", j);
+            parseAVCSample(sample, videoData);
         }
     }
 

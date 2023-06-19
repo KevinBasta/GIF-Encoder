@@ -24,13 +24,14 @@ int main(int argc, char **argv) {
     float startTime = (float)clock()/CLOCKS_PER_SEC;
     linkedList *topBoxesLL = initLinkedList();
     // fopen taken in a relative path from executable location
-    readMainBoxes("local_files/op.mp4", topBoxesLL);
+    readMainBoxes("local_files/op2.mp4", topBoxesLL);
 
     MPEG_Data *videoData = (MPEG_Data*) malloc(sizeof(MPEG_Data));
     videoData->mdatBox = getBoxFromLinkedList(topBoxesLL, "mdat");
-    videoData->mdatOffsetInFile = getOffsetToBoxLinkedList(topBoxesLL, "mdat");
+    videoData->mdatDataOffsetInFile = getOffsetToBoxLinkedList(topBoxesLL, "mdat") + BOX_HEADER_SIZE;
 
-    printf("%d %d\n", videoData->mdatOffsetInFile, videoData->mdatBox->boxSize);
+
+    printf("%d %d\n", videoData->mdatDataOffsetInFile, videoData->mdatBox->boxSize);
     printNBytes(videoData->mdatBox->boxType, 4, "type: " ,"\n");
 
     printf("----------TOP LEVEL----------\n");
@@ -134,9 +135,9 @@ int main(int argc, char **argv) {
     sttsParseBox(stts, videoData);
     printf("=====================================\n");
     box *stsd = getBoxFromLinkedList(stblLL, "stsd");
-    stsdParseBox(stsd);
+    stsdParseBox(stsd, videoData);
     printf("=====================================\n");
-    /* float endTime = (float)clock()/CLOCKS_PER_SEC;
+    float endTime = (float)clock()/CLOCKS_PER_SEC;
     float timeElapsed = endTime - startTime;
     printf("DATA PARSING OPERATION elapsed: %f\n", timeElapsed);
 
@@ -149,7 +150,7 @@ int main(int argc, char **argv) {
     getVideoDataRangeByMediaTime(15, 20, videoData);
     endTime = (float)clock()/CLOCKS_PER_SEC;
     timeElapsed = endTime - startTime;
-    printf("DATA PROCESSING OPERATION elapsed: %f\n", timeElapsed); */
+    printf("DATA PROCESSING OPERATION elapsed: %f\n", timeElapsed);
     //keyFrameSearch(79, videoData);
 
     // free every linked list created
