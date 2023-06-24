@@ -190,7 +190,7 @@ void avccParseBox(box *avccBox, MPEG_Data *videoData) {
 
 
     videoData->lengthSizeMinus1 = lengthSizeMinus1;
-    printf("%d %d\n", bytesRead, boxDataSize);
+    printf("bytes read: %d  \t box data size: %d\n", bytesRead, boxDataSize);
 }
 
 void getSampleFrameData() { 
@@ -203,20 +203,42 @@ void parseAVCSample(sampleInfo *sampleData, MPEG_Data *videoData) {
     u32 bytesRead = 0;
     u32 sampleSize = sampleData->sampleSize;
     u32 unitLengthFieldSize = videoData->lengthSizeMinus1 + 1;
-    printf("offset: %d\n", sampleData->sampleOffsetInMdat);
+    // DEBUG printf("offset: %d\n", sampleData->sampleOffsetInMdat);
     
     for (int i = 0; i < sampleSize;) {
         // since NALUnitLength can be 1, 2, or 4 bytes, will just store it in 4 byte int
         u8 *NALUnitLength    = referenceNBytes(unitLengthFieldSize, sampleData->mdatPointer, &bytesRead);
-        printHexNBytes(&(videoData->mdatBox->boxData[sampleData->sampleOffsetInMdat]), 4);
+        // DEBUG printHexNBytes(&(videoData->mdatBox->boxData[sampleData->sampleOffsetInMdat]), 4);
+        
         // generalized is requied here, spesific functions won't work because the byteNumb would be assumed
         u32 NALUnitLengthInt = bigEndianCharToLittleEndianGeneralized(NALUnitLength, unitLengthFieldSize); 
         u8 *NALUnit          = referenceNBytes(NALUnitLengthInt, sampleData->mdatPointer, &bytesRead);
-
+        parseNALUnit(NALUnitLengthInt, NALUnit);
         i += unitLengthFieldSize + NALUnitLengthInt;
 
         printf("sample size: %7d nal unit length: %10u bytes read: %10u \n", sampleSize, NALUnitLengthInt, bytesRead);
     }
+}
+
+
+void parseNALUnit(u32 NALUnitLength, u8 *NALUnit) { 
+    
+    u32 bytesRead = 0;
+
+    u8 *zeroBitAndNALIdcAndUnitType = copyNBytes(1, NALUnit, &bytesRead);
+    u8 forbiddenZeroBit             = getNBits(1, 1, *zeroBitAndNALIdcAndUnitType);
+    u8 NALRefIdc                    = getNBits(2, 3, *zeroBitAndNALIdcAndUnitType); 
+    u8 NALUnitType                  = getNBits(4, 8, *zeroBitAndNALIdcAndUnitType);
+    free(zeroBitAndNALIdcAndUnitType);
+
+    printf("nal ref id %d  nal unit type %d\n", NALRefIdc, NALUnitType);
+
+    for (int i = 1; i < NALUnitLength; i++) { 
+        //if (i + 2 < NALUnitLength && bigEndianCharToLittleEndianGeneralized())
+
+
+    }
+
 }
 
 /**
@@ -408,7 +430,7 @@ void stscParseBox(box *stscBox, MPEG_Data *videoData) { //sample to chunk requir
         samplesPerChunkArr[i] = samplesPerChunkInt;
         sampleDescriptionIdArr[i] = sampleDescriptionIdInt;
 
-        // printf("%d \t\t %d \t\t %d \n", firstChunkInt, samplesPerChunkInt, sampleDescriptionIdInt);
+        printf("%d \t\t %d \t\t %d \n", firstChunkInt, samplesPerChunkInt, sampleDescriptionIdInt);
     }
 
     videoData->sampleToChunkTable = table;
@@ -444,7 +466,7 @@ void stcoParseBox(box *stcoBox, MPEG_Data *videoData) { //chunk offset required
         u32 offsetInt = bigEndianCharToLittleEndianUnsignedInt(offset);
 
         offsetArr[i] = offsetInt;
-        // DEBUG printf("%d: %d\n", i, offsetInt);
+        printf("%d: %d\n", i, offsetInt);
     }
 
     videoData->chunkOffsetTable = table;

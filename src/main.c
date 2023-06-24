@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
     float startTime = (float)clock()/CLOCKS_PER_SEC;
     linkedList *topBoxesLL = initLinkedList();
     // fopen taken in a relative path from executable location
-    readMainBoxes("local_files/op2.mp4", topBoxesLL);
+    readMainBoxes("local_files/op.mp4", topBoxesLL);
 
     MPEG_Data *videoData = (MPEG_Data*) malloc(sizeof(MPEG_Data));
     videoData->mdatBox = getBoxFromLinkedList(topBoxesLL, "mdat");
@@ -125,8 +125,10 @@ int main(int argc, char **argv) {
     stcoParseBox(stco, videoData);
     box *stsz = getBoxFromLinkedList(stblLL, "stsz");
     stszParseBox(stsz, videoData);
+    printf("=============sample to chunk===================\n");
     box *stsc = getBoxFromLinkedList(stblLL, "stsc");
     stscParseBox(stsc, videoData);
+    printf("=====================================\n");
     box *stss = getBoxFromLinkedList(stblLL, "stss");
     stssParseBox(stss, videoData);
     box *ctts = getBoxFromLinkedList(stblLL, "ctts");

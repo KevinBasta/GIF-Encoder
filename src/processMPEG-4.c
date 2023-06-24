@@ -89,7 +89,7 @@ u32 sampleNumberToSampleSize(u32 sampleNumber, sampleSizeTable *sampleSizeTable)
         return sampleSizeTable->sampleSizeDefault;
     } 
 
-    return sampleSizeTable->sizeArr[sampleNumber + 1];
+    return sampleSizeTable->sizeArr[sampleNumber - 1];
 }
 
 
@@ -106,7 +106,7 @@ u32 sampleNumberToSampleSize(u32 sampleNumber, sampleSizeTable *sampleSizeTable)
 u32 sampleNumberToChunkNumber(sampleInfo *sample, sampleToChunkTable *sampleToChunkTable, sampleSizeTable *sampleSizeTable, u32 numberOfSamples) { 
     // Data read from sample
     u32 sampleNumber = sample->sampleNumber;
-    
+
     // Data written to sample
     u32 chunkNumber = 0;
     u32 sampleIndexInChunk = 0;
@@ -121,7 +121,8 @@ u32 sampleNumberToChunkNumber(sampleInfo *sample, sampleToChunkTable *sampleToCh
         // "last" refers to the last chunk in this range before next table entry
         u32 lastChunk; 
 
-        if (i + 1 <= sampleToChunkTable->totalEntries) { 
+        // the -1 is imporant here, causes segfault without due to arr access
+        if (i + 1 <= (sampleToChunkTable->totalEntries - 1)) { 
             lastChunk = sampleToChunkTable->firstChunkArr[i + 1] - 1;
         } else { 
             lastChunk = firstChunk + (numberOfSamples / samplesPerChunk);
@@ -157,7 +158,7 @@ u32 sampleNumberToChunkNumber(sampleInfo *sample, sampleToChunkTable *sampleToCh
         } else { 
             totalSamples += samplesInChunkRange;
             chunkNumber += chunksInChunkRange;
-            // DEBUG printf("%d\n", chunkNumb);
+            // DEBUG printf("%d\n", chunkNumber);
         }
         
         //i++;
@@ -178,7 +179,7 @@ u32 sampleNumberToChunkNumber(sampleInfo *sample, sampleToChunkTable *sampleToCh
  * @return chunk offset relative to the start of the file. NOT relative to any box.
  */
 u32 chunkNumberToChunkOffset(u32 chunkNumber, chunkOffsetTable *chunkOffsetTable) { 
-    return chunkOffsetTable->offsetArr[chunkNumber + 1];
+    return chunkOffsetTable->offsetArr[chunkNumber - 1];
 }
 
 

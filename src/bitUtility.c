@@ -355,6 +355,18 @@ u8 *referenceNBytes(u32 numberOfBytes, u8 *originalData, u32 *byteOffset) {
     return infoReference;
 }
 
+u8 *checkNextNBytes(u32 numberOfBytes, u8 *originalData, u32 byteOffset) {
+    u8 *infoReference = &(originalData[byteOffset]);
+
+    // checking if referenced properly
+    /* for (u32 i = 0; i < numberOfBytes; i++) { 
+        assert(&(infoReference[i]) == &(originalData[(*byteOffset) - numberOfBytes + i]));
+        assert(infoReference[i] == originalData[(*byteOffset) - numberOfBytes + i]);
+    } */
+
+    return infoReference;
+}
+
 
 /**
  * @brief get a range of bits shifted to the least segnificant bit. bits numbered 1-8
