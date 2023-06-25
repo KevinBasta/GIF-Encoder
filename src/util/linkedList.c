@@ -64,6 +64,10 @@ void nullifyLastNodeLinkedList(linkedList *list) {
  * @param *list  -   the linkedList read from
  */
 void printAllBoxesLinkedList(linkedList *list) { 
+    if (DEBUG_PRINT == FALSE) { 
+        return;
+    }
+
     Node *currentNode = list->head;
     for (u32 i = 0; i < list->size; i++) { 
         box *currentBoxPointer = (box*) currentNode->currentItem;
@@ -190,16 +194,14 @@ void freeLinkedList(linkedList *list, u8 type[]) {
 
     // stopping right before last element to avoid 
     // attempting to free a NULL created by nullifyLastNodeLinkedList
-    for (u32 i = 0; i < list->size - 1; i++) {
-        if (strncmp(type, "box", 3)) { 
-            currentNode = freeBoxNode(currentNode);
-            // DEBUG printf("%d %d\n", currentNode, currentNode->nextNode);
-            list->head = currentNode;
-        }
-    }
-
-    // freeing the last node
     if (strncmp(type, "box", 3)) { 
+        for (u32 i = 0; i < list->size - 1; i++) {
+                currentNode = freeBoxNode(currentNode);
+                // DEBUG printf("%d %d\n", currentNode, currentNode->nextNode);
+                list->head = currentNode;
+        }
+
+        // freeing the last node
         freeBox(currentNode->currentItem);
         if (currentNode->nextNode != NULL) { 
             // this case should not happen
@@ -209,6 +211,7 @@ void freeLinkedList(linkedList *list, u8 type[]) {
     }
 
     free(currentNode);
+    free(list);
 }
 
 /* int main() {

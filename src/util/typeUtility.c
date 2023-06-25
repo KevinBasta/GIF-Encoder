@@ -4,6 +4,8 @@
     #include <stdint.h>
 
     #include "../headers/types.h"
+    #include "../headers/typeUtility.h"
+    #include "../headers/linkedList.h"
     #include "../headers/printUtility.h"
     #include "../headers/endianUtility.h"
     #include "../headers/bitUtility.h"
@@ -90,6 +92,8 @@ void quickSort(u32 *arr1, u32 *arr2, u32 low, u32 high) {
     }
 }
 
+
+// bubble sort
 void bubbleSort(u32 *arr1, u32* arr2, int n) {
     int swapped;
     for (int i = 0; i < n - 1; i++) {
@@ -112,6 +116,67 @@ void bubbleSort(u32 *arr1, u32* arr2, int n) {
 
 // for tables with no pointer values
 // cast param passed using (void**)
+void freeMpegData(MPEG_Data *videoData) {
+    // elst table
+    safeFree(videoData->elstTable->trackDurationArr);
+    safeFree(videoData->elstTable->mediaTimeArr);
+    safeFree(videoData->elstTable->mediaRateArr);
+    safeFree(videoData->elstTable);
+
+    // update data reference table later
+    freeDataReferenceTable(videoData->dataReferenceTable);
+
+    // stts table
+    safeFree(videoData->timeToSampleTableCompressed->sampleCountArr);
+    safeFree(videoData->timeToSampleTableCompressed->sampleDurationArr);
+    safeFree(videoData->timeToSampleTableCompressed);
+    safeFree(videoData->timeToSampleTable->sampleDurationArr);
+    safeFree(videoData->timeToSampleTable->sampleDeltaArr);
+    safeFree(videoData->timeToSampleTable);
+
+    // stsc table
+    safeFree(videoData->sampleToChunkTable->firstChunkArr);
+    safeFree(videoData->sampleToChunkTable->samplesPerChunkArr);
+    safeFree(videoData->sampleToChunkTable->sampleDescriptionIdArr);
+    safeFree(videoData->sampleToChunkTable);
+
+    // stco table
+    safeFree(videoData->chunkOffsetTable->offsetArr);
+    safeFree(videoData->chunkOffsetTable);
+
+    // stsz table
+    safeFree(videoData->sampleSizeTable->sizeArr);
+    safeFree(videoData->sampleSizeTable);
+
+    // stss table
+    safeFree(videoData->syncSampleTable->sampleNumberArr);
+    safeFree(videoData->syncSampleTable);
+
+    // ctts table
+    safeFree(videoData->compositionOffsetTableCompressed->sampleCountArr);
+    safeFree(videoData->compositionOffsetTableCompressed->compositionOffsetArr);
+    safeFree(videoData->compositionOffsetTableCompressed);
+    safeFree(videoData->compositionOffsetTable->compositionOffsetArr);
+    safeFree(videoData->compositionOffsetTable);
+
+    // display time to sample table 
+    safeFree(videoData->displayTimeToSampleTable->displayTimeArr);
+    safeFree(videoData->displayTimeToSampleTable->sampleNumberArr);
+    safeFree(videoData->displayTimeToSampleTable);
+
+    // top level linked list, includes *mdatBox
+    freeLinkedList(videoData->topBoxesLL, "box");
+
+    free(videoData);
+}
+
+void safeFree(void *data) { 
+    if (data != NULL) {
+        free(data);
+    }
+}
+
+
 void freeTable(void **table) {
     u32 i = 0;
     while (table[i] != NULL) { 

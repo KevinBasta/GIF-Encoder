@@ -22,8 +22,122 @@
 #endif
 
 
-MPEG_Data *getMpegData() { 
+MPEG_Data *getMpegData(char *fileName) { 
+    float startTime = (float)clock()/CLOCKS_PER_SEC;
+    
+    linkedList *topBoxesLL = initLinkedList();
     MPEG_Data *videoData = (MPEG_Data*) malloc(sizeof(MPEG_Data));
+    
+
+    printf("----------TOP LEVEL----------\n");
+    readMainBoxes(fileName, topBoxesLL); // fopen takes in a relative path from executable location
+    printAllBoxesLinkedList(topBoxesLL);
+
+    // MDAT
+    videoData->mdatBox = getBoxFromLinkedList(topBoxesLL, "mdat");
+    videoData->mdatDataOffsetInFile = getOffsetToBoxLinkedList(topBoxesLL, "mdat") + BOX_HEADER_SIZE;
+    //videoData->topBoxesLL = topBoxesLL;
+
+
+    printf("----------MOOV LEVEL----------\n");
+    box *moovBox = getBoxFromLinkedList(topBoxesLL, "moov");
+    
+    linkedList *moovLL = initLinkedList();
+    parseChildBoxes(moovBox, moovLL);
+    printAllBoxesLinkedList(moovLL);
+
+
+    printf(">>>----------MVHD LEVEL----------<<<\n");
+    box *mvhdBox = getBoxFromLinkedList(moovLL, "mvhd");
+    mvhdParseBox(mvhdBox, videoData);
+
+
+    printf("----------TRAK LEVEL----------\n");
+    box *trakBox = getVideTrak(moovLL);
+
+    linkedList *trakLL = initLinkedList();
+    parseChildBoxes(trakBox, trakLL);
+    printAllBoxesLinkedList(trakLL);
+
+
+    printf(">>>----------TKHD LEVEL----------<<<\n");
+    box *tkhdBox = getBoxFromLinkedList(trakLL, "tkhd");
+    tkhdParseBox(tkhdBox, videoData);
+
+
+    printf(">>>----------EDTS LEVEL----------<<<\n");
+    box *edtsBox = getBoxFromLinkedList(trakLL, "edts");
+    edtsParseBox(edtsBox, videoData);
+
+
+    printf("----------MDIA LEVEL----------\n");
+    box *mdia = getBoxFromLinkedList(trakLL, "mdia");
+
+    linkedList *mdiaLL = initLinkedList();
+    parseChildBoxes(mdia, mdiaLL);
+    printAllBoxesLinkedList(mdiaLL);
+
+
+    printf(">>>----------MDHD LEVEL----------<<<\n");
+    box *mdhdBox = getBoxFromLinkedList(mdiaLL, "mdhd");
+    mdhdParseBox(mdhdBox, videoData);
+
+
+    printf(">>>----------HDLR LEVEL----------<<<\n");
+    box *hdlrBox = getBoxFromLinkedList(mdiaLL, "hdlr");
+    hdlrParseBox(hdlrBox);
+
+
+    printf("----------MINF LEVEL----------\n");
+    box *minf = getBoxFromLinkedList(mdiaLL, "minf");
+
+    linkedList *minfLL = initLinkedList();
+    parseChildBoxes(minf, minfLL);
+    printAllBoxesLinkedList(minfLL);
+
+
+    printf(">>>----------DINF LEVEL----------<<<\n");
+    box *dinfBox = getBoxFromLinkedList(minfLL, "dinf");
+    dinfParseBox(dinfBox, videoData);
+
+
+    printf("----------STBL LEVEL----------\n");
+    box *stbl = getBoxFromLinkedList(minfLL, "stbl");
+
+    linkedList *stblLL = initLinkedList();
+    parseChildBoxes(stbl, stblLL);
+    printAllBoxesLinkedList(stblLL);
+
+
+    printf(">>>--------STBL CHILDREN LEVEL--------<<<\n");
+    box *stco = getBoxFromLinkedList(stblLL, "stco");
+    stcoParseBox(stco, videoData);
+    box *stsz = getBoxFromLinkedList(stblLL, "stsz");
+    stszParseBox(stsz, videoData);
+    box *stsc = getBoxFromLinkedList(stblLL, "stsc");
+    stscParseBox(stsc, videoData);
+    box *stss = getBoxFromLinkedList(stblLL, "stss");
+    stssParseBox(stss, videoData);
+    box *ctts = getBoxFromLinkedList(stblLL, "ctts");
+    cttsParseBox(ctts, videoData);
+    box *stts = getBoxFromLinkedList(stblLL, "stts");
+    sttsParseBox(stts, videoData);
+    printf("=====================================\n");
+    box *stsd = getBoxFromLinkedList(stblLL, "stsd");
+    stsdParseBox(stsd, videoData);
+    printf("=====================================\n");
+    
+    
+    float endTime = (float)clock()/CLOCKS_PER_SEC;
+    float timeElapsed = endTime - startTime;
+    printf("DATA PARSING OPERATION elapsed: %f\n", timeElapsed);
+
+    freeLinkedList(moovLL, "box");
+    freeLinkedList(trakLL, "box");
+    freeLinkedList(mdiaLL, "box");
+    freeLinkedList(minfLL, "box");
+    freeLinkedList(stblLL, "box");
+    videoData->topBoxesLL = topBoxesLL; // for later freeing
 
     return videoData;
 }
@@ -49,6 +163,8 @@ box *getVideTrak(linkedList *moovLL) {
         box *hdlrBox = getBoxFromLinkedList(mdiaLL, "hdlr");
         if (compareNBytes(hdlrParseBox(hdlrBox), "vide", 4) == TRUE) { 
             // gather other info into MPEG_Data then
+            freeLinkedList(trakLL, "box");
+            freeLinkedList(mdiaLL, "box");
             return trakBox;
         }
     }

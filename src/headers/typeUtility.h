@@ -6,3 +6,5 @@ void freeTable(void **table);
 void freeDataReferenceTable(dataReferenceTableEntry **dataReferenceTable);
 void quickSort(u32 *arr1, u32 *arr2, u32 low, u32 high);
 void bubbleSort(u32 *arr1, u32* arr2, int n);
+void freeMpegData(MPEG_Data *videoData);
+void safeFree(void *data);

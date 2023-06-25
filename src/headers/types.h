@@ -9,6 +9,7 @@
 #define BOX_FLAG_SIZE 3
 #define TRUE 1
 #define FALSE 0
+#define DEBUG_PRINT TRUE
 
 
 // renaming stdint types
@@ -231,7 +232,10 @@ typedef struct sampleInfo {
  * all sample durations converted into movie timescale.
  *
  */
-typedef struct MPEG_Data { 
+typedef struct MPEG_Data {
+    // 
+    linkedList *topBoxesLL;
+
     // from mvhdParseBox
     u32 mvhdTimeScale; 
     u32 mvhdDuration;

@@ -69,3 +69,4 @@ int main() {
          --verbose \
          --log-file=valgrind-out.txt \
          ./a.out
+
