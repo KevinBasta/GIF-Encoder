@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <math.h>
 #include <time.h>
 //#include <string.h>
 
@@ -24,7 +25,7 @@ int main(int argc, char **argv) {
     float startTime = (float)clock()/CLOCKS_PER_SEC;
     linkedList *topBoxesLL = initLinkedList();
     // fopen taken in a relative path from executable location
-    readMainBoxes("local_files/op.mp4", topBoxesLL);
+    readMainBoxes("local_files/op2.mp4", topBoxesLL);
 
     MPEG_Data *videoData = (MPEG_Data*) malloc(sizeof(MPEG_Data));
     videoData->mdatBox = getBoxFromLinkedList(topBoxesLL, "mdat");

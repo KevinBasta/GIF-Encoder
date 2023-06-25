@@ -221,25 +221,63 @@ void parseAVCSample(sampleInfo *sampleData, MPEG_Data *videoData) {
 }
 
 
-void parseNALUnit(u32 NALUnitLength, u8 *NALUnit) { 
-    
-    u32 bytesRead = 0;
+void parseNALUnit(u32 NALUnitLength, u8 *NALDataStream) { 
+    NALUnitInfo *NALUnit = (NALUnitInfo*) malloc(sizeof(NALUnitInfo));
 
-    u8 *zeroBitAndNALIdcAndUnitType = copyNBytes(1, NALUnit, &bytesRead);
+    u32 bytesRead = 0;
+    u8 emulationPreventionByte = FALSE;
+
+    u8 *zeroBitAndNALIdcAndUnitType = copyNBytes(1, NALDataStream, &bytesRead);
     u8 forbiddenZeroBit             = getNBits(1, 1, *zeroBitAndNALIdcAndUnitType);
     u8 NALRefIdc                    = getNBits(2, 3, *zeroBitAndNALIdcAndUnitType); 
     u8 NALUnitType                  = getNBits(4, 8, *zeroBitAndNALIdcAndUnitType);
     free(zeroBitAndNALIdcAndUnitType);
+    //u32 test = bigEndianU8ArrToLittleEndianU32(zeroBitAndNALIdcAndUnitType);
+    //printf("===========================%d\n", test);
 
     printf("nal ref id %d  nal unit type %d\n", NALRefIdc, NALUnitType);
 
     for (int i = 1; i < NALUnitLength; i++) { 
-        //if (i + 2 < NALUnitLength && bigEndianCharToLittleEndianGeneralized())
-
-
+        if (i + 2 < NALUnitLength && bigEndianCharToLittleEndianGeneralized(checkNextNBytes(3, NALDataStream, bytesRead), 3) == 0x000003) { 
+            emulationPreventionByte = TRUE;
+            bytesRead += 2;
+            i += 2;
+            printBits(referenceNBytes(1, NALDataStream, &bytesRead), 1);
+        } else { 
+            bytesRead++;
+        }
     }
+    
+    NALUnit->NALRefIdc = NALRefIdc;
+    NALUnit->NALUnitType = NALUnitType;
+    NALUnit->NALUnitData = &(NALDataStream[1]);
+    
+    if (emulationPreventionByte == TRUE) { 
+        NALUnit->NALUnitLength = NALUnitLength - 1;
+    } else { 
+        NALUnit->NALUnitLength = NALUnitLength;
+    }
+    
+
+    if (NALUnitType == 1) { 
+        picParameterSetRbsp(NALUnit);
+    }
+}
+
+
+void picParameterSetRbsp(NALUnitInfo *NALUnit) { 
+
 
 }
+
+
+
+
+
+
+
+
+
 
 /**
  * @brief required for uncompressed Y'CbCr data formates. mpas the numerical values of pixels in 

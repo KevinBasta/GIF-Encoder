@@ -195,6 +195,13 @@ typedef struct displayTimeToSampleTable {
 } displayTimeToSampleTable;
 
 
+typedef struct NALUnitInfo {
+    u8 NALRefIdc;
+    u8 NALUnitType;
+    u32 NALUnitLength;
+    u8 *NALUnitData;
+} NALUnitInfo;
+
 
 
 typedef struct sampleInfo {

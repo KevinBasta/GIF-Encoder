@@ -3,12 +3,13 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <stdint.h>
+    #include <math.h>
 
     #include "headers/types.h"
     #include "headers/printUtility.h"
+    #include "headers/bitUtility.h"
 #endif
 
-#include <math.h>
 
 /**
  *  @brief converts a big endian integer bit pattern
@@ -69,7 +70,7 @@ i32 *bigEndianCharToLittleEndianIntHeap(u8 *bigEndianCharArray) {
     return littleEndianInt;
 }
 
-i32 bigEndianCharToLittleEndianGeneralized(u8 *bigEndianCharArray, i32 numberOfBytes) { 
+i32 bigEndianCharToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 numberOfBytes) { 
     i32 littleEndianInt = 0;
     u32 byteNumb = numberOfBytes - 1;
 
@@ -87,11 +88,45 @@ i32 bigEndianCharToLittleEndianGeneralized(u8 *bigEndianCharArray, i32 numberOfB
     return littleEndianInt;
 }
 
-i32 *bigEndianCharToLittleEndianGeneralizedHeap(u8 *bigEndianCharArray, i32 numberOfBytes) { 
+i32 *bigEndianCharToLittleEndianGeneralizedHeap(u8 *bigEndianCharArray, u32 numberOfBytes) { 
     i32 *littleEndianInt = (u32*) malloc(sizeof(u32));
     *littleEndianInt = bigEndianCharToLittleEndianGeneralized(bigEndianCharArray, numberOfBytes);
 
     return (void*) littleEndianInt;
+}
+
+
+u32 bigEndianCharBitsToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 startingBit, u32 numberOfBits) { 
+    u32 littleEndianInt = 0;
+    u32 numberOfBytes = ceil( numberOfBits / 8.0 );
+    u32 byteNumb = numberOfBytes - 1;
+
+    u32 firstBit = 0;
+    u32 lastBit = 8;
+
+    u32 bitOffsetAdjust = startingBit % 5 - 1;
+
+    for (u32 headerByte = 0; headerByte < numberOfBytes; headerByte++) {
+        if (headerByte == numberOfBytes - 1) { 
+            lastBit = numberOfBits % 8;
+        } else if (headerByte == 0) { 
+            firstBit = startingBit % 8 - 1;
+        } else { 
+            firstBit = 0;
+            lastBit = 8;
+        }
+
+        for (u32 bitInHeaderByte = firstBit; bitInHeaderByte < lastBit; bitInHeaderByte++) {
+            i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            i32 bitOffset = (((byteNumb-headerByte)*8) + bitInHeaderByte - bitOffsetAdjust);
+
+            if (currentBit == 1) {
+                littleEndianInt = littleEndianInt | (currentBit << bitOffset);
+            }
+        }
+    }
+
+    return littleEndianInt;
 }
 
 
@@ -355,8 +390,10 @@ u8 *referenceNBytes(u32 numberOfBytes, u8 *originalData, u32 *byteOffset) {
     return infoReference;
 }
 
-u8 *checkNextNBytes(u32 numberOfBytes, u8 *originalData, u32 byteOffset) {
-    u8 *infoReference = &(originalData[byteOffset]);
+
+u8 *referenceNBits(u32 numberOfBits, u8 *originalData, u32 *bitOffset) {
+    u8 *infoReference = &(originalData[(u32) floor( *bitOffset / 8.0 )]);
+    *bitOffset += numberOfBits;
 
     // checking if referenced properly
     /* for (u32 i = 0; i < numberOfBytes; i++) { 
@@ -365,6 +402,44 @@ u8 *checkNextNBytes(u32 numberOfBytes, u8 *originalData, u32 byteOffset) {
     } */
 
     return infoReference;
+}
+
+/**
+ * @brief same as referenceNBytes but does not increment byteOffset
+ * @param numberOfBytes 
+ * @param originalData 
+ * @param byteOffset 
+ * @return 
+ */
+u8 *checkNextNBytes(u32 numberOfBytes, u8 *originalData, u32 byteOffset) {
+    u8 *infoReference = &(originalData[byteOffset]);
+
+    return infoReference;
+}
+
+
+u32 countBitsToFirstNonZero(u8 *originalData, u32 boundry) { 
+    u32 leadingZeroBits = -1;
+
+    u32 byteOffset = 0;
+    u32 bitOffset;
+
+    while( 1 == 1 ) {
+        bitOffset = 1;
+        for (u32 j = 0; j < 8; j++) {
+    
+            if (getNBits(bitOffset, bitOffset, originalData[byteOffset]) != 0) { 
+                return (leadingZeroBits + 1);
+            } else {
+                leadingZeroBits++;
+            }            
+    
+           bitOffset++;
+        }
+        byteOffset++;
+    }
+
+    return 0;
 }
 
 
