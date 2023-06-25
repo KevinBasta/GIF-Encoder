@@ -5,9 +5,10 @@
     #include <stdint.h>
     #include <string.h>
 
-    #include "headers/types.h"
-    #include "headers/bitUtility.h"
-    #include "headers/printUtility.h"
+    #include "../headers/types.h"
+    #include "../headers/endianUtility.h"
+    #include "../headers/bitUtility.h"
+    #include "../headers/printUtility.h"
 #endif
 
 

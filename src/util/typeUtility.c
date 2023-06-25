@@ -3,9 +3,10 @@
     #include <stdlib.h>
     #include <stdint.h>
 
-    #include "headers/types.h"
-    #include "headers/printUtility.h"
-    #include "headers/bitUtility.h"
+    #include "../headers/types.h"
+    #include "../headers/printUtility.h"
+    #include "../headers/endianUtility.h"
+    #include "../headers/bitUtility.h"
 #endif
 
 // search algorithm for stss/sync sample

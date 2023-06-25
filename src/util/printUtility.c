@@ -4,8 +4,9 @@
     #include <stdlib.h>
     #include <stdint.h>
 
-    #include "headers/types.h"
-    #include "headers/bitUtility.h"
+    #include "../headers/types.h"
+    #include "../headers/endianUtility.h"
+    #include "../headers/bitUtility.h"
 #endif
 
 /**
