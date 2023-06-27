@@ -12,10 +12,6 @@
 #endif
 
 
-
-
-
-
 /**
  * @brief Compares n bytes of u8 types. Intended for comparing the 
  * types of MPEG boxes.
@@ -84,6 +80,33 @@ u8 *referenceNBytes(u32 numberOfBytes, u8 *originalData, u32 *byteOffset) {
 }
 
 
+
+
+// The following functions are for AVC and NAL decoding
+
+/**
+ * @brief same as referenceNBytes but does not increment byteOffset. 
+ * for checking emulation prevention three byte at the end of a NAL unit.
+ * this function is for abstracting the line &(originalData[byteOffset]).
+ * @param numberOfBytes     - number of bytes to check at current offset
+ * @param originalData      - array to return pointer to
+ * @param byteOffset        - offset in array
+ * @return pointer to array at current byte offset
+ */
+u8 *checkNextNBytes(u32 numberOfBytes, u8 *originalData, u32 byteOffset) {
+    u8 *infoReference = &(originalData[byteOffset]);
+
+    return infoReference;
+}
+
+
+/**
+ * @brief gives a pointer to the byte that contains the starting bit
+ * @param numberOfBits  - for incrementing offset
+ * @param originalData  - for returning pointer
+ * @param bitOffset     - for calculating current byte offset
+ * @return array byte pointer containing starting bit
+ */
 u8 *referenceNBits(u32 numberOfBits, u8 *originalData, u32 *bitOffset) {
     u8 *infoReference = &(originalData[(u32) floor( *bitOffset / 8.0 )]);
     *bitOffset += numberOfBits;
@@ -98,38 +121,41 @@ u8 *referenceNBits(u32 numberOfBits, u8 *originalData, u32 *bitOffset) {
 }
 
 /**
- * @brief same as referenceNBytes but does not increment byteOffset
- * @param numberOfBytes 
- * @param originalData 
- * @param byteOffset 
- * @return 
+ * @brief count zero bits + first non-zero bit from startingBitInPointer
+ * @param originalData          - array pointer
+ * @param startingBitInPointer  - 0-7 
+ * @param byteBoundary          - last array byte
+ * @return number of 0 bits
  */
-u8 *checkNextNBytes(u32 numberOfBytes, u8 *originalData, u32 byteOffset) {
-    u8 *infoReference = &(originalData[byteOffset]);
+u32 countBitsToFirstNonZero(u8 *originalData, u32 *bitOffset, u32 *byteOffset, u32 byteBoundaryPlusOne) { 
+    u8 bitStart;
 
-    return infoReference;
-}
+    u32 startingBitInPointer = (*bitOffset % 8);
+    if (startingBitInPointer < 0 || startingBitInPointer > 7) { 
+        bitStart = 0;
+    } else { 
+        bitStart = startingBitInPointer;
+    }
 
+    u32 leadingZeroBits = 0;
 
-u32 countBitsToFirstNonZero(u8 *originalData, u32 boundry) { 
-    u32 leadingZeroBits = -1;
-
-    u32 byteOffset = 0;
-    u32 bitOffset;
-
-    while( 1 == 1 ) {
-        bitOffset = 1;
-        for (u32 j = 0; j < 8; j++) {
-    
-            if (getNBits(bitOffset, bitOffset, originalData[byteOffset]) != 0) { 
-                return (leadingZeroBits + 1);
+    while (TRUE) {
+        for (u32 j = bitStart; j < 8; j++) {
+            *bitOffset += 1;
+            if (getNthBit(j, originalData[*byteOffset]) != 0) { 
+                return leadingZeroBits;
             } else {
                 leadingZeroBits++;
-            }            
-    
-           bitOffset++;
+            }
         }
-        byteOffset++;
+        
+        bitStart = 0;
+
+        if (*byteOffset > byteBoundaryPlusOne - 1) { 
+            return 0;
+        } else {
+            *byteOffset += 1;
+        }
     }
 
     return 0;
@@ -137,20 +163,33 @@ u32 countBitsToFirstNonZero(u8 *originalData, u32 boundry) {
 
 
 /**
- * @brief get a range of bits shifted to the least segnificant bit. bits numbered 1-8
- * @param startBit the starting bit in the range of 1-8 to include in final u8 bit pattern
- * @param endBit the last bit in the range of 1-8 to include in the final u8 bit pattern.
+ * @brief get a range of bits shifted to the least segnificant bit. bits numbered 0-7
+ * @param startBit the starting bit in the range of 0-7 to include in final u8 bit pattern
+ * @param endBit the last bit in the range of 0-7 to include in the final u8 bit pattern.
  * this is the least segnificant bit
  * @param data the data to get the bits from
  * @return u8 with the bit range in the lsb
  */
 u8 getNBits(u32 startBit, u32 endBit, u8 data) { 
-    if (startBit < 1 || startBit > 8 || endBit > 8 || endBit < 1 || endBit < startBit) { 
-        return 0;
+    if (startBit < 0 || startBit > 7 || endBit > 7 || endBit < 0 || endBit < startBit) { 
+        return 0; // considar changing to -1. might end up with other bugs due to i8 in shifting
     }
 
-    u8 leftShift = startBit - 1;
-    u8 rightShift = (startBit - 1) + (8 - endBit);
+    u8 leftShift = startBit;
+    u8 rightShift = (startBit) + (7 - endBit);
+
+    return (u8) (data << leftShift) >> rightShift;
+    // or mask the range startBit to endBit and then shift right
+}
+
+
+u8 getNthBit(u32 bitNumber, u8 data) { 
+    if (bitNumber < 0 || bitNumber > 7) { 
+        return 0; 
+    }
+
+    u8 leftShift = bitNumber;
+    u8 rightShift = (bitNumber) + (7 - bitNumber);
 
     return (u8) (data << leftShift) >> rightShift;
     // or mask the range startBit to endBit and then shift right

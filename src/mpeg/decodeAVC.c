@@ -36,34 +36,38 @@ void parseAVCSample(sampleInfo *sampleData, MPEG_Data *videoData) {
         // DEBUG printHexNBytes(&(videoData->mdatBox->boxData[sampleData->sampleOffsetInMdat]), 4);
         
         // generalized is requied here, spesific functions won't work because the byteNumb would be assumed
-        u32 NALUnitLengthInt = bigEndianCharToLittleEndianGeneralized(NALUnitLength, unitLengthFieldSize); 
-        u8 *NALUnit          = referenceNBytes(NALUnitLengthInt, sampleData->mdatPointer, &bytesRead);
-        //parseNALUnit(NALUnitLengthInt, NALUnit);
-        i += unitLengthFieldSize + NALUnitLengthInt;
+        u32 NALUnitFullLengthInt = bigEndianCharToLittleEndianGeneralized(NALUnitLength, unitLengthFieldSize); 
+        u32 NALUnitDataLengthInt = NALUnitFullLengthInt - unitLengthFieldSize;
+
+        u8 *NALDataStream          = referenceNBytes(NALUnitDataLengthInt, sampleData->mdatPointer, &bytesRead);
+        parseNALUnit(NALUnitDataLengthInt, NALDataStream);
+
+        i += unitLengthFieldSize + NALUnitDataLengthInt;
 
         // DEBUG printf("sample size: %7d nal unit length: %10u bytes read: %10u \n", sampleSize, NALUnitLengthInt, bytesRead);
     }
 }
 
 // very slow function
-void parseNALUnit(u32 NALUnitLength, u8 *NALDataStream) { 
+void parseNALUnit(u32 NALUnitDataLength, u8 *NALDataStream) { 
     NALUnitInfo *NALUnit = (NALUnitInfo*) malloc(sizeof(NALUnitInfo));
 
     u32 bytesRead = 0;
     u8 emulationPreventionByte = FALSE;
 
     u8 *zeroBitAndNALIdcAndUnitType = copyNBytes(1, NALDataStream, &bytesRead);
-    u8 forbiddenZeroBit             = getNBits(1, 1, *zeroBitAndNALIdcAndUnitType);
-    u8 NALRefIdc                    = getNBits(2, 3, *zeroBitAndNALIdcAndUnitType); 
-    u8 NALUnitType                  = getNBits(4, 8, *zeroBitAndNALIdcAndUnitType);
+    u8 forbiddenZeroBit             = getNBits(0, 0, *zeroBitAndNALIdcAndUnitType);
+    u8 NALRefIdc                    = getNBits(1, 2, *zeroBitAndNALIdcAndUnitType); 
+    u8 NALUnitType                  = getNBits(3, 7, *zeroBitAndNALIdcAndUnitType);
     free(zeroBitAndNALIdcAndUnitType);
     //u32 test = bigEndianU8ArrToLittleEndianU32(zeroBitAndNALIdcAndUnitType);
     //printf("===========================%d\n", test);
 
     // DEBUG printf("nal ref id %d  nal unit type %d\n", NALRefIdc, NALUnitType);
-
-    for (int i = 1; i < NALUnitLength; i++) { 
-        if (i + 2 < NALUnitLength && bigEndianCharToLittleEndianGeneralized(checkNextNBytes(3, NALDataStream, bytesRead), 3) == 0x000003) { 
+    
+    // discard sample if emulation byte present?
+    for (int i = 1; i < NALUnitDataLength; i++) { 
+        if (i + 2 < NALUnitDataLength && bigEndianCharToLittleEndianGeneralized(checkNextNBytes(3, NALDataStream, bytesRead), 3) == 0x000003) { 
             emulationPreventionByte = TRUE;
             bytesRead += 2;
             i += 2;
@@ -78,11 +82,10 @@ void parseNALUnit(u32 NALUnitLength, u8 *NALDataStream) {
     NALUnit->NALUnitData = &(NALDataStream[1]);
     
     if (emulationPreventionByte == TRUE) { 
-        NALUnit->NALUnitLength = NALUnitLength - 1;
+        NALUnit->NALUnitDataLength = NALUnitDataLength - 1;
     } else { 
-        NALUnit->NALUnitLength = NALUnitLength;
+        NALUnit->NALUnitDataLength = NALUnitDataLength;
     }
-    
 
     if (NALUnitType == 1) { 
         picParameterSetRbsp(NALUnit);
@@ -91,7 +94,12 @@ void parseNALUnit(u32 NALUnitLength, u8 *NALDataStream) {
 
 
 void picParameterSetRbsp(NALUnitInfo *NALUnit) { 
+    u32 leadingZeroBits;
 
+    u32 bitsRead = 0;
+    u32 bytesRead = 0;
+
+    u32 picParameterSetId_codeNum   = countBitsToFirstNonZero(NALUnit->NALUnitDataLength, &bitsRead, &bytesRead, NALUnit->NALUnitDataLength);
+    //u32 picParameterSetId   = countBitsToFirstNonZero(NALUnit->NALUnitDataLength, &bitsRead, &bytesRead, NALUnit->NALUnitDataLength);
 
 }
-

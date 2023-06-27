@@ -26,6 +26,7 @@ i8 bigEndianU8ArrToLittleEndianI8(u8 *bigEndianU8Arr);
 i16 bigEndianU8ArrToLittleEndianI16(u8 *bigEndianU8Arr);
 i32 bigEndianU8ArrToLittleEndianI32(u8 *bigEndianU8Arr);
 i64 bigEndianU8ArrToLittleEndianI64(u8 *bigEndianU8Arr);
+
 // i8-i64 heap ints
 i8 *bigEndianU8ArrToLittleEndianI8Heap(u8 *bigEndianU8Arr);
 i16 *bigEndianU8ArrToLittleEndianI16Heap(u8 *bigEndianU8Arr);

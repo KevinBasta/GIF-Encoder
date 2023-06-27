@@ -50,10 +50,8 @@ clean:
 
 test: test.o bitUtility.o linkedList.o printUtility.o
 	gcc -o a.out test.o bitUtility.o linkedList.o printUtility.o
-
 test.o: src/test.c
 	gcc -c src/test.c
-
 ct:
-	rm test.o bitUtility.o linkedList.o
+	rm a.out test.o bitUtility.o linkedList.o printUtility.o
 

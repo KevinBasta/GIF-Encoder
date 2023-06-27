@@ -136,15 +136,15 @@ void avccParseBox(box *avccBox, MPEG_Data *videoData) {
     u8 *levelIndication      = referenceNBytes(1, boxData, &bytesRead);
 
     u8 *reservedAndLengthSizeMinusOne = copyNBytes(1, boxData, &bytesRead);
-    u8 reservedOne      = getNBits(1, 6, *reservedAndLengthSizeMinusOne);
-    u8 lengthSizeMinus1 = getNBits(7, 8, *reservedAndLengthSizeMinusOne);
+    u8 reservedOne      = getNBits(0, 5, *reservedAndLengthSizeMinusOne);
+    u8 lengthSizeMinus1 = getNBits(6, 7, *reservedAndLengthSizeMinusOne);
     printBits(reservedAndLengthSizeMinusOne, 1);
     printf("length %u\n", lengthSizeMinus1);
     free(reservedAndLengthSizeMinusOne);
 
     u8 *reservedAndNumOfSequenceParameterSets = copyNBytes(1, boxData, &bytesRead);
-    u8 reservedTwo                  = getNBits(1, 3, *reservedAndNumOfSequenceParameterSets);
-    u8 numOfSequenceParameterSets   = getNBits(4, 8, *reservedAndNumOfSequenceParameterSets);
+    u8 reservedTwo                  = getNBits(0, 2, *reservedAndNumOfSequenceParameterSets);
+    u8 numOfSequenceParameterSets   = getNBits(3, 7, *reservedAndNumOfSequenceParameterSets);
     free(reservedAndNumOfSequenceParameterSets);
     
     for (u8 i = 0; i < numOfSequenceParameterSets; i++) { 

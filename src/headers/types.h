@@ -199,11 +199,12 @@ typedef struct displayTimeToSampleTable {
 typedef struct NALUnitInfo {
     u8 NALRefIdc;
     u8 NALUnitType;
-    u32 NALUnitLength;
+    u32 NALUnitDataLength;
     u8 *NALUnitData;
 } NALUnitInfo;
 
 
+// Main Storage Structs //
 
 typedef struct sampleInfo {
     u32 realTime; // may remove 
@@ -218,7 +219,6 @@ typedef struct sampleInfo {
     u8 *mdatPointer;
 } sampleInfo;
 
-// Main Storage Structs //
 
 /**
  * @brief 

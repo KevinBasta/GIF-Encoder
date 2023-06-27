@@ -176,15 +176,14 @@ void safeFree(void *data) {
     }
 }
 
-
-void freeTable(void **table) {
+/* void freeTable(void **table) {
     u32 i = 0;
     while (table[i] != NULL) { 
         free(table[i]);
         i++;
     }
     free(table);
-}
+} */
 
 void freeDataReferenceTable(dataReferenceTableEntry **dataReferenceTable) { 
     u32 i = 0;
