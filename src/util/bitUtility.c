@@ -107,10 +107,11 @@ u8 *checkNextNBytes(u32 numberOfBytes, u8 *originalData, u32 byteOffset) {
  * @param bitOffset     - for calculating current byte offset
  * @return array byte pointer containing starting bit
  */
-u8 *referenceNBits(u32 numberOfBits, u8 *originalData, u32 *bitOffset) {
+u8 *referenceNBits(u32 numberOfBits, u8 *originalData, u32 *bitOffset, u32 *byteOffset) {
     u8 *infoReference = &(originalData[(u32) floor( *bitOffset / 8.0 )]);
     *bitOffset += numberOfBits;
-
+    *byteOffset += (u32) floor(numberOfBits / 8.0);
+    
     // checking if referenced properly
     /* for (u32 i = 0; i < numberOfBytes; i++) { 
         assert(&(infoReference[i]) == &(originalData[(*byteOffset) - numberOfBytes + i]));

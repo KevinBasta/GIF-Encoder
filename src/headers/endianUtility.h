@@ -8,6 +8,8 @@ i32 *bigEndianCharToLittleEndianIntHeap(u8 *bigEndianCharArray);
 i32 bigEndianCharToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 numberOfBytes);
 i32 *bigEndianCharToLittleEndianGeneralizedHeap(u8 *bigEndianCharArray, u32 numberOfBytes);
 
+u32 bigEndianCharBitsToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 startingBit, u32 numberOfBits);
+
 union littleEndianInteger bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(u8 *bigEndianCharArray, u32 numberOfBytes);
 // u8-u64 stack ints
 u8 bigEndianU8ArrToLittleEndianU8(u8 *bigEndianU8Arr);
