@@ -97,61 +97,72 @@ i32 *bigEndianCharToLittleEndianGeneralizedHeap(u8 *bigEndianCharArray, u32 numb
 }
 
 
-u32 bigEndianCharBitsToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 startingBit, u32 numberOfBits) {
-    //printBits(bigEndianCharArray, 4);
+u64 bigEndianCharBitsToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 startingBit, u32 numberOfBits) {
+    printBits(bigEndianCharArray, 4);
 
-    u32 littleEndianInt = 0;
-    u32 numberOfBytes;
+    u64 littleEndianInt = 0;
 
-    if (numberOfBits < 8) { 
-        numberOfBytes = ceil( (numberOfBits) / 8.0 );
-        if (startingBit % 8 > 0) { 
-            numberOfBytes += 1;
-            //printf("added\n");
-        }
-    } else { 
-        numberOfBytes = ceil( (numberOfBits) / 8.0 );
+    u32 bitToStartAtInFirstByte = (startingBit % 8);
+
+    u32 middleBytes = floor(numberOfBits / 8.0);
+    u32 preAndPostBits = numberOfBits - (middleBytes * 8);    
+    i32 byteCountHelper = preAndPostBits - (7 - bitToStartAtInFirstByte); // -2 abs to make it post?
+    printf("%d bitToStartAtInFirstByte\n", bitToStartAtInFirstByte);
+    printf("%d preAndPostBits\n", preAndPostBits);
+    printf("%d byteCountHelper\n", byteCountHelper);
+
+    u32 numberOfBytes = 0;
+    if (byteCountHelper <= 0) { 
+        numberOfBytes = middleBytes + 1;
+    } else if (byteCountHelper > 0) { 
+        numberOfBytes = middleBytes + 2;
     }
 
 
+
     u32 numberOfBytesMinusOne = numberOfBytes - 1;
-    //printf("%d numb bytes\n", numberOfBytes);
+    printf("%d numb bytes\n", numberOfBytes);
 
     u32 firstBit = 0;
     u32 lastBit = 7;
 
-    u32 bitOffsetAdjust = startingBit % 5;
-    //printf("%d bit offset adjsut \n", bitOffsetAdjust);
+    u32 bitOffsetAdjust = (((numberOfBits - (8 - (startingBit) % 8) - ((numberOfBytes - 2) * 8))) % 8) - 1;
+    printf("%d bit offset adjsut \n", bitOffsetAdjust);
     u32 bitsTaken = numberOfBits;
 
     for (u32 headerByte = 0; headerByte < numberOfBytes; headerByte++) {
-        //printf("header byte: %d\n", headerByte);
+        printf("header byte: %d\n", headerByte);
         firstBit = 0;
         lastBit = 7;
         
         if (headerByte == 0) { 
             firstBit = startingBit % 8;
-            //printf("%d start\n", firstBit);
+            printf("%d start\n", firstBit);
         }
 
         if (headerByte == numberOfBytesMinusOne) { 
-            lastBit = (((numberOfBits - (8 - (startingBit) % 8) - ((numberOfBytes - 2) * 8))) % 8) - 1;
-            //printf("%d %d end\n", lastBit, firstBit);
+            lastBit = abs((((numberOfBits - (8 - (startingBit) % 8) - ((numberOfBytes - 2) * 8))) % 8) - 1);
+            printf("%d %d end\n", lastBit, firstBit);
         }
 
         for (u32 bitInHeaderByte = firstBit; bitInHeaderByte <= lastBit; bitInHeaderByte++) {
+            printf("%d last bit\n", lastBit);
             //printIntBits(&littleEndianInt, 4);
             i32 currentBit = (bigEndianCharArray[headerByte] >> (8 - bitInHeaderByte - 1)) & 1;
-            //printIntBits(&currentBit, 4);
+            printIntBits(&currentBit, 4);
             
             i32 bitOffset = 0; 
 
             if (headerByte == 0) {
                 bitOffset = (8 - (bitInHeaderByte)) + bitOffsetAdjust;
+                printf("1\n");
             } else {
-                bitOffset = (((numberOfBytesMinusOne-headerByte)*8) + (bitInHeaderByte) - bitOffsetAdjust);
+                bitOffset = abs(((numberOfBytesMinusOne-headerByte)*8) + (bitInHeaderByte) - abs(bitOffsetAdjust));
+                printf("2\n");
             }
-            //printf("%d offset \n", bitOffset);
+            printf("%d bitInHeaderByte ===========================\n", bitInHeaderByte);
+            printf("%d bitOffsetAdjust ===========================\n", bitOffsetAdjust);
+            printf("%d offset ===========================\n", bitOffset);
             /**
                 1 - 0 * 8 = 8
                 + 7 = 7
@@ -166,8 +177,10 @@ u32 bigEndianCharBitsToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 start
         }
     }
 
-    //printf("final\n");
-    //printIntBits(&littleEndianInt, 4);
+    printf("final\n");
+    printIntBits(&littleEndianInt, 4);
+    printf("final\n\n\n");
+    printf("%x\n", littleEndianInt);
     return littleEndianInt;
 }
 
