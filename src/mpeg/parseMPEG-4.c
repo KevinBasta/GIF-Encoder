@@ -179,7 +179,7 @@ box *parseSingleNestedChildBox(u8 *boxData, u32 *bytesRead) {
     u8 *childBoxHeaderType = copyNBytes(BOX_TYPE_SIZE, boxData, bytesRead);
     
     // converting size to int and freeing char array
-    u32 childFullBoxSize = bigEndianCharToLittleEndianUnsignedInt(childBoxHeaderSize);
+    u32 childFullBoxSize = bigEndianU8ArrToLittleEndianU32(childBoxHeaderSize);
     free(childBoxHeaderSize);
     
     // DEBUG printf("%u\t", *childFullBoxSize);

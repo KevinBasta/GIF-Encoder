@@ -113,15 +113,15 @@ void picParameterSetRbsp(NALUnitInfo *NALUnit) {
     printf("===============\n");
 
     u32 picParameterSetId  = getCodeNum(data, &bitsRead, &bytesRead, dataLength);
-    printBits(&picParameterSetId, 4);
+    //printBits(&picParameterSetId, 4);
     printf("entry 1: %d\n\n", picParameterSetId);
 
     u32 seqParameterSetId  = getCodeNum(data, &bitsRead, &bytesRead, dataLength);
-    printBits(&seqParameterSetId, 4);
+    //printBits(&seqParameterSetId, 4);
     printf("entry 2: %d\n\n", seqParameterSetId);
 
     u32 entropyCodingModeFlag  = getCodeNum(data, &bitsRead, &bytesRead, dataLength);
-    printBits(&entropyCodingModeFlag, 4);
+    //printBits(&entropyCodingModeFlag, 4);
     printf("entry 2: %d\n\n", entropyCodingModeFlag);
 
     
@@ -139,12 +139,22 @@ u32 getCodeNum(u8 *data, u32 *bitsRead, u32 *bytesRead, u32 dataLength) {
     u8 *bigEndianDataReference      = referenceNBits(leadingZeroBits, data, bitsRead, bytesRead);
     printf("bits bytes 2: %d %d\n", *bitsRead, *bytesRead);
 
-    u32 readBits                    = bigEndianCharBitsToLittleEndianGeneralized(bigEndianDataReference, leadingBitsOffsetPlusTwo, leadingZeroBits);
+    u32 readBits                    = simpleBigEndianToLittleEndianBits(bigEndianDataReference, leadingBitsOffsetPlusTwo, leadingZeroBits);
+    printf("readBits: %d\n", readBits);
+    printf("data: %x %x %x %x\n", bigEndianDataReference[(u32) floor(leadingBitsOffsetPlusTwo / 8.0)],
+                                      bigEndianDataReference[(u32) floor(leadingBitsOffsetPlusTwo / 8.0) + 1],
+                                      bigEndianDataReference[(u32) floor(leadingBitsOffsetPlusTwo / 8.0) + 2],
+                                      bigEndianDataReference[(u32) floor(leadingBitsOffsetPlusTwo / 8.0) + 3]);
+    printf("starting bit: %d\n", (leadingBitsOffsetPlusTwo % 8));
+    printf("leadingZeroBits: %d\n", leadingZeroBits);
+
+
+
     printf("bits bytes 3: %d %d\n", *bitsRead, *bytesRead);
     
-    //printBits(bigEndianDataReference, (u32) floor(leadingZeroBits / 8));
-    printf("leading Zeros: %d\n", leadingZeroBits);
-    printf("bits little endian: %d\n", readBits);
+    printBits(bigEndianDataReference, (u32) floor(leadingZeroBits / 8));
+    //printf("leading Zeros: %d\n", leadingZeroBits);
+    //printf("bits little endian: %d\n", readBits);
 
     return (u32) (pow(2, leadingZeroBits) - 1 + readBits);
 }

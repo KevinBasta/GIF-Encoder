@@ -41,22 +41,26 @@ int main() {
     assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 15); byteOffset = 0; bitOffset = 0;
 
     testArr[0] = 0x08; testArr[1] = 0x08; // 0000 (1000 0000 1)000
-    assert(bigEndianCharBitsToLittleEndianGeneralized(testArr, 4, 9) == 257);
+    assert(simpleBigEndianToLittleEndianBits(testArr, 4, 9) == 257);
     testArr[0] = 0x01; testArr[1] = 0x20; // 0000 000(1 001)0 0000
-    assert(bigEndianCharBitsToLittleEndianGeneralized(testArr, 7, 4) == 9);
+    assert(simpleBigEndianToLittleEndianBits(testArr, 7, 4) == 9);
     testArr[0] = 0x01; testArr[1] = 0x20; // 0000 000(1 0010) 0000
-    assert(bigEndianCharBitsToLittleEndianGeneralized(testArr, 7, 5) == 18);
+    assert(simpleBigEndianToLittleEndianBits(testArr, 7, 5) == 18);
     testArr[0] = 0x11; testArr[1] = 0x80; // 000(1 0001 1)000 0000
-    assert(bigEndianCharBitsToLittleEndianGeneralized(testArr, 3, 6) == 35);
+    assert(simpleBigEndianToLittleEndianBits(testArr, 3, 6) == 35);
     testArr[0] = 0x6F; testArr[1] = 0x41; // (0110 1111 0100 0001)
-    assert(bigEndianCharBitsToLittleEndianGeneralized(testArr, 0, 16) == 0x416F);
+    assert(simpleBigEndianToLittleEndianBits(testArr, 0, 16) == 0x6F41);
     testArr[0] = 0x6F; testArr[1] = 0x41; // (011 0111 1010 0000)1 
-    assert(bigEndianCharBitsToLittleEndianGeneralized(testArr, 0, 15) == 0x37A0);
+    assert(simpleBigEndianToLittleEndianBits(testArr, 0, 15) == 0x37A0);
     testArr[0] = 0x6F; testArr[1] = 0x41; // 0110 1111 0100 0001 
-    assert(bigEndianCharBitsToLittleEndianGeneralized(testArr, 0, 8) == 0x6F);
+    assert(simpleBigEndianToLittleEndianBits(testArr, 0, 8) == 0x6F);
+    testArr[0] = 0x6F; testArr[1] = 0x41; testArr[2] = 0x6F; testArr[3] = 0x41; testArr[2] = 0x6F; testArr[3] = 0x41;
+    assert(simpleBigEndianToLittleEndianBits(testArr, 0, 48) == 0x416F416F416F);
+    testArr[0] = 0x6F; testArr[1] = 0x41; testArr[2] = 0x6F; testArr[3] = 0x41; // 0110 1111 0100 0001 
+    assert(simpleBigEndianToLittleEndianBits(testArr, 0, 32) == 0x416F416F);
     
 
-    
+
     //u8 test = getNBits(1, 1, 0x8C);
     //printBits(&test, 1);
 
