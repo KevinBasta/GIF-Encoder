@@ -7,6 +7,7 @@
 #include "headers/types.h"
 #include "headers/printUtility.h"
 #include "headers/bitUtility.h"
+#include "headers/endianUtility.h"
 #include "headers/linkedList.h"
 
 
@@ -32,18 +33,22 @@ int main() {
     u8 *testArr = (u8*) malloc(sizeof(u8) * 10);
     testArr[0] = 0x00; testArr[1] = 0x01; // 0000 0000 0000 0001
     u32 byteOffset = 0;
-    assert(countBitsToFirstNonZero(testArr, 4, &byteOffset, 9) == 11); byteOffset = 0;
-    assert(countBitsToFirstNonZero(testArr, 7, &byteOffset, 9) == 8); byteOffset = 0;
-    assert(countBitsToFirstNonZero(testArr, 0, &byteOffset, 9) == 15); byteOffset = 0;
-    assert(countBitsToFirstNonZero(testArr, 2, &byteOffset, 9) == 13); byteOffset = 0;
-    assert(countBitsToFirstNonZero(testArr, 8, &byteOffset, 9) == 15); byteOffset = 0;
-    assert(countBitsToFirstNonZero(testArr, -1, &byteOffset, 9) == 15); byteOffset = 0;
+    i32 bitOffset = 4;
+    assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 11); byteOffset = 0; bitOffset = 7;
+    assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 8); byteOffset = 0; bitOffset = 0;
+    assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 15); byteOffset = 0; bitOffset = 2;
+    assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 13); byteOffset = 0; bitOffset = 8;
+    assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 15); byteOffset = 0; bitOffset = 0;
 
-
+    testArr[0] = 0x08; testArr[1] = 0x08; // 0000 1000 0000 1000
+    assert(bigEndianCharBitsToLittleEndianGeneralized(testArr, 4, 9) == 257);
+    testArr[0] = 0x01; testArr[1] = 0x20; // 0000 0001 0010 0000
+    assert(bigEndianCharBitsToLittleEndianGeneralized(testArr, 7, 4) == 9);
 
     //u8 test = getNBits(1, 1, 0x8C);
     //printBits(&test, 1);
 
+    free(testArr);
     printf("All Assertions Passed\n");
 }
 

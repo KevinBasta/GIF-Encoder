@@ -48,8 +48,8 @@ clean:
 
 
 
-test: test.o bitUtility.o linkedList.o printUtility.o
-	gcc -o a.out test.o bitUtility.o linkedList.o printUtility.o
+test: test.o bitUtility.o endianUtility.o linkedList.o printUtility.o
+	gcc -o a.out test.o bitUtility.o endianUtility.o linkedList.o printUtility.o -lm
 test.o: src/test.c
 	gcc -c src/test.c
 ct:

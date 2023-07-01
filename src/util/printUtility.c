@@ -60,12 +60,27 @@ void printCharArrayBits(u8 *bitPattern) {
  *  @param size:    the number of bytes to print
  *  @param ptr:     a pointer to an element of any type
  */
-void printBits(void const * const ptr, size_t const size) {
+void printIntBits(void const * const ptr, size_t const size) {
     u8 *b = (u8*) ptr;
     u8 byte;
     i32 i, j;
     
     for (i = size-1; i >= 0; i--) {
+        for (j = 7; j >= 0; j--) {
+            byte = (b[i] >> j) & 1;
+            printf("%u", byte);
+        }
+        printf(" ");
+    }
+    puts("");
+}
+
+void printBits(void const * const ptr, size_t const size) {
+    u8 *b = (u8*) ptr;
+    u8 byte;
+    i32 i, j;
+    
+    for (i = 0; i < size; i++) {
         for (j = 7; j >= 0; j--) {
             byte = (b[i] >> j) & 1;
             printf("%u", byte);
