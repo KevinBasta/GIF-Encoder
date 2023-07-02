@@ -148,53 +148,69 @@ u64 bigEndianCharBitsToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 start
         }
     }
     printIntBits(&littleEndianInt, 8);
-    printf("%x\n", littleEndianInt);
+    printf("%lx\n", littleEndianInt);
     return littleEndianInt;
 }
 
 
-u64 simpleBigEndianToLittleEndianBits(u8 *bigEndianCharArray, u32 startingBit, u32 numberOfBits) {
-
+u64 simpleBigEndianToLittleEndianBits(u8 *bigEndianCharArray, u32 startingBit, u32 endingBit, u32 numberOfBits) {
+    //printBits(bigEndianCharArray, 8);
     u32 bitToStartAtInFirstByte = (startingBit % 8);
+    u32 bitToEndAtInLastByte = (endingBit % 8);
 
-    u32 middleBytes = floor(abs(numberOfBits - bitToStartAtInFirstByte) / 8.0);
+    u32 middleBytes = floor(abs(numberOfBits - bitToStartAtInFirstByte - bitToEndAtInLastByte -1) / 8.0);
     u32 preAndPostBits = numberOfBits - (middleBytes * 8);
-    //printf("middleBytes %d\n", middleBytes);
-    //printf("preAndPostBits %d\n", preAndPostBits);
+    u32 postBits = bitToEndAtInLastByte + 1;
+    u32 inversePostBits = 8 - postBits;
 
-    u32 postBits = abs(preAndPostBits - (8 - bitToStartAtInFirstByte));
-    u32 inversePostBits = 8 - abs(preAndPostBits - (8 - bitToStartAtInFirstByte));
-    //printf("post %d\n", postBits);
+    printf("real %d fake %d\n", bitToEndAtInLastByte, postBits);
 
-    /* if (middleBytes < 1) { 
-    } else { 
-        postBits = abs(preAndPostBits - (8 - bitToStartAtInFirstByte));
-    } */
-        
+    printf("middleBytes %d\n", middleBytes);
+    printf("preAndPostBits %d\n", preAndPostBits);
+    
     u32 numberOfBytes = middleBytes;
-
     if (startingBit % 8 != 0 && numberOfBits % 8 != 0) { 
-    numberOfBytes += 1;
+        numberOfBytes += 1;    
+    }
+    
     if (postBits > 0) { 
         numberOfBytes += 1;
     }
+    
+    // This block has not been verified 100%
+    /* u32 preBits = 8 - abs(preAndPostBits - postBits); // inaccurate def
+    if (preBits != bitToStartAtInFirstByte) { 
+        middleBytes = floor(abs(numberOfBits - 8) / 8.0);
+        preAndPostBits = numberOfBits - (middleBytes * 8);
+        postBits = abs(preAndPostBits - (8 - bitToStartAtInFirstByte));
+        inversePostBits = 8 - postBits;
+    } */
+
+    printf("middleBytes %d\n", middleBytes);
+    printf("bitToStartAtInFirstByte %d\n", bitToStartAtInFirstByte);
+    //printf("preBits %d\n", preBits);
+    printf("post %d\n", postBits);
+    printf("preAndPostBits %d\n", preAndPostBits);
+    printf("bitToStartAtInFirstByte %d\n", bitToStartAtInFirstByte);
+    printf("bytes: %d\n", numberOfBytes);
+
+    u64 out = (u64) bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianCharArray, numberOfBytes).u64val;
+    u32 leftShift = ((8 - numberOfBytes) * 8) + bitToStartAtInFirstByte;
+    
+    u32 rightShift = 0;
+    if (postBits == 0) { 
+        rightShift = leftShift;
+    } else { 
+        rightShift = leftShift + inversePostBits;
     }
 
-    //printf("bytes: %d\n", numberOfBytes);
-
-    u64 out = bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianCharArray, numberOfBytes).u64val;
-
-    u32 leftShift = ((8 - numberOfBytes) * 8) + bitToStartAtInFirstByte;
-    u32 rightShift = leftShift + inversePostBits;
-    //printf("%d\n", postBits);
-
-    //printIntBits(&out, 8);
+    //printBits(bigEndianCharArray, 8);
+    //printBits(&out, 8);
     out = (out << leftShift);
-    //printIntBits(&out, 8);
+    //printBits(&out, 8);
     out = (out >> rightShift);
-    //printIntBits(&out, 8);
-
-
+    //printBits(&out, 8);
+    printf("\n\n\n");
     return out;
 }
 
