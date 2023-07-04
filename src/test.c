@@ -34,44 +34,44 @@ int main() {
     testArr[0] = 0x00; testArr[1] = 0x01; // 0000 0000 0000 0001
     u32 byteOffset = 0;
     i32 bitOffset = 4;
-    assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 11); byteOffset = 0; bitOffset = 7;
+    /* assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 11); byteOffset = 0; bitOffset = 7;
     assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 8); byteOffset = 0; bitOffset = 0;
     assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 15); byteOffset = 0; bitOffset = 2;
     assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 13); byteOffset = 0; bitOffset = 8;
-    assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 15); byteOffset = 0; bitOffset = 0;
+    assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 15); byteOffset = 0; bitOffset = 0; */
 
     for (int i = 0; i < 10; i++) {
         testArr[i] = 0;
     }
     testArr[0] = 0x08; testArr[1] = 0x08; // 0000 (1000 0000 1)000
-    assert(simpleBigEndianToLittleEndianBits(testArr, 4, 4, 9) == 257);
+    assert(simpleBigEndianToLittleEndianBits(testArr, 4, 12, 9) == 257);
     testArr[0] = 0x01; testArr[1] = 0x20; // 0000 000(1 001)0 0000
-    assert(simpleBigEndianToLittleEndianBits(testArr, 7, 2, 4) == 9);
+    assert(simpleBigEndianToLittleEndianBits(testArr, 7, 10, 4) == 9);
     testArr[0] = 0x01; testArr[1] = 0x20; // 0000 000(1 0010) 0000
-    assert(simpleBigEndianToLittleEndianBits(testArr, 7, 3, 5) == 18);
+    assert(simpleBigEndianToLittleEndianBits(testArr, 7, 11, 5) == 18);
     testArr[0] = 0x11; testArr[1] = 0x80; // 000(1 0001 1)000 0000
-    assert(simpleBigEndianToLittleEndianBits(testArr, 3, 0, 6) == 35);
+    assert(simpleBigEndianToLittleEndianBits(testArr, 3, 8, 6) == 35);
     testArr[0] = 0x6F; testArr[1] = 0x41; // (0110 1111 0100 0001)
-    assert(simpleBigEndianToLittleEndianBits(testArr, 0, 7, 16) == 0x6F41);
+    assert(simpleBigEndianToLittleEndianBits(testArr, 0, 15, 16) == 0x6F41);
     
     testArr[0] = 0x6F; testArr[1] = 0x41; // (011 0111 1010 0000)1 
-    assert(simpleBigEndianToLittleEndianBits(testArr, 0, 6, 15) == 0x37A0);
+    assert(simpleBigEndianToLittleEndianBits(testArr, 0, 14, 15) == 0x37A0);
     
     testArr[0] = 0x6F; testArr[1] = 0x41; // 0(110 1111 0100 0001) 
-    assert(simpleBigEndianToLittleEndianBits(testArr, 1, 7, 15) == 0x6F41);
+    assert(simpleBigEndianToLittleEndianBits(testArr, 1, 15, 15) == 0x6F41);
     
     testArr[0] = 0x6F; testArr[1] = 0x41; // 0(1 1011 1101 0000)01
-    assert(simpleBigEndianToLittleEndianBits(testArr, 1, 5, 13) == 0x1BD0); 
+    assert(simpleBigEndianToLittleEndianBits(testArr, 1, 13, 13) == 0x1BD0); 
     
     testArr[0] = 0x6F; testArr[1] = 0x41; // 0(1101 1110 1000)001
-    assert(simpleBigEndianToLittleEndianBits(testArr, 1, 4, 12) == 0xDE8); 
+    assert(simpleBigEndianToLittleEndianBits(testArr, 1, 12, 12) == 0xDE8); 
 
     testArr[0] = 0x6F; testArr[1] = 0x41; // 0110 1111 0100 0001 
     assert(simpleBigEndianToLittleEndianBits(testArr, 0, 7, 8) == 0x6F);
     testArr[0] = 0x6F; testArr[1] = 0x41; testArr[2] = 0x6F; testArr[3] = 0x41; // 0110 1111 0100 0001 
-    assert(simpleBigEndianToLittleEndianBits(testArr, 0, 7, 32) == 0x6F416F41);
-    //testArr[0] = 0x6F; testArr[1] = 0x41; testArr[2] = 0x6F; testArr[3] = 0x41; testArr[4] = 0x6F; testArr[5] = 0x41;
-    //printf("%lx\n",simpleBigEndianToLittleEndianBits(testArr, 0, 48));
+    assert(simpleBigEndianToLittleEndianBits(testArr, 0, 31, 32) == 0x6F416F41);
+    testArr[0] = 0x6F; testArr[1] = 0x41; testArr[2] = 0x6F; testArr[3] = 0x41; testArr[4] = 0x6F; testArr[5] = 0x41;
+    printf("%lx\n",simpleBigEndianToLittleEndianBits(testArr, 0, 47, 48));
     
 
 

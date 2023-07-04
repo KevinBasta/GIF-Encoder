@@ -110,7 +110,7 @@ u8 *checkNextNBytes(u32 numberOfBytes, u8 *originalData, u32 byteOffset) {
 u8 *referenceNBits(u32 numberOfBits, u8 *originalData, u32 *bitOffset, u32 *byteOffset) {
     u8 *infoReference = &(originalData[*byteOffset]);
     *bitOffset += numberOfBits;
-    *byteOffset += (u32) floor(numberOfBits / 8.0);
+    *byteOffset = (u32) floor(*bitOffset / 8.0);
     
     // checking if referenced properly
     /* for (u32 i = 0; i < numberOfBytes; i++) { 
@@ -155,7 +155,7 @@ u32 countBitsToFirstNonZero(u8 *originalData, u32 *bitOffset, u32 *byteOffset, u
         if (*byteOffset > byteBoundaryPlusOne - 1) { 
             return 0;
         } else {
-            *byteOffset += 1;
+            *byteOffset = (u32) floor(*bitOffset / 8.0);
         }
     }
 

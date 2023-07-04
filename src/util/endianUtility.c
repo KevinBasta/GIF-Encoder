@@ -153,29 +153,54 @@ u64 bigEndianCharBitsToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 start
 }
 
 
+/**
+ * @brief takes in starting bit and ending bit as total offset in a bytestream, creates an integer
+ * with that bit range
+ * @param bigEndianCharArray    - bytestream where data to get int from is stored
+ * @param startingBit           - a total offset in the bytestream
+ * @param endingBit             - a total offset in the bytestream
+ * @param numberOfBits          - amount of bits between the start and end // can get rid of
+ * @return u64 parsed int
+ */
 u64 simpleBigEndianToLittleEndianBits(u8 *bigEndianCharArray, u32 startingBit, u32 endingBit, u32 numberOfBits) {
+    if (endingBit < startingBit) { 
+        return 0;
+    }
+    
     //printBits(bigEndianCharArray, 8);
     u32 bitToStartAtInFirstByte = (startingBit % 8);
     u32 bitToEndAtInLastByte = (endingBit % 8);
+    //printf("start %d end %d total %d\n", startingBit, endingBit, numberOfBits);
 
-    u32 middleBytes = floor(abs(numberOfBits - bitToStartAtInFirstByte - bitToEndAtInLastByte -1) / 8.0);
+    i32 middleBytesHelper = (numberOfBits - bitToStartAtInFirstByte - bitToEndAtInLastByte - 1);
+    u32 middleBytes;
+    if (middleBytesHelper < 0) { 
+        middleBytes = 0;
+    } else { 
+        middleBytes = floor(abs(numberOfBits - bitToStartAtInFirstByte - bitToEndAtInLastByte -1) / 8.0);
+    }
+
     u32 preAndPostBits = numberOfBits - (middleBytes * 8);
     u32 postBits = bitToEndAtInLastByte + 1;
     u32 inversePostBits = 8 - postBits;
 
-    printf("real %d fake %d\n", bitToEndAtInLastByte, postBits);
-
-    printf("middleBytes %d\n", middleBytes);
-    printf("preAndPostBits %d\n", preAndPostBits);
+    //printf("real %d fake %d\n", bitToEndAtInLastByte, postBits);
+    //printf("middleBytes %d\n", middleBytes);
+    //printf("preAndPostBits %d\n", preAndPostBits);
     
     u32 numberOfBytes = middleBytes;
-    if (startingBit % 8 != 0 && numberOfBits % 8 != 0) { 
-        numberOfBytes += 1;    
-    }
-    
-    if (postBits > 0) { 
+
+    if (&(bigEndianCharArray[(u32) floor(startingBit / 8.0)]) == &(bigEndianCharArray[(u32) floor(endingBit / 8.0)])) { 
         numberOfBytes += 1;
+    } else { 
+        numberOfBytes += 1; // for last byte    
+        if (startingBit % 8 != 0) { // because would be included in middle bytes?
+            numberOfBytes += 1;    
+        }
     }
+
+    
+    //printf("%x %x\n", &(bigEndianCharArray[(u32) floor(startingBit / 8.0)]), &(bigEndianCharArray[(u32) floor(endingBit / 8.0)]));
     
     // This block has not been verified 100%
     /* u32 preBits = 8 - abs(preAndPostBits - postBits); // inaccurate def
@@ -186,13 +211,12 @@ u64 simpleBigEndianToLittleEndianBits(u8 *bigEndianCharArray, u32 startingBit, u
         inversePostBits = 8 - postBits;
     } */
 
-    printf("middleBytes %d\n", middleBytes);
+    /* printf("middleBytes %d\n", middleBytes);
     printf("bitToStartAtInFirstByte %d\n", bitToStartAtInFirstByte);
-    //printf("preBits %d\n", preBits);
+    printf("bitToEndAtInLastByte %d\n", bitToEndAtInLastByte);
     printf("post %d\n", postBits);
     printf("preAndPostBits %d\n", preAndPostBits);
-    printf("bitToStartAtInFirstByte %d\n", bitToStartAtInFirstByte);
-    printf("bytes: %d\n", numberOfBytes);
+    printf("bytes: %d\n", numberOfBytes); */
 
     u64 out = (u64) bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianCharArray, numberOfBytes).u64val;
     u32 leftShift = ((8 - numberOfBytes) * 8) + bitToStartAtInFirstByte;
@@ -205,12 +229,14 @@ u64 simpleBigEndianToLittleEndianBits(u8 *bigEndianCharArray, u32 startingBit, u
     }
 
     //printBits(bigEndianCharArray, 8);
-    //printBits(&out, 8);
+    //printIntBits(&out, 8);
     out = (out << leftShift);
-    //printBits(&out, 8);
+    //printf("left shift %d\n", leftShift);
+    //printIntBits(&out, 8);
     out = (out >> rightShift);
-    //printBits(&out, 8);
-    printf("\n\n\n");
+    //printf("right shift %d\n", rightShift);
+    //printIntBits(&out, 8);
+    //printf("\n\n\n");
     return out;
 }
 

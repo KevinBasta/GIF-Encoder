@@ -36,6 +36,7 @@ void parseAVCSample(sampleInfo *sampleData, MPEG_Data *videoData) {
         // since NALUnitLength can be 1, 2, or 4 bytes, will just store it in 4 byte int
         u8 *NALUnitLength    = referenceNBytes(unitLengthFieldSize, videoData->mdatBox->boxData, &bytesRead);
         // DEBUG printHexNBytes(&(videoData->mdatBox->boxData[sampleData->sampleOffsetInMdat]), 4);
+        printf("bytes read: %d\n", bytesRead - sampleData->sampleOffsetInMdat);
         
         // generalized is requied here, spesific functions won't work because the byteNumb would be assumed
         u32 NALUnitFullLengthInt = bigEndianCharToLittleEndianGeneralized(NALUnitLength, unitLengthFieldSize); 
@@ -50,7 +51,7 @@ void parseAVCSample(sampleInfo *sampleData, MPEG_Data *videoData) {
     }
     printf("final i: %d\n", i);
     printf("sample Size: %d\n", sampleSize);
-    printf("bytes read: %d\n", bytesRead);
+    printf("bytes read: %d\n", bytesRead - sampleData->sampleOffsetInMdat);
 }
 
 void parseNALUnit(u32 NALUnitDataLength, u8 *NALDataStream) { 
@@ -118,16 +119,31 @@ void picParameterSetRbsp(NALUnitInfo *NALUnit) {
     u32 seqParameterSetId  = getCodeNum(data, &bitsRead, &bytesRead, dataLength);
     printf("entry 2: %d\n\n", seqParameterSetId);
 
-    u32 entropyCodingModeFlag  = getCodeNum(data, &bitsRead, &bytesRead, dataLength);
-    printf("entry 2: %d\n\n", entropyCodingModeFlag);
+    u32 entropyCodingModeFlag  = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    printf("entry 3: %d\n\n", entropyCodingModeFlag);
 
-    u32 picOrderPresentFlag;
-    
+    u32 picOrderPresentFlag  = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    printf("entry 4: %d\n\n", picOrderPresentFlag);
+
+
     printf("===============\n");
 
     //u32 picParameterSetId   = countBitsToFirstNonZero(NALUnit->NALUnitDataLength, &bitsRead, &bytesRead, NALUnit->NALUnitDataLength);
 
 }
+
+u32 getUnsignedNBits(u8 *data, u32 *bitsRead, u32 *bytesRead, u32 numberOfBits) { 
+    u32 preReferenceBitsOffset      = *bitsRead;
+    u8 *bigEndianDataReference      = referenceNBits(numberOfBits, data, bitsRead, bytesRead);
+    u32 postReferenceBitsOffset     = *bitsRead;
+    /* printf("preReferenceBitsOffset %d\n", preReferenceBitsOffset);
+    printf("postReferenceBitsOffset %d\n", postReferenceBitsOffset);
+    printf("preReferenceBitsOffset+numberOfBits %d\n\n", preReferenceBitsOffset+numberOfBits); */
+
+    u32 readBits                    = simpleBigEndianToLittleEndianBits(bigEndianDataReference, preReferenceBitsOffset, postReferenceBitsOffset-1, numberOfBits);
+    return readBits;
+}
+
 
 u32 getCodeNum(u8 *data, u32 *bitsRead, u32 *bytesRead, u32 dataLength) { 
     u32 leadingZeroBits             = countBitsToFirstNonZero(data, bitsRead, bytesRead, dataLength);
@@ -138,7 +154,11 @@ u32 getCodeNum(u8 *data, u32 *bitsRead, u32 *bytesRead, u32 dataLength) {
     u32 postReferenceBitsOffset     = *bitsRead;
     //printf("bits bytes 2: %d %d\n", *bitsRead, *bytesRead);
 
-    u32 readBits                    = simpleBigEndianToLittleEndianBits(bigEndianDataReference, leadingBitsOffsetPlusTwo, postReferenceBitsOffset, leadingZeroBits);
+    u32 readBits                    = simpleBigEndianToLittleEndianBits(bigEndianDataReference, leadingBitsOffsetPlusTwo, postReferenceBitsOffset-1, leadingZeroBits);
+    /* printf("leadingBitsOffsetPlusTwo %d\n", leadingBitsOffsetPlusTwo);
+    printf("postReferenceBitsOffset %d\n", postReferenceBitsOffset);
+    printf("leadingBitsOffsetPlusTwo+leadingZeroBits %d\n", leadingBitsOffsetPlusTwo+leadingZeroBits); */
+
     /* printf("readBits: %d\n", readBits);
     printf("data: %x %x %x %x\n", bigEndianDataReference[(u32) floor(leadingBitsOffsetPlusTwo / 8.0)],
                                       bigEndianDataReference[(u32) floor(leadingBitsOffsetPlusTwo / 8.0) + 1],
