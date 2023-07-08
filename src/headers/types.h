@@ -220,6 +220,10 @@ typedef struct sampleInfo {
 } sampleInfo;
 
 
+typedef struct NAL_Data {
+    u32 placeholder;
+} NAL_Data;
+
 /**
  * @brief 
  * @param *timescale            -   the number of time units that pass per second in 

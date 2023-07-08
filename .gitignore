@@ -2,11 +2,13 @@ bin
 *.bin
 *.out
 *.o
+log
 
 *.txt
 *.pdf
 *.mp4
 *.exe
+*.py
 
 local_files
 l_*.c

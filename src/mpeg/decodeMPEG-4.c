@@ -150,6 +150,7 @@ void avccParseBox(box *avccBox, MPEG_Data *videoData) {
     for (u8 i = 0; i < numOfSequenceParameterSets; i++) { 
         u16 sequenceParameterSetLengthInt = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead)); 
         u8 *sequenceParameterSetNALUnit   = referenceNBytes(sequenceParameterSetLengthInt, boxData, &bytesRead); // arr
+        parseNALUnit(sequenceParameterSetLengthInt, sequenceParameterSetNALUnit);
     }
 
     u8 numOfPictureParameterSetsInt = bigEndianU8ArrToLittleEndianU8(referenceNBytes(1, boxData, &bytesRead));    
@@ -157,6 +158,7 @@ void avccParseBox(box *avccBox, MPEG_Data *videoData) {
     for (u8 i = 0; i < numOfPictureParameterSetsInt; i++) {
         u16 pictureParameterSetLengthInt = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead));
         u8 *picutreParameterSetNALUnit   = referenceNBytes(pictureParameterSetLengthInt, boxData, &bytesRead); // arr
+        parseNALUnit(pictureParameterSetLengthInt, picutreParameterSetNALUnit);
     }
 
 

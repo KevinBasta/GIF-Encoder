@@ -337,8 +337,8 @@ void getVideoDataRangeByMediaTime(u32 startTime, u32 endTime, MPEG_Data *videoDa
     sampleInfo *endSample = sampleSearchByRealTime(endTime, videoData);
     printf("=====================================\n");
     
-    printf("Start Sample\n");
-    parseAVCSample(startSample, videoData);
+    //printf("Start Sample\n");
+    //parseAVCSample(startSample, videoData);
 
     linkedList *sampleLL = initLinkedList();
     appendNodeLinkedList(sampleLL, startSample);
