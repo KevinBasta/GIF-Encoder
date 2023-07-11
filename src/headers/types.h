@@ -196,14 +196,6 @@ typedef struct displayTimeToSampleTable {
 } displayTimeToSampleTable;
 
 
-typedef struct NALUnitInfo {
-    u8 NALRefIdc;
-    u8 NALUnitType;
-    u32 NALUnitDataLength;
-    u8 *NALUnitData;
-} NALUnitInfo;
-
-
 // Main Storage Structs //
 
 typedef struct sampleInfo {
@@ -220,9 +212,91 @@ typedef struct sampleInfo {
 } sampleInfo;
 
 
+
+typedef struct NALUnitInfo {
+    u8 NALRefIdc;
+    u8 NALUnitType;
+    u32 NALUnitDataLength;
+    u8 *NALUnitData;
+} NALUnitInfo;
+
+typedef struct picParameterSet {
+    u32 picParameterSetId;
+    u32 seqParameterSetId;
+    u32 entropyCodingModeFlag;
+    u32 picOrderPresentFlag;
+    u32 numSliceGroupsMinus1;
+
+    u32 sliceGroupMapType;
+    u32 *runLengthMinus1;
+    u32 *topLeft;
+    u32 *bottomRight;
+    u32 sliceGroupChangeDirectionFlag;
+    u32 sliceGroupChangeRateMinus1;
+    u32 picSizeInMapUnitsMinus1;
+    u32 *sliceGroupId;
+
+    u32 numRefIdxl0ActiveMinus1;
+    u32 numRefIdxl1ActiveMinus1;
+    u32 weightedPredFlag;
+    u32 weightedBipredIdc;
+    i32 picInitQpMinus26;
+    i32 picInitQsMinus26;
+    i32 chromaQpIndexOffset;
+    u32 deblockingFilterVariablesPresentFlag;
+    u32 constrainedIntraPredFlag;
+    u32 redundantPicCntPresentFlag;
+    u32 frameCroppingFlag;
+
+    u32 frameCropLeftOffset;
+    u32 frameCropRightOffset;
+    u32 frameCropTopOffset;
+    u32 frameCropBottomOffset;
+} picParameterSet;
+
+
+typedef struct seqParameterSet { 
+    u32 profileIdc;
+    u32 levelIdc;
+    u32 moreThanOneSliceGroupAllowedFlag;
+    u32 arbitrarySliceOrderAllowedFlag;
+    u32 redundantPicturesAllowedFlag;
+    u32 seqParameterSetId;
+    u32 log2MaxFrameNumMinus4;
+    u32 picOrderCntType;
+
+    u32 log2MaxPicOrderCntLsbMinus4;
+    u32 deltaPicOrderAlwaysZeroFlag;
+    u32 offsetForNonRefPic;
+    u32 offsetForTopToBottomField;
+    u32 numRefFramesInPicOrderCntCycle;
+    i32 *offsetForRefFrame;
+
+    u32 numRefFrames;
+    u32 requiredFrameNumUpdateBehaviourFlag;
+    u32 picWidthInMbsMinus1;
+    u32 picHeightInMapUnitsMinus1;
+    u32 frameMbsOnlyFlag;
+
+    u32 mbAdaptiveFrameFieldFlag;
+    u32 direct8x8InferenceFlag;
+    u32 vuiParametersPresentFlag;
+} seqParameterSet;
+
+typedef struct AVC_Data {
+    // avcc length of nal unit
+    u8 lengthSizeMinus1;
+    picParameterSet *picParameterSets;
+    seqParameterSet *seqParameterSets;
+} AVC_Data;
+
 typedef struct NAL_Data {
     u32 placeholder;
 } NAL_Data;
+
+
+
+
 
 /**
  * @brief 
@@ -286,6 +360,7 @@ typedef struct MPEG_Data {
     displayTimeToSampleTable *displayTimeToSampleTable;
 
     // avcc length of nal unit
-    u8 lengthSizeMinus1;
+    AVC_Data *avcData;
+    
 
 } MPEG_Data;

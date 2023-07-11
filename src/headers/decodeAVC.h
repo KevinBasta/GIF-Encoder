@@ -1,9 +1,9 @@
 
 void parseAVCSample(sampleInfo *sampleData, MPEG_Data *videoData);
-void parseNALUnit(u32 NALUnitLength, u8 *NALUnit);
+NALUnitInfo *parseNALUnit(u32 NALUnitDataLength, u8 *NALDataStream);
 
 void seqParameterSetRbsp(u32 NALUnitDataLength, u8 *NALDataStream);
-void picParameterSetRbsp(u32 NALUnitDataLength, u8 *NALDataStream);
+picParameterSet *picParameterSetRbsp(u32 NALUnitDataLength, u8 *NALDataStream);
 
 u8 byteAligned(u32 *bitsRead);
 void rbspTrailingBits(u8 *data, u32 *bitsRead, u32 *bytesRead, u32 numberOfBits);

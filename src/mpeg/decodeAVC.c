@@ -27,7 +27,7 @@ void parseAVCSample(sampleInfo *sampleData, MPEG_Data *videoData) {
     
     u32 bytesRead = sampleData->sampleOffsetInMdat;
     u32 sampleSize = sampleData->sampleSize;
-    u32 unitLengthFieldSize = videoData->lengthSizeMinus1 + 1;
+    u32 unitLengthFieldSize = videoData->avcData->lengthSizeMinus1 + 1;
     // DEBUG printf("offset: %d\n", sampleData->sampleOffsetInMdat);
     int i;
 
@@ -60,7 +60,7 @@ void parseNALUnits(NAL_Data *nalData) {
 }
 
 
-void parseNALUnit(u32 NALUnitDataLength, u8 *NALDataStream) { 
+NALUnitInfo *parseNALUnit(u32 NALUnitDataLength, u8 *NALDataStream) {
     NALUnitInfo *NALUnit = (NALUnitInfo*) malloc(sizeof(NALUnitInfo));
 
     u32 bytesRead = 0;
@@ -101,26 +101,31 @@ void parseNALUnit(u32 NALUnitDataLength, u8 *NALDataStream) {
         NALUnit->NALUnitDataLength = NALUnitDataLength;
     }
 
-    if (NALUnitType == 8) { 
+    /* if (NALUnitType == 8) { 
         picParameterSetRbsp(NALUnitDataLength - 1, NALDataStream + 1);
     } else if (NALUnitType == 7) { 
         seqParameterSetRbsp(NALUnitDataLength - 1, NALDataStream + 1);
     } else {
         printf("nal unit type: %d\n", NALUnitType);
-    }
+    } */
+
+    return NALUnit;
 }
 
 
-void picParameterSetRbsp(u32 NALUnitDataLength, u8 *NALDataStream) { 
+picParameterSet *picParameterSetRbsp(u32 NALUnitDataLength, u8 *NALDataStream) { 
+    NALUnitInfo *NALUnit = parseNALUnit(NALUnitDataLength, NALDataStream);
+    
     u32 leadingZeroBits;
 
     u32 bitsRead = 0;
     u32 bytesRead = 0;
 
-    u8 *data = NALDataStream;
-    u32 dataLength = NALUnitDataLength;
+    u8 *data = NALUnit->NALUnitData;
+    u32 dataLength = NALUnit->NALUnitDataLength;
 
     printf("===============\n");
+    picParameterSet *pps = malloc(sizeof(picParameterSet));
 
     u32 picParameterSetId       = ue(data, &bitsRead, &bytesRead, dataLength);
     u32 seqParameterSetId       = ue(data, &bitsRead, &bytesRead, dataLength);
@@ -134,7 +139,7 @@ void picParameterSetRbsp(u32 NALUnitDataLength, u8 *NALDataStream) {
                                 picOrderPresentFlag, 
                                 numSliceGroupsMinus1);
 
-
+    u32 sliceGroupMapType;
     u32 *runLengthMinus1            = NULL;
     u32 *topLeft                    = NULL;
     u32 *bottomRight                = NULL;
@@ -143,7 +148,7 @@ void picParameterSetRbsp(u32 NALUnitDataLength, u8 *NALDataStream) {
     u32 picSizeInMapUnitsMinus1;
     u32 *sliceGroupId               = NULL;
     if (numSliceGroupsMinus1 > 0) { 
-        u32 sliceGroupMapType               = ue(data, &bitsRead, &bytesRead, dataLength);
+        sliceGroupMapType                   = ue(data, &bitsRead, &bytesRead, dataLength);
         printf("slice group: %d\n", sliceGroupMapType);
         
         if (sliceGroupMapType == 0) 
@@ -212,6 +217,8 @@ void picParameterSetRbsp(u32 NALUnitDataLength, u8 *NALDataStream) {
     printBits(data, 30);
     printf("===============\n");
 
+
+    return pps;
 
     // TEMP FREEING
     if (runLengthMinus1 != NULL)
@@ -298,6 +305,8 @@ void seqParameterSetRbsp(u32 NALUnitDataLength, u8 *NALDataStream) {
     printBits(data, 30);
     printf("===============\n");
 
+
+    // TEMP FREEING
     if (offsetForRefFrame != NULL)
         free(offsetForRefFrame);
 }
@@ -317,9 +326,27 @@ void sliceHeader(u32 NALUnitDataLength, u8 *NALDataStream) {
 
     u32 firstMbInSlice      = ue(data, &bitsRead, &bytesRead, dataLength);
     u32 sliceType           = ue(data, &bitsRead, &bytesRead, dataLength);
+    printf("slice type: %d\n", sliceType);
     u32 picParameterSetId   = ue(data, &bitsRead, &bytesRead, dataLength);
 
-    u32 frameNum;
+    u32 frameNum; // get pic parameter set from last decode order slice then get sequence set id from there and use log2_max_frame_num_minus4 + 4 from there
+    u32 frameMbsOnlyFlag; // get for sequence set
+
+    u32 fieldPicFlag;
+    u32 bottomFieldFlag;
+    if (!frameMbsOnlyFlag) { 
+        fieldPicFlag    = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+        if (fieldPicFlag) { 
+            bottomFieldFlag    = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+        }
+    }
+
+    u32 NALUnitType; // defined in parent
+    u32 idrPicId;
+    if (NALUnitType == 5) { 
+        idrPicId    = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    }
+
 
 }
 
