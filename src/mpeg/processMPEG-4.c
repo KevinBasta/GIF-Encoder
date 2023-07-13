@@ -353,7 +353,7 @@ void getVideoDataRangeByMediaTime(u32 startTime, u32 endTime, MPEG_Data *videoDa
             previousSampleNumber = sample->sampleNumber;
             appendNodeLinkedList(sampleLL, sample);
             //printf("j: %d\n", j);
-            parseAVCSample(sample, videoData);
+            //parseAVCSample(sample, videoData);
         }
     }
 

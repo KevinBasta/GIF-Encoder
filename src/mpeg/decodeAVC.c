@@ -113,11 +113,9 @@ NALUnitInfo *parseNALUnit(u32 NALUnitDataLength, u8 *NALDataStream) {
 }
 
 
-picParameterSet *picParameterSetRbsp(u32 NALUnitDataLength, u8 *NALDataStream) { 
+picParameterSet *picParameterSetRbspDecode(u32 NALUnitDataLength, u8 *NALDataStream) { 
     NALUnitInfo *NALUnit = parseNALUnit(NALUnitDataLength, NALDataStream);
     
-    u32 leadingZeroBits;
-
     u32 bitsRead = 0;
     u32 bytesRead = 0;
 
@@ -125,89 +123,94 @@ picParameterSet *picParameterSetRbsp(u32 NALUnitDataLength, u8 *NALDataStream) {
     u32 dataLength = NALUnit->NALUnitDataLength;
 
     printf("===============\n");
-    picParameterSet *pps = malloc(sizeof(picParameterSet));
+    picParameterSet *pps = calloc(1, sizeof(picParameterSet));
 
-    u32 picParameterSetId       = ue(data, &bitsRead, &bytesRead, dataLength);
-    u32 seqParameterSetId       = ue(data, &bitsRead, &bytesRead, dataLength);
-    u32 entropyCodingModeFlag   = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-    u32 picOrderPresentFlag     = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-    u32 numSliceGroupsMinus1    = ue(data, &bitsRead, &bytesRead, dataLength);
+    pps->picParameterSetId       = ue(data, &bitsRead, &bytesRead, dataLength);
+    pps->seqParameterSetId       = ue(data, &bitsRead, &bytesRead, dataLength);
+    pps->entropyCodingModeFlag   = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    pps->picOrderPresentFlag     = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    pps->numSliceGroupsMinus1    = ue(data, &bitsRead, &bytesRead, dataLength);
     
-    printf("%d %d %d %d %d\n\n", picParameterSetId, 
-                                seqParameterSetId, 
-                                entropyCodingModeFlag, 
-                                picOrderPresentFlag, 
-                                numSliceGroupsMinus1);
+    printf("%d %d %d %d %d\n\n",pps->picParameterSetId, 
+                                pps->seqParameterSetId, 
+                                pps->entropyCodingModeFlag, 
+                                pps->picOrderPresentFlag, 
+                                pps->numSliceGroupsMinus1);
 
-    u32 sliceGroupMapType;
-    u32 *runLengthMinus1            = NULL;
-    u32 *topLeft                    = NULL;
-    u32 *bottomRight                = NULL;
-    u32 sliceGroupChangeDirectionFlag;
-    u32 sliceGroupChangeRateMinus1;
-    u32 picSizeInMapUnitsMinus1;
-    u32 *sliceGroupId               = NULL;
-    if (numSliceGroupsMinus1 > 0) { 
-        sliceGroupMapType                   = ue(data, &bitsRead, &bytesRead, dataLength);
-        printf("slice group: %d\n", sliceGroupMapType);
+    
+    pps->sliceGroupMapType;
+    pps->runLengthMinus1            = NULL;
+    pps->topLeft                    = NULL;
+    pps->bottomRight                = NULL;
+    pps->sliceGroupChangeDirectionFlag;
+    pps->sliceGroupChangeRateMinus1;
+    pps->picSizeInMapUnitsMinus1;
+    pps->sliceGroupId               = NULL;
+
+    if (pps->numSliceGroupsMinus1 > 0) { 
+        pps->sliceGroupMapType = ue(data, &bitsRead, &bytesRead, dataLength);
+        printf("slice group: %d\n", pps->sliceGroupMapType);
         
-        if (sliceGroupMapType == 0) 
+        if (pps->sliceGroupMapType == 0) 
         {
-            runLengthMinus1                 = malloc(sizeof(u32) * (numSliceGroupsMinus1 + 1));
-            
-            for (u32 iGroup = 0; iGroup <= numSliceGroupsMinus1; iGroup++) { 
-                runLengthMinus1[iGroup]     = ue(data, &bitsRead, &bytesRead, dataLength);
-            }
-        }
-        else if (sliceGroupMapType == 2) 
-        {
-            topLeft                         = malloc(sizeof(u32) * numSliceGroupsMinus1);
-            bottomRight                     = malloc(sizeof(u32) * numSliceGroupsMinus1);
 
-            for (u32 iGroup = 0; iGroup < numSliceGroupsMinus1; iGroup++) { 
-                topLeft[iGroup]             = ue(data, &bitsRead, &bytesRead, dataLength);
-                bottomRight[iGroup]         = ue(data, &bitsRead, &bytesRead, dataLength);
-            }
-        }
-        else if (sliceGroupMapType == 3 || sliceGroupMapType == 4 || sliceGroupMapType == 5) 
-        {     
-            sliceGroupChangeDirectionFlag   = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-            sliceGroupChangeRateMinus1      = ue(data, &bitsRead, &bytesRead, dataLength);
-        }
-        else if (sliceGroupMapType == 6)
-        { 
-            picSizeInMapUnitsMinus1         = ue(data, &bitsRead, &bytesRead, dataLength); 
-            sliceGroupId                    = malloc(sizeof(u32) * (picSizeInMapUnitsMinus1 + 1));
+            pps->runLengthMinus1                = malloc(sizeof(u32) * (pps->numSliceGroupsMinus1 + 1));
             
-            u32 sliceGroupIdLength          = ceil( log2( numSliceGroupsMinus1 + 1 ) );
-            for (u32 i = 0; i <= picSizeInMapUnitsMinus1; i++) { 
-                sliceGroupId[i]             = getUnsignedNBits(data, &bitsRead, &bytesRead, sliceGroupIdLength);
+            for (u32 iGroup = 0; iGroup <= pps->numSliceGroupsMinus1; iGroup++) { 
+                pps->runLengthMinus1[iGroup]    = ue(data, &bitsRead, &bytesRead, dataLength);
             }
+
+        } 
+        else if (pps->sliceGroupMapType == 2) 
+        {
+
+            pps->topLeft                        = malloc(sizeof(u32) * pps->numSliceGroupsMinus1);
+            pps->bottomRight                    = malloc(sizeof(u32) * pps->numSliceGroupsMinus1);
+
+            for (u32 iGroup = 0; iGroup < pps->numSliceGroupsMinus1; iGroup++) { 
+                pps->topLeft[iGroup]            = ue(data, &bitsRead, &bytesRead, dataLength);
+                pps->bottomRight[iGroup]        = ue(data, &bitsRead, &bytesRead, dataLength);
+            }
+
+        }
+        else if (pps->sliceGroupMapType == 3 || pps->sliceGroupMapType == 4 || pps->sliceGroupMapType == 5) 
+        {   
+
+            pps->sliceGroupChangeDirectionFlag  = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+            pps->sliceGroupChangeRateMinus1     = ue(data, &bitsRead, &bytesRead, dataLength);
+
+        }
+        else if (pps->sliceGroupMapType == 6)
+        {
+
+            pps->picSizeInMapUnitsMinus1        = ue(data, &bitsRead, &bytesRead, dataLength); 
+            pps->sliceGroupId                   = malloc(sizeof(u32) * (pps->picSizeInMapUnitsMinus1 + 1));
+            
+            u32 sliceGroupIdLength              = ceil( log2( pps->numSliceGroupsMinus1 + 1 ) );
+            for (u32 i = 0; i <= pps->picSizeInMapUnitsMinus1; i++) { 
+                pps->sliceGroupId[i]            = getUnsignedNBits(data, &bitsRead, &bytesRead, sliceGroupIdLength);
+            }
+
         }
     }
 
+    pps->numRefIdxl0ActiveMinus1                 = ue(data, &bitsRead, &bytesRead, dataLength);
+    pps->numRefIdxl1ActiveMinus1                 = ue(data, &bitsRead, &bytesRead, dataLength);
+    pps->weightedPredFlag                        = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    pps->weightedBipredIdc                       = getUnsignedNBits(data, &bitsRead, &bytesRead, 2);
+    pps->picInitQpMinus26                        = se(data, &bitsRead, &bytesRead, dataLength);
+    pps->picInitQsMinus26                        = se(data, &bitsRead, &bytesRead, dataLength);
+    pps->chromaQpIndexOffset                     = se(data, &bitsRead, &bytesRead, dataLength);
+    pps->deblockingFilterVariablesPresentFlag    = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    pps->constrainedIntraPredFlag                = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    pps->redundantPicCntPresentFlag              = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    pps->frameCroppingFlag                       = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
 
-    u32 numRefIdxl0ActiveMinus1                 = ue(data, &bitsRead, &bytesRead, dataLength);
-    u32 numRefIdxl1ActiveMinus1                 = ue(data, &bitsRead, &bytesRead, dataLength);
-    u32 weightedPredFlag                        = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-    u32 weightedBipredIdc                       = getUnsignedNBits(data, &bitsRead, &bytesRead, 2);
-    i32 picInitQpMinus26                        = se(data, &bitsRead, &bytesRead, dataLength);
-    i32 picInitQsMinus26                        = se(data, &bitsRead, &bytesRead, dataLength);
-    i32 chromaQpIndexOffset                     = se(data, &bitsRead, &bytesRead, dataLength);
-    u32 deblockingFilterVariablesPresentFlag    = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-    u32 constrainedIntraPredFlag                = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-    u32 redundantPicCntPresentFlag              = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-    u32 frameCroppingFlag                       = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-
-    u32 frameCropLeftOffset;
-    u32 frameCropRightOffset;
-    u32 frameCropTopOffset;
-    u32 frameCropBottomOffset;
-    if (frameCroppingFlag) { 
-        frameCropLeftOffset     = ue(data, &bitsRead, &bytesRead, dataLength);
-        frameCropRightOffset    = ue(data, &bitsRead, &bytesRead, dataLength);
-        frameCropTopOffset      = ue(data, &bitsRead, &bytesRead, dataLength);
-        frameCropBottomOffset   = ue(data, &bitsRead, &bytesRead, dataLength);
+    if (pps->frameCroppingFlag) { 
+        pps->frameCropLeftOffset     = ue(data, &bitsRead, &bytesRead, dataLength);
+        pps->frameCropRightOffset    = ue(data, &bitsRead, &bytesRead, dataLength);
+        pps->frameCropTopOffset      = ue(data, &bitsRead, &bytesRead, dataLength);
+        pps->frameCropBottomOffset   = ue(data, &bitsRead, &bytesRead, dataLength);
     }
 
     rbspTrailingBits(data, &bitsRead, &bytesRead, dataLength);
@@ -220,80 +223,84 @@ picParameterSet *picParameterSetRbsp(u32 NALUnitDataLength, u8 *NALDataStream) {
 
     return pps;
 
-    // TEMP FREEING
-    if (runLengthMinus1 != NULL)
-        free(runLengthMinus1);
+    // to move to freeing function
+    if (pps->runLengthMinus1 != NULL)
+        free(pps->runLengthMinus1);
 
-    if (topLeft != NULL)
-        free(topLeft);
+    if (pps->topLeft != NULL)
+        free(pps->topLeft);
 
-    if (bottomRight != NULL)
-        free(bottomRight);
+    if (pps->bottomRight != NULL)
+        free(pps->bottomRight);
 
-    if (sliceGroupId != NULL)
-        free(sliceGroupId);
+    if (pps->sliceGroupId != NULL)
+        free(pps->sliceGroupId);
+    
+    free(pps);
 }
 
-void seqParameterSetRbsp(u32 NALUnitDataLength, u8 *NALDataStream) { 
-    u32 leadingZeroBits;
+
+
+seqParameterSet *seqParameterSetRbspDecode(u32 NALUnitDataLength, u8 *NALDataStream) { 
+    NALUnitInfo *NALUnit = parseNALUnit(NALUnitDataLength, NALDataStream);
 
     u32 bitsRead = 0;
     u32 bytesRead = 0;
 
-    u8 *data = NALDataStream;
-    u32 dataLength = NALUnitDataLength;
+    u8 *data = NALUnit->NALUnitData;
+    u32 dataLength = NALUnit->NALUnitDataLength;
 
     printf("===============\n");
-    u32 profileIdc                          = getUnsignedNBits(data, &bitsRead, &bytesRead, 8);
-    u32 levelIdc                            = getUnsignedNBits(data, &bitsRead, &bytesRead, 8);
-    u32 moreThanOneSliceGroupAllowedFlag    = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-    u32 arbitrarySliceOrderAllowedFlag      = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-    u32 redundantPicturesAllowedFlag        = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    seqParameterSet *sps = calloc(1, sizeof(seqParameterSet));
 
-    u32 seqParameterSetId                   = ue(data, &bitsRead, &bytesRead, dataLength);
-    u32 log2MaxFrameNumMinus4               = ue(data, &bitsRead, &bytesRead, dataLength);
-    u32 picOrderCntType                     = ue(data, &bitsRead, &bytesRead, dataLength);
+    sps->profileIdc                          = getUnsignedNBits(data, &bitsRead, &bytesRead, 8);
+    sps->levelIdc                            = getUnsignedNBits(data, &bitsRead, &bytesRead, 8);
+    sps->moreThanOneSliceGroupAllowedFlag    = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    sps->arbitrarySliceOrderAllowedFlag      = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    sps->redundantPicturesAllowedFlag        = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+
+    sps->seqParameterSetId                   = ue(data, &bitsRead, &bytesRead, dataLength);
+    sps->log2MaxFrameNumMinus4               = ue(data, &bitsRead, &bytesRead, dataLength);
+    sps->picOrderCntType                     = ue(data, &bitsRead, &bytesRead, dataLength);
 
 
-    u32 log2MaxPicOrderCntLsbMinus4;
-    u32 deltaPicOrderAlwaysZeroFlag;
-    u32 offsetForNonRefPic;
-    u32 offsetForTopToBottomField;
-    u32 numRefFramesInPicOrderCntCycle;
-    i32 *offsetForRefFrame = NULL;
-    if (picOrderCntType == 0)
+    sps->log2MaxPicOrderCntLsbMinus4;
+    sps->deltaPicOrderAlwaysZeroFlag;
+    sps->offsetForNonRefPic;
+    sps->offsetForTopToBottomField;
+    sps->numRefFramesInPicOrderCntCycle;
+    sps->offsetForRefFrame = NULL;
+    if (sps->picOrderCntType == 0)
     { 
-        log2MaxPicOrderCntLsbMinus4     = se(data, &bitsRead, &bytesRead, dataLength);
+        sps->log2MaxPicOrderCntLsbMinus4     = se(data, &bitsRead, &bytesRead, dataLength);
     } 
-    else if (picOrderCntType == 1)
+    else if (sps->picOrderCntType == 1)
     { 
-        deltaPicOrderAlwaysZeroFlag     = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-        offsetForNonRefPic              = se(data, &bitsRead, &bytesRead, dataLength);
-        offsetForTopToBottomField       = se(data, &bitsRead, &bytesRead, dataLength);
-        numRefFramesInPicOrderCntCycle  = ue(data, &bitsRead, &bytesRead, dataLength);
+        sps->deltaPicOrderAlwaysZeroFlag    = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+        sps->offsetForNonRefPic             = se(data, &bitsRead, &bytesRead, dataLength);
+        sps->offsetForTopToBottomField      = se(data, &bitsRead, &bytesRead, dataLength);
+        sps->numRefFramesInPicOrderCntCycle = ue(data, &bitsRead, &bytesRead, dataLength);
 
-        offsetForRefFrame = (i32*) malloc(sizeof(i32) * numRefFramesInPicOrderCntCycle);
-        for (u32 i = 0; i < numRefFramesInPicOrderCntCycle; i++) { 
-            offsetForRefFrame[i] = se(data, &bitsRead, &bytesRead, dataLength);
+        sps->offsetForRefFrame              = (i32*) malloc(sizeof(i32) * sps->numRefFramesInPicOrderCntCycle);
+        for (u32 i = 0; i < sps->numRefFramesInPicOrderCntCycle; i++) { 
+            sps->offsetForRefFrame[i]       = se(data, &bitsRead, &bytesRead, dataLength);
         }
     }
 
+    sps->numRefFrames                           = ue(data, &bitsRead, &bytesRead, dataLength); 
+    sps->requiredFrameNumUpdateBehaviourFlag    = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    sps->picWidthInMbsMinus1                    = ue(data, &bitsRead, &bytesRead, dataLength); 
+    sps->picHeightInMapUnitsMinus1              = ue(data, &bitsRead, &bytesRead, dataLength); 
+    sps->frameMbsOnlyFlag                       = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
 
-    u32 numRefFrames                            = ue(data, &bitsRead, &bytesRead, dataLength); 
-    u32 requiredFrameNumUpdateBehaviourFlag     = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-    u32 picWidthInMbsMinus1                     = ue(data, &bitsRead, &bytesRead, dataLength); 
-    u32 picHeightInMapUnitsMinus1               = ue(data, &bitsRead, &bytesRead, dataLength); 
-    u32 frameMbsOnlyFlag                        = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-
-    u32 mbAdaptiveFrameFieldFlag;
-    if (!frameMbsOnlyFlag) { 
-        mbAdaptiveFrameFieldFlag                = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    if (!(sps->frameMbsOnlyFlag)) { 
+        sps->mbAdaptiveFrameFieldFlag           = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
     }
 
-    u32 direct8x8InferenceFlag                  = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-    u32 vuiParametersPresentFlag                = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    sps->direct8x8InferenceFlag                 = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+    sps->vuiParametersPresentFlag               = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
 
-    if (vuiParametersPresentFlag) { 
+    if (sps->vuiParametersPresentFlag) { 
         //vui_parameters();
         printf("vui parameters present\n");
     }
@@ -305,32 +312,37 @@ void seqParameterSetRbsp(u32 NALUnitDataLength, u8 *NALDataStream) {
     printBits(data, 30);
     printf("===============\n");
 
+    
+    return sps;
 
     // TEMP FREEING
-    if (offsetForRefFrame != NULL)
-        free(offsetForRefFrame);
+    if (sps->offsetForRefFrame != NULL)
+        free(sps->offsetForRefFrame);
+
+    free(sps);
 }
 
 
 
-void sliceHeader(u32 NALUnitDataLength, u8 *NALDataStream) { 
-    u32 leadingZeroBits;
+void sliceHeaderDecode(u32 NALUnitDataLength, u8 *NALDataStream, sampleInfo *sample, MPEG_Data *videoData) { 
+    NALUnitInfo *NALUnit = parseNALUnit(NALUnitDataLength, NALDataStream);
 
     u32 bitsRead = 0;
     u32 bytesRead = 0;
 
-    u8 *data = NALDataStream;
-    u32 dataLength = NALUnitDataLength;
+    u8 *data = NALUnit->NALUnitData;
+    u32 dataLength = NALUnit->NALUnitDataLength;
 
     printf("===============\n");
+    sliceHeader *sh = calloc(1, sizeof(sliceHeader));
 
-    u32 firstMbInSlice      = ue(data, &bitsRead, &bytesRead, dataLength);
-    u32 sliceType           = ue(data, &bitsRead, &bytesRead, dataLength);
-    printf("slice type: %d\n", sliceType);
-    u32 picParameterSetId   = ue(data, &bitsRead, &bytesRead, dataLength);
+    sh->firstMbInSlice      = ue(data, &bitsRead, &bytesRead, dataLength);
+    sh->sliceType           = ue(data, &bitsRead, &bytesRead, dataLength);
+    printf("slice type: %d\n", sh->sliceType);
+    sh->picParameterSetId   = ue(data, &bitsRead, &bytesRead, dataLength);
 
-    u32 frameNum; // get pic parameter set from last decode order slice then get sequence set id from there and use log2_max_frame_num_minus4 + 4 from there
-    u32 frameMbsOnlyFlag; // get for sequence set
+    sh->frameNum; // get pic parameter set from last decode order slice then get sequence set id from there and use log2_max_frame_num_minus4 + 4 from there
+    u32 frameMbsOnlyFlag; // get from sequence set
 
     u32 fieldPicFlag;
     u32 bottomFieldFlag;

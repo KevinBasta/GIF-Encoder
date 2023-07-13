@@ -149,19 +149,21 @@ void avccParseBox(box *avccBox, MPEG_Data *videoData) {
     u8 numOfSequenceParameterSets   = getNBits(3, 7, *reservedAndNumOfSequenceParameterSets);
     free(reservedAndNumOfSequenceParameterSets);
     
-    seqParameterSet *seqParameterSets = (AVC_Data*) malloc(sizeof(seqParameterSet) * numOfSequenceParameterSets);
+    seqParameterSet **seqParameterSets = (seqParameterSet**) malloc(sizeof(seqParameterSet*) * (numOfSequenceParameterSets + 1));
+    seqParameterSets[numOfSequenceParameterSets] = NULL;
     for (u8 i = 0; i < numOfSequenceParameterSets; i++) { 
         u16 sequenceParameterSetLengthInt = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead)); 
         u8 *sequenceParameterSetNALUnit   = referenceNBytes(sequenceParameterSetLengthInt, boxData, &bytesRead); // arr
-        //seqParameterSets[i] = parseNALUnit(sequenceParameterSetLengthInt, sequenceParameterSetNALUnit);
+        seqParameterSets[i] = seqParameterSetRbspDecode(sequenceParameterSetLengthInt, sequenceParameterSetNALUnit);
     }
 
     u8 numOfPictureParameterSetsInt = bigEndianU8ArrToLittleEndianU8(referenceNBytes(1, boxData, &bytesRead));    
-    picParameterSet *picParameterSets = (AVC_Data*) malloc(sizeof(picParameterSet) * numOfPictureParameterSetsInt);
+    picParameterSet **picParameterSets = (picParameterSet**) malloc(sizeof(picParameterSet*) * (numOfPictureParameterSetsInt + 1));
+    picParameterSets[numOfPictureParameterSetsInt] = NULL;
     for (u8 i = 0; i < numOfPictureParameterSetsInt; i++) {
         u16 pictureParameterSetLengthInt = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead));
         u8 *picutreParameterSetNALUnit   = referenceNBytes(pictureParameterSetLengthInt, boxData, &bytesRead); // arr
-        //picParameterSets[i] = parseNALUnit(pictureParameterSetLengthInt, picutreParameterSetNALUnit);
+        picParameterSets[i] = picParameterSetRbspDecode(pictureParameterSetLengthInt, picutreParameterSetNALUnit);
     }
     
     avcData->lengthSizeMinus1 = lengthSizeMinus1;
