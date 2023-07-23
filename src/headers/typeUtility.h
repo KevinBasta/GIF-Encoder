@@ -1,5 +1,6 @@
 
-u32 binarySearch(u32 target, u32 *table, u32 totalEntries, i32 (*comp) (const void *, const void *) );
+u32 binarySearch(u32 target, u32 *table, u32 totalEntries, i32 (*comp) (const void *, const void *));
+u32 linearSearch(u32 target, u32 *array, u32 totalEntries, i32 (*comp) (const void *, const void *));
 i32 compi32(const void *a, const void *b);
 i32 compu32(const void *a, const void *b);
 

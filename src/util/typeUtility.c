@@ -13,7 +13,7 @@
 
 // search algorithm for stss/sync sample
 // returns the preceeding 
-u32 binarySearch(u32 target, u32 *table, u32 totalEntries, i32 (*comp) (const void *, const void *) ) { 
+u32 binarySearch(u32 target, u32 *table, u32 totalEntries, i32 (*comp) (const void *, const void *)) { 
     u32 low = 0;
     u32 high = totalEntries;
     u32 mid; 
@@ -33,8 +33,42 @@ u32 binarySearch(u32 target, u32 *table, u32 totalEntries, i32 (*comp) (const vo
         //printf("%d %d %d %d %d\n", low, high, mid, sampleNumber, syncSampleTable[mid]->number);
     }
 
-    return low;
+    return low; // currently used as a fallback value in processMPEG
 }
+
+
+// used for slice header searching for it's pps id
+// can be deprecated in future if pps is always in id order
+// alternatively can sort and search, but **pps doesn't seem to have
+// many entries
+// returns index 
+u32 linearSearch(u32 target, u32 *array, u32 totalEntries, i32 (*comp) (const void *, const void *)) { 
+    
+    for (int i = 0; i < totalEntries; i++) {
+        i32 result = comp(&target, &array[i]);
+
+        if (result == 0) { 
+            return i;
+        }
+    }
+
+    return 0; // error return? can make return type i64 and return -1 for error checking since index is returned
+}
+
+
+/* i32 compPpsId(const void *a, const void *b) {
+    picParameterSet *c = (picParameterSet*) a;
+    picParameterSet *d = (picParameterSet*) b;
+
+    i32 arg1 = *(const u32*) c->picParameterSetId;
+    i32 arg2 = *(const u32*) d->picParameterSetId;
+
+    if (arg1 < arg2) return -1;
+    if (arg1 > arg2) return 1;
+    return 0;
+} */
+
+/* i32 compSpsId() {} */
 
 i32 compi32(const void *a, const void *b) { 
     i32 arg1 = *(const int*) a;

@@ -196,22 +196,11 @@ typedef struct displayTimeToSampleTable {
 } displayTimeToSampleTable;
 
 
-// Main Storage Structs //
-
-typedef struct sampleInfo {
-    u32 realTime; // may remove 
-    u32 mediaTime;
-    u32 sampleNumber;
-    u32 chunkNumber;
-    u32 chunkOffset;
-    u32 sampleSize;
-    u32 sampleIndexInChunk;
-    u32 sampleOffsetInChunk;
-    u32 sampleOffsetInMdat;
-    u8 *mdatPointer;
-} sampleInfo;
 
 
+
+
+// AVC Structs //
 
 typedef struct NALUnitInfo {
     u8 NALRefIdc;
@@ -284,6 +273,28 @@ typedef struct seqParameterSet {
 } seqParameterSet;
 
 
+/**
+ * @brief picParameterSetId holds id corrosponding to each
+ * picParameterSets entry for searching and sorting
+ */
+typedef struct picParameterSetTable {
+    u32 numberOfEntries;
+    picParameterSet **picParameterSetArr;
+    u32 *picParameterSetIdArr;
+} picParameterSetTable;
+
+
+/**
+ * @brief seqParameterSetId holds id corrosponding to each
+ * seqParameterSets entry for searching and sorting
+ */
+typedef struct seqParameterSetTable { 
+    u32 numberOfEntries;
+    seqParameterSet **seqParameterSetArr;
+    u32 *seqParameterSetIdArr;
+} seqParameterSetTable;
+
+
 typedef struct sliceHeader { 
     u32 firstMbInSlice;
     u32 sliceType;
@@ -313,8 +324,8 @@ typedef struct sliceHeader {
 typedef struct AVC_Data {
     // avcc length of nal unit
     u8 lengthSizeMinus1;
-    picParameterSet **picParameterSets;
-    seqParameterSet **seqParameterSets;
+    picParameterSetTable *picParamTable;
+    seqParameterSetTable *seqParamTable;
 } AVC_Data;
 
 typedef struct NAL_Data {
@@ -323,6 +334,22 @@ typedef struct NAL_Data {
 
 
 
+
+
+// Main Storage Structs //
+
+typedef struct sampleInfo {
+    u32 realTime; // may remove 
+    u32 mediaTime;
+    u32 sampleNumber;
+    u32 chunkNumber;
+    u32 chunkOffset;
+    u32 sampleSize;
+    u32 sampleIndexInChunk;
+    u32 sampleOffsetInChunk;
+    u32 sampleOffsetInMdat;
+    u8 *mdatPointer;
+} sampleInfo;
 
 
 /**

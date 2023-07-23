@@ -144,31 +144,47 @@ void avccParseBox(box *avccBox, MPEG_Data *videoData) {
     printf("length %u\n", lengthSizeMinus1);
     free(reservedAndLengthSizeMinusOne);
 
+    // Seq Parameter Sets //
+
     u8 *reservedAndNumOfSequenceParameterSets = copyNBytes(1, boxData, &bytesRead);
     u8 reservedTwo                  = getNBits(0, 2, *reservedAndNumOfSequenceParameterSets);
     u8 numOfSequenceParameterSets   = getNBits(3, 7, *reservedAndNumOfSequenceParameterSets);
     free(reservedAndNumOfSequenceParameterSets);
     
-    seqParameterSet **seqParameterSets = (seqParameterSet**) malloc(sizeof(seqParameterSet*) * (numOfSequenceParameterSets + 1));
-    seqParameterSets[numOfSequenceParameterSets] = NULL;
+    seqParameterSetTable *seqParamTable = malloc(sizeof(seqParameterSetTable));
+    seqParamTable->numberOfEntries      = numOfSequenceParameterSets;
+    seqParamTable->seqParameterSetArr   = (seqParameterSet**)   malloc(sizeof(seqParameterSet*) * numOfSequenceParameterSets);
+    seqParamTable->seqParameterSetIdArr = (u32*)                malloc(sizeof(u32) * numOfSequenceParameterSets);
+
     for (u8 i = 0; i < numOfSequenceParameterSets; i++) { 
-        u16 sequenceParameterSetLengthInt = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead)); 
-        u8 *sequenceParameterSetNALUnit   = referenceNBytes(sequenceParameterSetLengthInt, boxData, &bytesRead); // arr
-        seqParameterSets[i] = seqParameterSetRbspDecode(sequenceParameterSetLengthInt, sequenceParameterSetNALUnit);
+        u16 sequenceParameterSetLengthInt       = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead)); 
+        u8 *sequenceParameterSetNALUnit         = referenceNBytes(sequenceParameterSetLengthInt, boxData, &bytesRead);
+    
+        seqParamTable->seqParameterSetArr[i]    = seqParameterSetRbspDecode(sequenceParameterSetLengthInt, sequenceParameterSetNALUnit);
+        seqParamTable->seqParameterSetIdArr[i]  = seqParamTable->seqParameterSetArr[i]->seqParameterSetId;
     }
 
-    u8 numOfPictureParameterSetsInt = bigEndianU8ArrToLittleEndianU8(referenceNBytes(1, boxData, &bytesRead));    
-    picParameterSet **picParameterSets = (picParameterSet**) malloc(sizeof(picParameterSet*) * (numOfPictureParameterSetsInt + 1));
-    picParameterSets[numOfPictureParameterSetsInt] = NULL;
+
+    // Pic Parameter Sets //
+    
+    u8 numOfPictureParameterSetsInt     =  bigEndianU8ArrToLittleEndianU8(referenceNBytes(1, boxData, &bytesRead));    
+    
+    picParameterSetTable *picParamTable = malloc(sizeof(picParameterSetTable));
+    picParamTable->numberOfEntries      = numOfPictureParameterSetsInt;
+    picParamTable->picParameterSetArr   = (picParameterSet**)   malloc(sizeof(picParameterSet*) * numOfPictureParameterSetsInt);
+    picParamTable->picParameterSetIdArr = (u32*)                malloc(sizeof(u32) * numOfPictureParameterSetsInt);
+
     for (u8 i = 0; i < numOfPictureParameterSetsInt; i++) {
-        u16 pictureParameterSetLengthInt = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead));
-        u8 *picutreParameterSetNALUnit   = referenceNBytes(pictureParameterSetLengthInt, boxData, &bytesRead); // arr
-        picParameterSets[i] = picParameterSetRbspDecode(pictureParameterSetLengthInt, picutreParameterSetNALUnit);
+        u16 pictureParameterSetLengthInt    = bigEndianU8ArrToLittleEndianU16(referenceNBytes(2, boxData, &bytesRead));
+        u8 *picutreParameterSetNALUnit      = referenceNBytes(pictureParameterSetLengthInt, boxData, &bytesRead);
+        
+        picParamTable->picParameterSetArr[i]    = picParameterSetRbspDecode(pictureParameterSetLengthInt, picutreParameterSetNALUnit);
+        picParamTable->picParameterSetIdArr[i]  = picParamTable->picParameterSetArr[i]->picParameterSetId; 
     }
     
     avcData->lengthSizeMinus1 = lengthSizeMinus1;
-    avcData->picParameterSets = picParameterSets;
-    avcData->seqParameterSets = seqParameterSets;
+    avcData->seqParamTable = seqParamTable;
+    avcData->picParamTable = picParamTable;
 
     videoData->avcData = avcData;
     printf("bytes read: %d  \t box data size: %d\n", bytesRead, boxDataSize);

@@ -1,13 +1,12 @@
-main:main.o \
-	parseMPEG-4.o decodeMPEG-4.o processMPEG-4.o decodeAVC.o \
-	AVCUtility.o bitUtility.o endianUtility.o linkedList.o printUtility.o typeUtility.o \
-	src/headers/types.h
-	gcc -o a.out main.o \
-	parseMPEG-4.o decodeMPEG-4.o processMPEG-4.o decodeAVC.o \
-    AVCUtility.o bitUtility.o endianUtility.o linkedList.o printUtility.o typeUtility.o \
-	-lm -Wall -Werror -Wpedantic
+OBJECTS = main.o \
+		  parseMPEG-4.o decodeMPEG-4.o processMPEG-4.o decodeAVC.o \
+	 	  AVCUtility.o bitUtility.o endianUtility.o linkedList.o printUtility.o typeUtility.o
 
-main.o: src/main.c
+
+main: $(OBJECTS)
+	gcc -o a.out $(OBJECTS) -lm -Wall -Werror -Wpedantic
+
+main.o: src/main.c src/headers/types.h
 	gcc -c src/main.c
 
 parseMPEG-4.o: src/mpeg/parseMPEG-4.c src/headers/parseMPEG-4.h

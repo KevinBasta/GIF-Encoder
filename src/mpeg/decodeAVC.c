@@ -220,7 +220,7 @@ picParameterSet *picParameterSetRbspDecode(u32 NALUnitDataLength, u8 *NALDataStr
     printBits(data, 30);
     printf("===============\n");
 
-
+    free(NALUnit);
     return pps;
 
     // to move to freeing function
@@ -312,7 +312,7 @@ seqParameterSet *seqParameterSetRbspDecode(u32 NALUnitDataLength, u8 *NALDataStr
     printBits(data, 30);
     printf("===============\n");
 
-    
+    free(NALUnit);
     return sps;
 
     // TEMP FREEING
@@ -330,8 +330,9 @@ void sliceHeaderDecode(u32 NALUnitDataLength, u8 *NALDataStream, sampleInfo *sam
     u32 bitsRead = 0;
     u32 bytesRead = 0;
 
-    u8 *data = NALUnit->NALUnitData;
-    u32 dataLength = NALUnit->NALUnitDataLength;
+    u8 *data        = NALUnit->NALUnitData;
+    u32 dataLength  = NALUnit->NALUnitDataLength;
+    u8  NALUnitType = NALUnit->NALUnitType;
 
     printf("===============\n");
     sliceHeader *sh = calloc(1, sizeof(sliceHeader));
@@ -340,8 +341,29 @@ void sliceHeaderDecode(u32 NALUnitDataLength, u8 *NALDataStream, sampleInfo *sam
     sh->sliceType           = ue(data, &bitsRead, &bytesRead, dataLength);
     printf("slice type: %d\n", sh->sliceType);
     sh->picParameterSetId   = ue(data, &bitsRead, &bytesRead, dataLength);
+    
+    u32 ppsTableIndex = linearSearch(sh->picParameterSetId, 
+                                    videoData->avcData->picParamTable->picParameterSetIdArr,
+                                    videoData->avcData->picParamTable->numberOfEntries,
+                                    compu32);
+    picParameterSet *pps = videoData->avcData->picParamTable->picParameterSetArr[ppsTableIndex];
 
+    u32 spsTableIndex = linearSearch(pps->seqParameterSetId, 
+                                    videoData->avcData->seqParamTable->seqParameterSetIdArr,
+                                    videoData->avcData->seqParamTable->numberOfEntries,
+                                    compu32);
+    seqParameterSet *sps = videoData->avcData->seqParamTable->seqParameterSetArr[spsTableIndex];
+
+    if (NALUnitType != 5) {
+        // sps is reffered to in pps is meant to be equal to last decoding order slice pps' sps val
+        // check if this holds true 
+    } else { 
+        // unknown special case, check iso
+    }
     sh->frameNum; // get pic parameter set from last decode order slice then get sequence set id from there and use log2_max_frame_num_minus4 + 4 from there
+    
+    
+    
     u32 frameMbsOnlyFlag; // get from sequence set
 
     u32 fieldPicFlag;
@@ -353,12 +375,12 @@ void sliceHeaderDecode(u32 NALUnitDataLength, u8 *NALDataStream, sampleInfo *sam
         }
     }
 
-    u32 NALUnitType; // defined in parent
     u32 idrPicId;
     if (NALUnitType == 5) { 
         idrPicId    = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
     }
 
+    free(NALUnit);
 
 }
 
