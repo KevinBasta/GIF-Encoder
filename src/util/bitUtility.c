@@ -5,10 +5,10 @@
     #include <stdint.h>
     #include <math.h>
 
-    #include "../headers/types.h"
-    #include "../headers/printUtility.h"
-    #include "../headers/endianUtility.h"
-    #include "../headers/bitUtility.h"
+    #include "types.h"
+    #include "printUtility.h"
+    #include "endianUtility.h"
+    #include "bitUtility.h"
 #endif
 
 
@@ -129,6 +129,9 @@ u8 *referenceNBits(u32 numberOfBits, u8 *originalData, u32 *bitOffset, u32 *byte
  * @return number of 0 bits
  */
 u32 countBitsToFirstNonZero(u8 *originalData, u32 *bitOffset, u32 *byteOffset, u32 byteBoundaryPlusOne) { 
+    // update byteOffset based on bitOffset
+    *byteOffset = floor(*bitOffset / 8.0);
+    
     u8 bitStart;
 
     u32 startingBitInPointer = (*bitOffset % 8);

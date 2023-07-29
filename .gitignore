@@ -2,8 +2,8 @@ bin
 *.bin
 *.out
 *.o
-log
 
+*.log
 *.txt
 *.pdf
 *.mp4
@@ -11,6 +11,7 @@ log
 *.py
 
 local_files
+log
 l_*.c
 
 .vs

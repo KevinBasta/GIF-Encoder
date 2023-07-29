@@ -3,12 +3,12 @@
     #include <stdlib.h>
     #include <stdint.h>
 
-    #include "../headers/types.h"
-    #include "../headers/typeUtility.h"
-    #include "../headers/linkedList.h"
-    #include "../headers/printUtility.h"
-    #include "../headers/endianUtility.h"
-    #include "../headers/bitUtility.h"
+    #include "types.h"
+    #include "typeUtility.h"
+    #include "linkedList.h"
+    #include "printUtility.h"
+    #include "endianUtility.h"
+    #include "bitUtility.h"
 #endif
 
 // search algorithm for stss/sync sample

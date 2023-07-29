@@ -7,18 +7,18 @@
     #include <math.h>
     #include <time.h>
 
-    #include "../headers/types.h"
-    #include "../headers/typeUtility.h"
-    #include "../headers/printUtility.h"
-    #include "../headers/endianUtility.h"
-    #include "../headers/bitUtility.h"
-    #include "../headers/linkedList.h"
-    #include "../headers/AVCUtility.h"
+    #include "types.h"
+    #include "typeUtility.h"
+    #include "printUtility.h"
+    #include "endianUtility.h"
+    #include "bitUtility.h"
+    #include "linkedList.h"
+    #include "AVCUtility.h"
 
-    #include "../headers/parseMPEG-4.h"
-    #include "../headers/decodeMPEG-4.h"
-    #include "../headers/decodeAVC.h"
-    #include "../headers/processMPEG-4.h"
+    #include "parseMPEG-4.h"
+    #include "decodeMPEG-4.h"
+    #include "decodeAVC.h"
+    #include "processMPEG-4.h"
 #endif
 
 
@@ -217,7 +217,7 @@ picParameterSet *picParameterSetRbspDecode(u32 NALUnitDataLength, u8 *NALDataStr
 
     printf("BITS READ %d\n", bitsRead);
     printf("TOTAL BITS %d\n", (dataLength * 8));
-    printBits(data, 30);
+    printBits(data, dataLength);
     printf("===============\n");
 
     free(NALUnit);
@@ -309,7 +309,7 @@ seqParameterSet *seqParameterSetRbspDecode(u32 NALUnitDataLength, u8 *NALDataStr
 
     printf("BITS READ %d\n", bitsRead);
     printf("TOTAL BITS %d\n", (dataLength * 8));
-    printBits(data, 30);
+    printBits(data, dataLength);
     printf("===============\n");
 
     free(NALUnit);
@@ -356,34 +356,69 @@ void sliceHeaderDecode(u32 NALUnitDataLength, u8 *NALDataStream, sampleInfo *sam
 
     if (NALUnitType != 5) {
         // sps is reffered to in pps is meant to be equal to last decoding order slice pps' sps val
-        // check if this holds true 
+        // TD check if this holds true 
     } else { 
         // unknown special case, check iso
     }
-    sh->frameNum; // get pic parameter set from last decode order slice then get sequence set id from there and use log2_max_frame_num_minus4 + 4 from there
-    
-    
-    
-    u32 frameMbsOnlyFlag; // get from sequence set
 
-    u32 fieldPicFlag;
-    u32 bottomFieldFlag;
-    if (!frameMbsOnlyFlag) { 
-        fieldPicFlag    = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-        if (fieldPicFlag) { 
-            bottomFieldFlag    = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
+
+    sh->frameNum            = u(data, &bitsRead, &bytesRead, sps->log2MaxFrameNumMinus4 + 4); // TD more logic present in iso
+    if (!(sps->frameMbsOnlyFlag)) { 
+        sh->fieldPicFlag        = u(data, &bitsRead, &bytesRead, 1);
+        if (sh->fieldPicFlag)
+            sh->bottomFieldFlag = u(data, &bitsRead, &bytesRead, 1);
+    }
+
+    if (NALUnitType == 5) { 
+        sh->idrPicId    = ue(data, &bitsRead, &bytesRead, dataLength);
+    }
+
+    if (sps->picOrderCntType == 0) { 
+        sh->picOrderCntLsb  = u(data, &bitsRead, &bytesRead, sps->log2MaxPicOrderCntLsbMinus4 + 4);
+        if (pps->picOrderPresentFlag == 1 && !(sh->fieldPicFlag))
+            sh->deltaPicOrderCntBottom = se(data, &bitsRead, &bytesRead, dataLength);
+    }
+
+    if (sps->picOrderCntType == 1 && !(sps->deltaPicOrderAlwaysZeroFlag)) { 
+        sh->deltaPicOrderCnt        = calloc(2, sizeof(i32));
+
+        sh->deltaPicOrderCnt[0]     = se(data, &bitsRead, &bytesRead, dataLength);
+        if (pps->picOrderPresentFlag == 1 && !(sh->fieldPicFlag))
+            sh->deltaPicOrderCnt[1] = se(data, &bitsRead, &bytesRead, dataLength);
+    }
+
+    if (pps->redundantPicCntPresentFlag) { 
+        sh->redundantPicCnt = ue(data, &bitsRead, &bytesRead, dataLength);
+    }
+
+    if (sh->sliceType == 1 || sh->sliceType == 6) { // if sh->sliceType == B
+        sh->directSpatialMvPredFlag = u(data, &bitsRead, &bytesRead, 1);
+    }
+
+    if (sh->sliceType == 0 || sh->sliceType == 5 || // sh->sliceType == P
+        sh->sliceType == 3 || sh->sliceType == 8 || // sh->sliceType == SP
+        sh->sliceType == 1 || sh->sliceType == 6) { // sh->sliceType == B
+        
+        sh->numRefIdxActiveOverrideFlag = u(data, &bitsRead, &bytesRead, 1);
+        
+        if (sh->numRefIdxActiveOverrideFlag) {
+            sh->numRefIdx10ActiveMinus1 = ue(data, &bitsRead, &bytesRead, dataLength);
+            if (sh->sliceType == 1 || sh->sliceType == 6) // if sh->sliceType == B
+                sh->numRefIdx11ActiveMinus1 = ue(data, &bitsRead, &bytesRead, dataLength);
         }
     }
 
-    u32 idrPicId;
-    if (NALUnitType == 5) { 
-        idrPicId    = getUnsignedNBits(data, &bitsRead, &bytesRead, 1);
-    }
+    //refPicListReordering();
+
+
 
     free(NALUnit);
 
 }
 
+void refPicListReordering() { 
+
+}
 
 
 u8 byteAligned(u32 *bitsRead) { 

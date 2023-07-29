@@ -4,11 +4,11 @@
 #include <stdio.h>
 //#include <CUnit/CUnit.h>
 
-#include "headers/types.h"
-#include "headers/printUtility.h"
-#include "headers/bitUtility.h"
-#include "headers/endianUtility.h"
-#include "headers/linkedList.h"
+#include "types.h"
+#include "printUtility.h"
+#include "bitUtility.h"
+#include "endianUtility.h"
+#include "linkedList.h"
 
 
 int main() { 
@@ -34,11 +34,11 @@ int main() {
     testArr[0] = 0x00; testArr[1] = 0x01; // 0000 0000 0000 0001
     u32 byteOffset = 0;
     i32 bitOffset = 4;
-    /* assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 11); byteOffset = 0; bitOffset = 7;
+    assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 11); byteOffset = 0; bitOffset = 7;
     assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 8); byteOffset = 0; bitOffset = 0;
     assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 15); byteOffset = 0; bitOffset = 2;
     assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 13); byteOffset = 0; bitOffset = 8;
-    assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 15); byteOffset = 0; bitOffset = 0; */
+    assert(countBitsToFirstNonZero(testArr, &bitOffset, &byteOffset, 9) == 7); byteOffset = 0; bitOffset = 0;
 
     for (int i = 0; i < 10; i++) {
         testArr[i] = 0;
@@ -71,7 +71,7 @@ int main() {
     testArr[0] = 0x6F; testArr[1] = 0x41; testArr[2] = 0x6F; testArr[3] = 0x41; // 0110 1111 0100 0001 
     assert(simpleBigEndianToLittleEndianBits(testArr, 0, 31, 32) == 0x6F416F41);
     testArr[0] = 0x6F; testArr[1] = 0x41; testArr[2] = 0x6F; testArr[3] = 0x41; testArr[4] = 0x6F; testArr[5] = 0x41;
-    printf("%lx\n",simpleBigEndianToLittleEndianBits(testArr, 0, 47, 48));
+    //printf("%lx\n",simpleBigEndianToLittleEndianBits(testArr, 0, 47, 48));
     
 
 

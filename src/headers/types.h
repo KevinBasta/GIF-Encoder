@@ -309,8 +309,8 @@ typedef struct sliceHeader {
     u32 redundantPicCnt;
     u8 directSpatialMvPredFlag;
     u8 numRefIdxActiveOverrideFlag;
-    u32 numRefIdxL0ActiveMinus1;
-    u32 numRefIdxL1ActiveMinus1;
+    u32 numRefIdx10ActiveMinus1;
+    u32 numRefIdx11ActiveMinus1;
     u32 cabacInitIdc;
     i32 sliceQpDelta;
     u8 spForSwitchFlag;
@@ -333,7 +333,11 @@ typedef struct NAL_Data {
 } NAL_Data;
 
 
-
+typedef struct parsingInfo { 
+    u32 *bitsRead;
+    u32 *bytesRead;
+    u8 *data;
+} parsingInfo;
 
 
 // Main Storage Structs //

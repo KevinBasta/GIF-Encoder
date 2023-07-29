@@ -7,18 +7,18 @@
     #include <math.h>
     #include <time.h>
 
-    #include "headers/types.h"
-    #include "headers/typeUtility.h"
-    #include "headers/printUtility.h"
-    #include "headers/endianUtility.h"
-    #include "headers/bitUtility.h"
-    #include "headers/linkedList.h"
-    #include "headers/AVCUtility.h"
+    #include "types.h"
+    #include "typeUtility.h"
+    #include "printUtility.h"
+    #include "endianUtility.h"
+    #include "bitUtility.h"
+    #include "linkedList.h"
+    #include "AVCUtility.h"
 
-    #include "headers/parseMPEG-4.h"
-    #include "headers/decodeMPEG-4.h"
-    #include "headers/decodeAVC.h"
-    #include "headers/processMPEG-4.h"
+    #include "parseMPEG-4.h"
+    #include "decodeMPEG-4.h"
+    #include "decodeAVC.h"
+    #include "processMPEG-4.h"
 #endif
 
 
