@@ -26,7 +26,7 @@ MPEG_Data *getMpegData(char *fileName) {
     float startTime = (float)clock()/CLOCKS_PER_SEC;
     
     linkedList *topBoxesLL = initLinkedList();
-    MPEG_Data *videoData = (MPEG_Data*) malloc(sizeof(MPEG_Data));
+    MPEG_Data *videoData = (MPEG_Data*) calloc(1, sizeof(MPEG_Data));
     
 
     printf("----------TOP LEVEL----------\n");

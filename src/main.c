@@ -14,6 +14,7 @@
     #include "bitUtility.h"
     #include "linkedList.h"
     #include "AVCUtility.h"
+    #include "memoryManagement.h"
 
     #include "parseMPEG-4.h"
     #include "decodeMPEG-4.h"
@@ -29,7 +30,10 @@ int main(int argc, char **argv) {
     // "pipe" that information into a the gif interface functional style
 
     MPEG_Data *videoData = getMpegData("local_files/op.mp4");
-    createDisplayTimeToSampleTable(videoData);
+    
+    
+    
+    /* createDisplayTimeToSampleTable(videoData);
 
     
     float startTime = (float)clock()/CLOCKS_PER_SEC;
@@ -38,7 +42,7 @@ int main(int argc, char **argv) {
     
     float endTime = (float)clock()/CLOCKS_PER_SEC;
     float timeElapsed = endTime - startTime;
-    printf("DATA PROCESSING OPERATION elapsed: %f\n", timeElapsed);
+    printf("DATA PROCESSING OPERATION elapsed: %f\n", timeElapsed); */
     
     
     //sampleSearchByRealTime(15, videoData);

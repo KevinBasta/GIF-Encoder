@@ -11,7 +11,6 @@
     #include "bitUtility.h"
 #endif
 
-
 /**
  *  @brief converts a big endian integer bit pattern
  *  stored in a char array to little endian integer bit pattern stored
@@ -19,58 +18,10 @@
  *  integer values are stored as big endian in the MPEG-4 Files.
  *  they are then read into a char heap array which is given 
  *  to this function. they are then converted into an integer and returned. 
- *  @param *bigEndianCharArray:     the 4 byte character array
+ *  @param *bigEndianCharArray  - the 4 byte character array
+ *  @param numberOfBytes        - number of bytes the convert from char array
  *  @return u32 value
  */
-u32 bigEndianCharToLittleEndianUnsignedInt(u8 *bigEndianCharArray) { 
-    u32 littleEndianUnsignedInt = 0;
-
-    for (u32 headerByte = 0; headerByte < 4; headerByte++) {
-        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-            i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
-            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
-            // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
-
-            if (currentBit == 1) {
-                littleEndianUnsignedInt = littleEndianUnsignedInt | (currentBit << bitOffset);
-            }
-        }
-    }
-
-    return littleEndianUnsignedInt;
-}
-
-u32 *bigEndianCharToLittleEndianUnsignedIntHeap(u8 *bigEndianCharArray) { 
-    u32 *littleEndianUnsignedInt = (u32*) malloc(sizeof(u32));
-    *littleEndianUnsignedInt = bigEndianCharToLittleEndianUnsignedInt(bigEndianCharArray);
-
-    return littleEndianUnsignedInt;
-}
-
-i32 bigEndianCharToLittleEndianInt(u8 *bigEndianCharArray) { 
-    u32 littleEndianInt = 0;
-
-    for (u32 headerByte = 0; headerByte < 4; headerByte++) {
-        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
-            i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
-            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
-
-            if (currentBit == 1) {
-                littleEndianInt = littleEndianInt | (currentBit << bitOffset);
-            }
-        }
-    }
-
-    return littleEndianInt;
-}
-
-i32 *bigEndianCharToLittleEndianIntHeap(u8 *bigEndianCharArray) { 
-    i32 *littleEndianInt = (i32*) malloc(sizeof(i32));
-    *littleEndianInt = bigEndianCharToLittleEndianInt(bigEndianCharArray);
-
-    return littleEndianInt;
-}
-
 i32 bigEndianCharToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 numberOfBytes) { 
     i32 littleEndianInt = 0;
     u32 byteNumb = numberOfBytes - 1;
@@ -94,62 +45,6 @@ i32 *bigEndianCharToLittleEndianGeneralizedHeap(u8 *bigEndianCharArray, u32 numb
     *littleEndianInt = bigEndianCharToLittleEndianGeneralized(bigEndianCharArray, numberOfBytes);
 
     return (void*) littleEndianInt;
-}
-
-
-u64 bigEndianCharBitsToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 startingBit, u32 numberOfBits) {
-    u64 littleEndianInt = 0;
-    u32 bitToStartAtInFirstByte = (startingBit % 8);
-
-    u32 middleBytes = floor(numberOfBits / 8.0);
-    u32 preAndPostBits = numberOfBits - (middleBytes * 8);    
-    i32 byteCountHelper = preAndPostBits - (7 - bitToStartAtInFirstByte); // -2 abs to make it lastBit?
-
-    u32 numberOfBytes = 0;
-    if (byteCountHelper <= 0) { 
-        numberOfBytes = middleBytes + 1;
-    } else if (byteCountHelper > 0) { 
-        numberOfBytes = middleBytes + 2;
-    }
-
-    u32 numberOfBytesMinusOne = numberOfBytes - 1;
-
-    u32 firstBit = 0;
-    u32 lastBit = 7;
-
-    u32 bitOffsetAdjust = (((numberOfBits - (8 - (startingBit) % 8) - ((numberOfBytes - 2) * 8))) % 8) - 1;
-    u32 bitsTaken = numberOfBits;
-
-    for (u32 headerByte = 0; headerByte < numberOfBytes; headerByte++) {
-        firstBit = 0;
-        lastBit = 7;
-        
-        if (headerByte == 0) { 
-            firstBit = startingBit % 8;
-        }
-
-        if (headerByte == numberOfBytesMinusOne) { 
-            lastBit = abs((((numberOfBits - (8 - (startingBit) % 8) - ((numberOfBytes - 2) * 8))) % 8) - 1);
-        }
-
-        for (u32 bitInHeaderByte = firstBit; bitInHeaderByte <= lastBit; bitInHeaderByte++) {
-            i32 currentBit = (bigEndianCharArray[headerByte] >> (8 - bitInHeaderByte - 1)) & 1;
-
-            i32 bitOffset = 0; 
-            if (headerByte == 0) {
-                bitOffset = (8 - (bitInHeaderByte)) + bitOffsetAdjust;
-            } else {
-                bitOffset = abs(((numberOfBytesMinusOne-headerByte)*8) + (bitInHeaderByte) - abs(bitOffsetAdjust));
-            }
-
-            if (currentBit == 1) {
-                littleEndianInt = littleEndianInt | (currentBit << bitOffset);
-            }
-        }
-    }
-    printIntBits(&littleEndianInt, 8);
-    printf("%lx\n", littleEndianInt);
-    return littleEndianInt;
 }
 
 
@@ -364,6 +259,122 @@ i64 *bigEndianU8ArrToLittleEndianI64Heap(u8 *bigEndianU8Arr) {
 
 
 ///////////////////////////////// DELETE THE FOLLOWING //////////////////////////////
+
+/**
+ *  @brief converts a big endian integer bit pattern
+ *  stored in a char array to little endian integer bit pattern stored
+ *  in the spesified type. 
+ *  integer values are stored as big endian in the MPEG-4 Files.
+ *  they are then read into a char heap array which is given 
+ *  to this function. they are then converted into an integer and returned. 
+ *  @param *bigEndianCharArray:     the 4 byte character array
+ *  @return u32 value
+ */
+u32 bigEndianCharToLittleEndianUnsignedInt(u8 *bigEndianCharArray) { 
+    u32 littleEndianUnsignedInt = 0;
+
+    for (u32 headerByte = 0; headerByte < 4; headerByte++) {
+        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+            // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
+
+            if (currentBit == 1) {
+                littleEndianUnsignedInt = littleEndianUnsignedInt | (currentBit << bitOffset);
+            }
+        }
+    }
+
+    return littleEndianUnsignedInt;
+}
+
+u32 *bigEndianCharToLittleEndianUnsignedIntHeap(u8 *bigEndianCharArray) { 
+    u32 *littleEndianUnsignedInt = (u32*) malloc(sizeof(u32));
+    *littleEndianUnsignedInt = bigEndianCharToLittleEndianUnsignedInt(bigEndianCharArray);
+
+    return littleEndianUnsignedInt;
+}
+
+i32 bigEndianCharToLittleEndianInt(u8 *bigEndianCharArray) { 
+    u32 littleEndianInt = 0;
+
+    for (u32 headerByte = 0; headerByte < 4; headerByte++) {
+        for (u32 bitInHeaderByte = 0; bitInHeaderByte < 8; bitInHeaderByte++) {
+            i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
+            i32 bitOffset = (((3-headerByte)*8) + bitInHeaderByte);
+
+            if (currentBit == 1) {
+                littleEndianInt = littleEndianInt | (currentBit << bitOffset);
+            }
+        }
+    }
+
+    return littleEndianInt;
+}
+
+i32 *bigEndianCharToLittleEndianIntHeap(u8 *bigEndianCharArray) { 
+    i32 *littleEndianInt = (i32*) malloc(sizeof(i32));
+    *littleEndianInt = bigEndianCharToLittleEndianInt(bigEndianCharArray);
+
+    return littleEndianInt;
+}
+
+u64 bigEndianCharBitsToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 startingBit, u32 numberOfBits) {
+    u64 littleEndianInt = 0;
+    u32 bitToStartAtInFirstByte = (startingBit % 8);
+
+    u32 middleBytes = floor(numberOfBits / 8.0);
+    u32 preAndPostBits = numberOfBits - (middleBytes * 8);    
+    i32 byteCountHelper = preAndPostBits - (7 - bitToStartAtInFirstByte); // -2 abs to make it lastBit?
+
+    u32 numberOfBytes = 0;
+    if (byteCountHelper <= 0) { 
+        numberOfBytes = middleBytes + 1;
+    } else if (byteCountHelper > 0) { 
+        numberOfBytes = middleBytes + 2;
+    }
+
+    u32 numberOfBytesMinusOne = numberOfBytes - 1;
+
+    u32 firstBit = 0;
+    u32 lastBit = 7;
+
+    u32 bitOffsetAdjust = (((numberOfBits - (8 - (startingBit) % 8) - ((numberOfBytes - 2) * 8))) % 8) - 1;
+    u32 bitsTaken = numberOfBits;
+
+    for (u32 headerByte = 0; headerByte < numberOfBytes; headerByte++) {
+        firstBit = 0;
+        lastBit = 7;
+        
+        if (headerByte == 0) { 
+            firstBit = startingBit % 8;
+        }
+
+        if (headerByte == numberOfBytesMinusOne) { 
+            lastBit = abs((((numberOfBits - (8 - (startingBit) % 8) - ((numberOfBytes - 2) * 8))) % 8) - 1);
+        }
+
+        for (u32 bitInHeaderByte = firstBit; bitInHeaderByte <= lastBit; bitInHeaderByte++) {
+            i32 currentBit = (bigEndianCharArray[headerByte] >> (8 - bitInHeaderByte - 1)) & 1;
+
+            i32 bitOffset = 0; 
+            if (headerByte == 0) {
+                bitOffset = (8 - (bitInHeaderByte)) + bitOffsetAdjust;
+            } else {
+                bitOffset = abs(((numberOfBytesMinusOne-headerByte)*8) + (bitInHeaderByte) - abs(bitOffsetAdjust));
+            }
+
+            if (currentBit == 1) {
+                littleEndianInt = littleEndianInt | (currentBit << bitOffset);
+            }
+        }
+    }
+    printIntBits(&littleEndianInt, 8);
+    printf("%lx\n", littleEndianInt);
+    return littleEndianInt;
+}
+
+
 i32 *bigEndianCharToLittleEndianBytedInt(u8 *bigEndianCharArray, i32 numberOfBytes) { 
     i32 *littleEndianInt = (i32*) malloc(sizeof(i32));
 

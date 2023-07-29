@@ -6,7 +6,3 @@ i32 compu32(const void *a, const void *b);
 
 void bubbleSort(u32 *arr1, u32* arr2, int n);
 void quickSort(u32 *arr1, u32 *arr2, u32 low, u32 high);
-
-void freeDataReferenceTable(dataReferenceTableEntry **dataReferenceTable);
-void freeMpegData(MPEG_Data *videoData);
-void safeFree(void *data);

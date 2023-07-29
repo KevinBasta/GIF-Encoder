@@ -1,7 +1,10 @@
 # built using implicit rules
 OBJECTS = main.o \
-		  parseMPEG-4.o decodeMPEG-4.o processMPEG-4.o decodeAVC.o \
-	 	  AVCUtility.o bitUtility.o endianUtility.o linkedList.o printUtility.o typeUtility.o
+		  parseMPEG-4.o decodeMPEG-4.o processMPEG-4.o \
+		  decodeAVC.o AVCUtility.o \
+		  bitUtility.o endianUtility.o \
+		  linkedList.o printUtility.o typeUtility.o \
+		  memoryManagement.o
 
 TEST_OBJECTS = test.o bitUtility.o endianUtility.o linkedList.o printUtility.o
 

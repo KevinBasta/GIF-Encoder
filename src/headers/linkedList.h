@@ -10,4 +10,4 @@ box *getBoxFromLinkedList(linkedList *list, u8 boxReturnType[]);
 
 void freeBox(box *boxStruct);
 Node *freeBoxNode(Node *nodeStruct);
-void freeLinkedList(linkedList *list, u8 type[]);
+void freeLinkedList(linkedList *list, char type[]);

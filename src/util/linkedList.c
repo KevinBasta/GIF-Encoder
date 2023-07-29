@@ -17,7 +17,7 @@
  * @return a new linked list struct with all values initialized
  */
 linkedList* initLinkedList() { 
-    linkedList *newLinkedList = (linkedList*) malloc(sizeof(linkedList));
+    linkedList *newLinkedList = (linkedList*) calloc(1, sizeof(linkedList));
     
     newLinkedList->size = 0;
 
@@ -188,7 +188,7 @@ Node *freeBoxNode(Node *nodeStruct) {
  * @param list  -   list to free
  * @param type  -   type of items contained in linkedList
  */
-void freeLinkedList(linkedList *list, u8 type[]) { 
+void freeLinkedList(linkedList *list, char type[]) { 
 
     Node *currentNode = list->head;
 
@@ -205,12 +205,12 @@ void freeLinkedList(linkedList *list, u8 type[]) {
         freeBox(currentNode->currentItem);
         if (currentNode->nextNode != NULL) { 
             // this case should not happen
-            printf("error occured in freeLinkedList final node");
+            printf("error occured in freeLinkedList final node\n");
             free(currentNode->nextNode);
         }
+        free(currentNode);
     }
 
-    free(currentNode);
     free(list);
 }
 
