@@ -3,15 +3,15 @@ OBJECTS = main.o \
 		  parseMPEG-4.o decodeMPEG-4.o processMPEG-4.o \
 		  decodeAVC.o AVCUtility.o \
 		  bitUtility.o endianUtility.o \
-		  linkedList.o printUtility.o typeUtility.o \
+		  linkedList.o printUtility.o typesUtility.o \
 		  memoryManagement.o
 
 TEST_OBJECTS = test.o bitUtility.o endianUtility.o linkedList.o printUtility.o
 
-# cflags aren't required here
 CC = gcc
+CFLAGS += -I src/types
 CFLAGS += -I src/headers
-VPATH = src:src/mpeg:src/gif:src/util:src/headers
+VPATH = src:src/mpeg:src/gif:src/util
 
 # main program rules
 main: $(OBJECTS)

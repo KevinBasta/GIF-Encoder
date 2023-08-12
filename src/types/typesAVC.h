@@ -1,3 +1,11 @@
+#ifndef COMMON_TYPES
+    #define COMMON_TYPES
+    #include "main.h"
+    #include "typesMPEG-4.h"
+    #include "linkedList.h"
+    #include "typesStorage.h"
+    #include "typesUtility.h"
+#endif //COMMON_TYPES
 
 // AVC Structs //
 typedef struct NALUnitInfo {

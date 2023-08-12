@@ -1,3 +1,11 @@
+#ifndef COMMON_TYPES
+    #define COMMON_TYPES
+    #include "main.h"
+    #include "typesMPEG-4.h"
+    #include "typesAVC.h"
+    #include "typesStorage.h"
+    #include "typesUtility.h"
+#endif //COMMON_TYPES
 
 /**
  * @brief Holds a different type in currentItem and Node (same) type in nextNode

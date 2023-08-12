@@ -1,7 +1,11 @@
-
-#include "main.h"
-#include "typesMPEG-4.h"
-#include "typesAVC.h"
+#ifndef COMMON_TYPES
+    #define COMMON_TYPES
+    #include "main.h"
+    #include "typesMPEG-4.h"
+    #include "typesAVC.h"
+    #include "linkedList.h"
+    #include "typesUtility.h"
+#endif //COMMON_TYPES
 
 // Main Storage Structs //
 

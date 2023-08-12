@@ -1,28 +1,31 @@
-#ifndef MPEG_HEAD
-    #define MPEG_HEAD
-    #include <stdio.h>
+#ifndef COMMON_HEAD
+    #define COMMON_HEAD
     #include <stdlib.h>
     #include <stdint.h>
+    #include <string.h>
+    #include <stdbool.h>
+    #include <stdio.h>
     #include <math.h>
     #include <time.h>
-    //#include <string.h>
+#endif //COMMON_HEAD
 
+#ifndef COMMON_TYPES
+    #define COMMON_TYPES
     #include "main.h"
-    #include "typesStorage.h"
     #include "typesMPEG-4.h"
     #include "typesAVC.h"
     #include "linkedList.h"
+    #include "typesStorage.h"
+    #include "typesUtility.h"
+#endif //COMMON_TYPES
 
-    #include "typeUtility.h"
-    #include "printUtility.h"
-    #include "endianUtility.h"
+#ifndef COMMON_UTIL
+    #define COMMON_UTIL
     #include "bitUtility.h"
-    #include "linkedList.h"
-    #include "parseMPEG-4.h"
-    #include "decodeMPEG-4.h"
-    #include "decodeAVC.h"
-    #include "processMPEG-4.h"
-#endif
+    #include "endianUtility.h"
+    #include "printUtility.h"
+    #include "memoryManagement.h"
+#endif //COMMON_UTIL
 
 
 i32 inverseRasterScan(i32 a, i32 b, i32 c, i32 d, i32 e) { 
