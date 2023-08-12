@@ -1,24 +1,30 @@
 #ifndef MPEG_HEAD
     #define MPEG_HEAD
-    #include <stdio.h>
     #include <stdlib.h>
     #include <stdint.h>
-    //#include <string.h>
+    #include <string.h>
+    #include <stdbool.h>
+    #include <stdio.h>
     #include <math.h>
     #include <time.h>
 
-    #include "types.h"
+    #include "main.h"
+    #include "typesStorage.h"
+    #include "typesMPEG-4.h"
+    #include "typesAVC.h"
+
     #include "typeUtility.h"
     #include "printUtility.h"
     #include "endianUtility.h"
     #include "bitUtility.h"
     #include "linkedList.h"
     #include "AVCUtility.h"
+    #include "memoryManagement.h"
 
     #include "parseMPEG-4.h"
     #include "decodeMPEG-4.h"
-    #include "decodeAVC.h"
     #include "processMPEG-4.h"
+    #include "decodeAVC.h"
 #endif
 
 

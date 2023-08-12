@@ -1,25 +1,32 @@
 #ifndef MPEG_HEAD
     #define MPEG_HEAD
-    #include <stdio.h>
     #include <stdlib.h>
     #include <stdint.h>
-    //#include <string.h>
+    #include <string.h>
+    #include <stdbool.h>
+    #include <stdio.h>
     #include <math.h>
     #include <time.h>
 
-    #include "types.h"
+    #include "main.h"
+    #include "typesStorage.h"
+    #include "typesMPEG-4.h"
+    #include "typesAVC.h"
+
     #include "typeUtility.h"
     #include "printUtility.h"
     #include "endianUtility.h"
     #include "bitUtility.h"
     #include "linkedList.h"
     #include "AVCUtility.h"
+    #include "memoryManagement.h"
 
     #include "parseMPEG-4.h"
     #include "decodeMPEG-4.h"
-    #include "decodeAVC.h"
     #include "processMPEG-4.h"
+    #include "decodeAVC.h"
 #endif
+
 
 
 //https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap2/qtff2.html#//apple_ref/doc/uid/TP40000939-CH204-25680

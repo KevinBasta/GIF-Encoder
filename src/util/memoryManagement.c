@@ -4,7 +4,10 @@
     #include <stdio.h>
     #include <stdint.h>
     
-    #include "types.h"
+    #include "main.h"
+    #include "typesStorage.h"
+    #include "typesMPEG-4.h"
+    #include "typesAVC.h"
     #include "linkedList.h"
     #include "memoryManagement.h"
 #endif

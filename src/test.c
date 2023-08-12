@@ -4,7 +4,11 @@
 #include <stdio.h>
 //#include <CUnit/CUnit.h>
 
-#include "types.h"
+#include "main.h"
+#include "typesStorage.h"
+#include "typesMPEG-4.h"
+#include "typesAVC.h"
+
 #include "printUtility.h"
 #include "bitUtility.h"
 #include "endianUtility.h"
