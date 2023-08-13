@@ -9,7 +9,10 @@
 #define BOX_FLAG_SIZE 3
 #define TRUE 1
 #define FALSE 0
-#define DEBUG_PRINT TRUE
+#define DEBUG_PRINT_ENABLE TRUE
+#define DEBUG_PRINT(...)  print(__VA_ARGS__)
+#define DEBUG_PRINTF(...) printf(__VA_ARGS__)
+#define PRINT_INT(X) printf("%d\n", X) 
 
 // renaming stdint types
 typedef int8_t  i8;
@@ -21,3 +24,12 @@ typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
+
+// error handling
+typedef enum STATUS_CODE {
+    OPERATION_SUCCESS = 1, 
+    OPERATION_FAILED  = 0
+} STATUS_CODE;
+
+#define CHECKSTATUS(status)                     if (status == OPERATION_FAILED) { return OPERATION_FAILED; }
+#define CHECK_FWRITE_STATUS(returned, expected) if (returned != expected)       { return OPERATION_FAILED; }

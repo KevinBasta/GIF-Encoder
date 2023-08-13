@@ -1,18 +1,26 @@
 #include <assert.h>   
-#include <stdint.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <stdio.h>
 //#include <CUnit/CUnit.h>
 
-#include "main.h"
-#include "typesStorage.h"
-#include "typesMPEG-4.h"
-#include "typesAVC.h"
+#ifndef COMMON_TYPES
+    #define COMMON_TYPES
+    #include "main.h"
+    #include "typesMPEG-4.h"
+    #include "typesAVC.h"
+    #include "linkedList.h"
+    #include "typesStorage.h"
+    #include "typesUtility.h"
+#endif //COMMON_TYPES
 
-#include "printUtility.h"
-#include "bitUtility.h"
-#include "endianUtility.h"
-#include "linkedList.h"
+#ifndef COMMON_UTIL
+    #define COMMON_UTIL
+    #include "bitUtility.h"
+    #include "endianUtility.h"
+    #include "printUtility.h"
+#endif //COMMON_UTIL
 
 
 int main() { 

@@ -38,7 +38,7 @@
 
 #ifndef GIF_HEAD
     #define GIF_HEAD
-    //#include "encodeGIF.h"
+    #include "encodeGIF.h"
 #endif //GIF_HEAD
 
 int main(int argc, char **argv) { 
@@ -47,12 +47,10 @@ int main(int argc, char **argv) {
     // Use parseMPEG-4 interface to get video frame information
     // "pipe" that information into a the gif interface functional style
 
+    
+    createGIF();
     MPEG_Data *videoData = getMpegData("local_files/op.mp4");
-    
-    
-    
     createDisplayTimeToSampleTable(videoData);
-
     
     float startTime = (float)clock()/CLOCKS_PER_SEC;
     
@@ -63,11 +61,11 @@ int main(int argc, char **argv) {
     printf("DATA PROCESSING OPERATION elapsed: %f\n", timeElapsed);
     
     
-    sampleSearchByRealTime(15, videoData);
+    //sampleSearchByRealTime(15, videoData);
     //keyFrameSearch(79, videoData);
 
     // free every linked list created
-    freeMpegData(videoData);
+    //freeMpegData(videoData);
     printf("end of script\n");
     return 0;
 }

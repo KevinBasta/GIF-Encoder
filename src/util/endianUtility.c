@@ -27,6 +27,10 @@
     #include "memoryManagement.h"
 #endif //COMMON_UTIL
 
+// endian check
+const int endiannessCheck = 1;
+#define bigEndianPlatform() ( (*(char *) &endiannessCheck) == 0 )
+
 /**
  *  @brief converts a big endian integer bit pattern
  *  stored in a char array to little endian integer bit pattern stored
@@ -39,6 +43,7 @@
  *  @return u32 value
  */
 i32 bigEndianCharToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 numberOfBytes) { 
+    // call platform endian function here
     i32 littleEndianInt = 0;
     u32 byteNumb = numberOfBytes - 1;
 
@@ -54,13 +59,6 @@ i32 bigEndianCharToLittleEndianGeneralized(u8 *bigEndianCharArray, u32 numberOfB
     }
 
     return littleEndianInt;
-}
-
-i32 *bigEndianCharToLittleEndianGeneralizedHeap(u8 *bigEndianCharArray, u32 numberOfBytes) { 
-    i32 *littleEndianInt = (u32*) malloc(sizeof(u32));
-    *littleEndianInt = bigEndianCharToLittleEndianGeneralized(bigEndianCharArray, numberOfBytes);
-
-    return (void*) littleEndianInt;
 }
 
 
@@ -129,7 +127,7 @@ u64 simpleBigEndianToLittleEndianBits(u8 *bigEndianCharArray, u32 startingBit, u
     printf("preAndPostBits %d\n", preAndPostBits);
     printf("bytes: %d\n", numberOfBytes); */
 
-    u64 out = (u64) bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianCharArray, numberOfBytes).u64val;
+    u64 out = (u64) convertToPlatformEndian(bigEndianCharArray, numberOfBytes, true).u64val;
     u32 leftShift = ((8 - numberOfBytes) * 8) + bitToStartAtInFirstByte;
     
     u32 rightShift = 0;
@@ -139,12 +137,17 @@ u64 simpleBigEndianToLittleEndianBits(u8 *bigEndianCharArray, u32 startingBit, u
         rightShift = leftShift + inversePostBits;
     }
 
+    if (bigEndianPlatform()) {
+        out = (out << rightShift);
+        out = (out >> leftShift);
+    }  else {
+        out = (out << leftShift);
+        out = (out >> rightShift);
+    }
     //printBits(bigEndianCharArray, 8);
     //printIntBits(&out, 8);
-    out = (out << leftShift);
     //printf("left shift %d\n", leftShift);
     //printIntBits(&out, 8);
-    out = (out >> rightShift);
     //printf("right shift %d\n", rightShift);
     //printIntBits(&out, 8);
     //printf("\n\n\n");
@@ -152,8 +155,8 @@ u64 simpleBigEndianToLittleEndianBits(u8 *bigEndianCharArray, u32 startingBit, u
 }
 
 
-union littleEndianInteger bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(u8 *bigEndianCharArray, u32 numberOfBytes) { 
-    union littleEndianInteger intUnion;
+union endianSwappedInt bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(u8 *bigEndianCharArray, u32 numberOfBytes) { 
+    union endianSwappedInt intUnion;
     intUnion.u64val = 0;
     u32 byteNumb = numberOfBytes - 1;
 
@@ -183,94 +186,132 @@ union littleEndianInteger bigEndianIntegerStoredInCharArrayToLittleEndianGeneral
 }
 
 
+//////////////////// Convert value to Little Endian ////////////////////
+
+/**
+ * @note FOR USE BY THE GIF ENCODER ONLY.
+ * @brief This function and it's associated littleEndianUX interface
+ * is for use in soley ensuring the converstion of the program values
+ * to little endian values for the GIF encoding process.
+ * @param arr               - integer type cast to u8* by interface
+ * @param numberOfBytes     - number of bytes to work with
+ * @return a union value to allow for multiple type return from interface
+ */
+union endianSwappedInt convertToLittleEndian(u8 *arr, u32 numberOfBytes) { 
+    union endianSwappedInt intUnion;
+    intUnion.u64val = 0;
+    char *p = (char *)&intUnion;
+
+    if (bigEndianPlatform()) {
+        for (int i = 0; i < numberOfBytes; i++)
+            p[i] = arr[numberOfBytes - i - 1];
+    } else {
+        for (int i = 0; i < numberOfBytes; i++)
+            p[i] = arr[i];
+    }
+
+    return intUnion;
+}
+
+// u8-u64 stack ints interface
+u8 littleEndianU8(u8 val) { 
+    return convertToLittleEndian((char*) &val, sizeof(u8)).u8val;
+}
+
+u16 littleEndianU16(u16 val) { 
+    return convertToLittleEndian((char*) &val, sizeof(u16)).u16val;
+}
+
+u32 littleEndianU32(u32 val) { 
+    return convertToLittleEndian((char*) &val, sizeof(u32)).u32val;
+}
+
+u64 littleEndianU64(u64 val) { 
+    return convertToLittleEndian((char*) &val, sizeof(u64)).u64val;
+}
+
+// i8-i64 stack ints interface
+i8 littleEndianI8(i8 val) { 
+    return convertToLittleEndian((char*) &val, sizeof(i8)).i8val;
+}
+
+i16 littleEndianI16(i16 val) { 
+    return convertToLittleEndian((char*) &val, sizeof(i16)).i16val;
+}
+
+i32 littleEndianI32(i32 val) { 
+    return convertToLittleEndian((char*) &val, sizeof(i32)).i32val;
+}
+
+i64 littleEndianI64(i64 val) { 
+    return convertToLittleEndian((char*) &val, sizeof(i64)).i64val;
+}
+
+
+
+//////////////////// Convert char array to integral type ////////////////////
+
+/// Interface name to be changed to "platform" instead of "little endian"
+
+/**
+ * @note FOR USE BY THE MPEG DECODER ONLY.
+ * @brief Converts integer data read from an MPEG-4 file format
+ * which is in big endian to it's equivalent platform endianess value.
+ * @param arr               - u8 array of data read in from the MPEG-4 file
+ * @param numberOfBytes     - number of bytes to work with
+ * @param bigEndianData     - indicates if the arr contains big endian data or not
+ * @return a union value to allow for multiple type return from interface
+ */
+union endianSwappedInt convertToPlatformEndian(u8 *arr, u32 numberOfBytes, bool bigEndianData) { 
+    union endianSwappedInt intUnion;
+    intUnion.u64val = 0;
+    char *p = ((char *)&intUnion);
+
+    if (((bigEndianPlatform()) && (bigEndianData == true)) || 
+        (!(bigEndianPlatform()) && (bigEndianData == false))) {
+        for (int i = 0; i < numberOfBytes; i++)
+            p[i] = arr[i];
+    } else if (((bigEndianPlatform()) && (bigEndianData == false)) || 
+               (!(bigEndianPlatform()) && (bigEndianData == true))) {
+        for (int i = 0; i < numberOfBytes; i++)
+            p[i] = arr[numberOfBytes - i - 1];
+    }
+
+    return intUnion;
+}
+
 // u8-u64 stack ints
 u8 bigEndianU8ArrToLittleEndianU8(u8 *bigEndianU8Arr) { 
-    return bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(u8)).u8val;
+    return convertToPlatformEndian(bigEndianU8Arr, sizeof(u8), true).u8val;
 }
 
 u16 bigEndianU8ArrToLittleEndianU16(u8 *bigEndianU8Arr) { 
-    return bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(u16)).u16val;
+    return convertToPlatformEndian(bigEndianU8Arr, sizeof(u16), true).u16val;
 }
 
 u32 bigEndianU8ArrToLittleEndianU32(u8 *bigEndianU8Arr) { 
-    return bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(u32)).u32val;
+    return convertToPlatformEndian(bigEndianU8Arr, sizeof(u32), true).u32val;
 }
 
 u64 bigEndianU8ArrToLittleEndianU64(u8 *bigEndianU8Arr) { 
-    return bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(u64)).u64val;
+    return convertToPlatformEndian(bigEndianU8Arr, sizeof(u64), true).u64val;
 }
-
-
-
-// u8-u64 heap ints
-u8 *bigEndianU8ArrToLittleEndianU8Heap(u8 *bigEndianU8Arr) { 
-    u8 *result = malloc(sizeof(u8));
-    *result = bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(u8)).u8val;
-    return result;
-}
-
-u16 *bigEndianU8ArrToLittleEndianU16Heap(u8 *bigEndianU8Arr) { 
-    u16 *result = malloc(sizeof(u16));
-    *result = bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(u16)).u16val;
-    return result;
-}
-
-u32 *bigEndianU8ArrToLittleEndianU32Heap(u8 *bigEndianU8Arr) { 
-    u32 *result = malloc(sizeof(u32));
-    *result = bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(u32)).u32val;
-    return result;
-}
-
-u64 *bigEndianU8ArrToLittleEndianU64Heap(u8 *bigEndianU8Arr) { 
-    u64 *result = malloc(sizeof(u64));
-    *result = bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(u64)).u64val;
-    return result;
-}
-
-
 
 // i8-i64 stack ints
 i8 bigEndianU8ArrToLittleEndianI8(u8 *bigEndianU8Arr) { 
-    return bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(i8)).i8val;
+    return convertToPlatformEndian(bigEndianU8Arr, sizeof(i8), true).i8val;
 }
 
 i16 bigEndianU8ArrToLittleEndianI16(u8 *bigEndianU8Arr) { 
-    return bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(i16)).i16val;
+    return convertToPlatformEndian(bigEndianU8Arr, sizeof(i16), true).i16val;
 }
 
 i32 bigEndianU8ArrToLittleEndianI32(u8 *bigEndianU8Arr) { 
-    return bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(i32)).i32val;
+    return convertToPlatformEndian(bigEndianU8Arr, sizeof(i32), true).i32val;
 }
 
 i64 bigEndianU8ArrToLittleEndianI64(u8 *bigEndianU8Arr) { 
-    return bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(i64)).i64val;
-}
-
-
-
-// i8-i64 heap ints
-i8 *bigEndianU8ArrToLittleEndianI8Heap(u8 *bigEndianU8Arr) { 
-    i8 *result = malloc(sizeof(i8));
-    *result = bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(i8)).i8val;
-    return result;
-}
-
-i16 *bigEndianU8ArrToLittleEndianI16Heap(u8 *bigEndianU8Arr) { 
-    i16 *result = malloc(sizeof(i16));
-    *result = bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(i16)).i16val;
-    return result;
-}
-
-i32 *bigEndianU8ArrToLittleEndianI32Heap(u8 *bigEndianU8Arr) { 
-    i32 *result = malloc(sizeof(i32));
-    *result = bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(i32)).i32val;
-    return result;
-}
-
-i64 *bigEndianU8ArrToLittleEndianI64Heap(u8 *bigEndianU8Arr) { 
-    i64 *result = malloc(sizeof(i64));
-    *result = bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(bigEndianU8Arr, sizeof(i64)).i64val;
-    return result;
+    return convertToPlatformEndian(bigEndianU8Arr, sizeof(i64), true).i64val;
 }
 
 

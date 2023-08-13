@@ -79,7 +79,7 @@ void nullifyLastNodeLinkedList(linkedList *list) {
  * @param *list  -   the linkedList read from
  */
 void printAllBoxesLinkedList(linkedList *list) { 
-    if (DEBUG_PRINT == FALSE) { 
+    if (DEBUG_PRINT_ENABLE == FALSE) { 
         return;
     }
 
