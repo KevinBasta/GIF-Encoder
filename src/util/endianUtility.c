@@ -137,13 +137,9 @@ u64 simpleBigEndianToLittleEndianBits(u8 *bigEndianCharArray, u32 startingBit, u
         rightShift = leftShift + inversePostBits;
     }
 
-    if (bigEndianPlatform()) {
-        out = (out << rightShift);
-        out = (out >> leftShift);
-    }  else {
-        out = (out << leftShift);
-        out = (out >> rightShift);
-    }
+
+    out = (out << leftShift);
+    out = (out >> rightShift);
     //printBits(bigEndianCharArray, 8);
     //printIntBits(&out, 8);
     //printf("left shift %d\n", leftShift);
@@ -249,7 +245,7 @@ i64 littleEndianI64(i64 val) {
 
 
 
-//////////////////// Convert char array to integral type ////////////////////
+//////////////////// Convert char (big endian) array to (platform endian) integral type ////////////////////
 
 /// Interface name to be changed to "platform" instead of "little endian"
 

@@ -1,18 +1,19 @@
 bin
 *.bin
 *.out
+*.exe
 *.o
 
+log
 *.log
 *.txt
-*.pdf
-*.mp4
-*.exe
-*.py
-
 local_files
-log
 l_*.c
+
+*.mp4
+*.gif
+
+*.py
 
 .vs
 .vscode
