@@ -1,3 +1,4 @@
+
 #ifndef COMMON_HEAD
     #define COMMON_HEAD
     #include <stdlib.h>
@@ -7,18 +8,24 @@
     #include <stdio.h>
     #include <math.h>
     #include <time.h>
+    #include "main.h"
 #endif //COMMON_HEAD
 
 #ifndef COMMON_TYPES
     #define COMMON_TYPES
-    #include "main.h"
     #include "typesMPEG-4.h"
     #include "typesAVC.h"
     #include "typesGIF.h"
-    #include "linkedList.h"
-    #include "typesStorage.h"
     #include "typesUtility.h"
 #endif //COMMON_TYPES
+
+#ifndef DATA_STRUCTURES
+    #define DATA_STRUCTURES
+    #include "linkedList.h"
+    #include "hashmap.h"
+    #include "array.h"
+    #include "typesStorage.h"
+#endif //DATA_STRUCTURES
 
 #ifndef COMMON_UTIL
     #define COMMON_UTIL
@@ -111,8 +118,8 @@ STATUS_CODE encodeImageDescriptor(FILE *gif) {
     u8 imageSeparator = 0x2C;
     u16 imageLeftPosition = 0x0000;
     u16 imageTopPosition  = 0x0000;
-    u16 imageWidth  = 10;
-    u16 imageHeight = 10;
+    u16 imageWidth  = 24;
+    u16 imageHeight = 7;
     u8 packedField = 0b00000000;
 
     status = fwrite(&imageSeparator, sizeof(imageSeparator), nmemb, gif);
@@ -138,12 +145,27 @@ STATUS_CODE encodeImageDescriptor(FILE *gif) {
     return OPERATION_SUCCESS;
 }
 
+STATUS_CODE createLZWCodeStream(oneFieldArray *indexStream) {
+    u8 *codeStream = calloc(indexStream->numberOfEntries, sizeof(u8));
+    u8* indexBuffer = calloc(indexStream->numberOfEntries, sizeof(u8));
 
-STATUS_CODE encodeImageData(FILE *gif) {
+    size_t codeStreamIndex = 0;
+    size_t indexStreamIndex = 0;
+    size_t indexBufferIndex = 0;
+
+    codeStream[codeStreamIndex++] = 2;
+
+
+
+
+}
+
+
+STATUS_CODE encodeImageData(FILE *gif, oneFieldArray *indexStream) {
     size_t status;
     u32 nmemb = 1;
 
-    
+
 }
 
 
@@ -158,7 +180,6 @@ STATUS_CODE encodeTrailer(FILE *gif) {
     return OPERATION_SUCCESS;
 }
 
-
 void addRGBArrayEntry(RGB *table, u32 index, u8 red, u8 green, u8 blue) {
     table[index].red = red;
     table[index].green = green;
@@ -172,7 +193,7 @@ STATUS_CODE createGIF() {
     status = encodeHeader(gif);
     CHECKSTATUS(status);
 
-    status = encodeLogicalScreenDescriptor(gif, 10, 10, 0b10000001, 0, 0);
+    status = encodeLogicalScreenDescriptor(gif, 24, 7, 0b10000001, 0, 0);
     CHECKSTATUS(status);
 
     // temp for testing
@@ -189,10 +210,22 @@ STATUS_CODE createGIF() {
     status = encodeImageDescriptor(gif);
     CHECKSTATUS(status);
 
+    u8 indexStream[] = 
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+     0,1,1,1,0,1,1,0,0,1,1,0,0,0,1,1,0,0,1,1,0,0,1,0,
+     0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,
+     0,1,1,1,0,1,1,0,0,1,1,0,0,1,0,0,1,0,1,1,0,0,1,0,
+     0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,0,0,
+     0,1,1,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,
+     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+    oneFieldArray testArr = {sizeof(indexStream), indexStream};
+
+    status = encodeImageData(gif, &testArr);
+    CHECKSTATUS(status);
 
     status = encodeTrailer(gif);
     CHECKSTATUS(status);
 
     return OPERATION_SUCCESS;
 }
-

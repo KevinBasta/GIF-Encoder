@@ -7,17 +7,24 @@
     #include <stdio.h>
     #include <math.h>
     #include <time.h>
+    #include "main.h"
 #endif //COMMON_HEAD
 
 #ifndef COMMON_TYPES
     #define COMMON_TYPES
-    #include "main.h"
     #include "typesMPEG-4.h"
     #include "typesAVC.h"
-    #include "linkedList.h"
-    #include "typesStorage.h"
+    #include "typesGIF.h"
     #include "typesUtility.h"
 #endif //COMMON_TYPES
+
+#ifndef DATA_STRUCTURES
+    #define DATA_STRUCTURES
+    #include "linkedList.h"
+    #include "hashmap.h"
+    #include "array.h"
+    #include "typesStorage.h"
+#endif //DATA_STRUCTURES
 
 #ifndef COMMON_UTIL
     #define COMMON_UTIL
@@ -40,6 +47,17 @@
     #define GIF_HEAD
     #include "encodeGIF.h"
 #endif //GIF_HEAD
+
+STATUS_CODE gifErrorOutput() {
+    // creates a gif that displays
+    // the word "ERROR!" in case the main
+    // program goes wrong somewhere
+    // also serves as a good test
+
+
+    return OPERATION_SUCCESS;
+}
+
 
 int main(int argc, char **argv) { 
     // get path and video name from user

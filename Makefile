@@ -4,7 +4,8 @@ OBJECTS = main.o \
 		  decodeAVC.o AVCUtility.o \
 		  encodeGIF.o \
 		  bitUtility.o endianUtility.o \
-		  linkedList.o printUtility.o typesUtility.o \
+		  linkedList.o array.o hashmap.o \
+		  printUtility.o typesUtility.o \
 		  memoryManagement.o
 
 TEST_OBJECTS = test.o \
@@ -12,9 +13,10 @@ TEST_OBJECTS = test.o \
 			   linkedList.o printUtility.o
 
 CC = gcc
-CFLAGS += -I src/types
+CFLAGS += -I src/types 
+CFLAGS += -I src/data_structures
 CFLAGS += -I src/headers
-VPATH = src : src/mpeg : src/gif : src/util
+VPATH = src : src/mpeg : src/gif : src/data_structures : src/util
 
 # main program rule
 main: $(OBJECTS)

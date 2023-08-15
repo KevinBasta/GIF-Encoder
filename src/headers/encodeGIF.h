@@ -1,1 +1,1 @@
-void createGIF();
+STATUS_CODE createGIF();
