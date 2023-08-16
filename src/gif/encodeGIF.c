@@ -1,4 +1,3 @@
-
 #ifndef COMMON_HEAD
     #define COMMON_HEAD
     #include <stdlib.h>
@@ -145,15 +144,11 @@ STATUS_CODE encodeImageDescriptor(FILE *gif) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE createLZWCodeStream(oneFieldArray *indexStream) {
-    u8 *codeStream = calloc(indexStream->numberOfEntries, sizeof(u8));
-    u8* indexBuffer = calloc(indexStream->numberOfEntries, sizeof(u8));
+STATUS_CODE createLZWCodeStream(array *indexStream) {
+    array *codeStream  = initArray(indexStream->totalEntries);
+    array *indexBuffer = initArray(indexStream->totalEntries);
 
-    size_t codeStreamIndex = 0;
-    size_t indexStreamIndex = 0;
-    size_t indexBufferIndex = 0;
-
-    codeStream[codeStreamIndex++] = 2;
+    appendItemArray(codeStream, 2);
 
 
 
@@ -161,7 +156,7 @@ STATUS_CODE createLZWCodeStream(oneFieldArray *indexStream) {
 }
 
 
-STATUS_CODE encodeImageData(FILE *gif, oneFieldArray *indexStream) {
+STATUS_CODE encodeImageData(FILE *gif, array *indexStream) {
     size_t status;
     u32 nmemb = 1;
 
@@ -219,9 +214,12 @@ STATUS_CODE createGIF() {
      0,1,1,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,
      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-    oneFieldArray testArr = {sizeof(indexStream), indexStream};
+    array *testArr = initArray(sizeof(indexStream));
+    for (u32 i = 0; i < sizeof(indexStream); i++) {
+        appendItemArray(testArr, indexStream[i]);
+    }
 
-    status = encodeImageData(gif, &testArr);
+    status = encodeImageData(gif, testArr);
     CHECKSTATUS(status);
 
     status = encodeTrailer(gif);

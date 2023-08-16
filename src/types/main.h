@@ -33,3 +33,4 @@ typedef enum STATUS_CODE {
 
 #define CHECKSTATUS(status)                     if (status == OPERATION_FAILED) { return OPERATION_FAILED; }
 #define CHECK_FWRITE_STATUS(returned, expected) if (returned != expected)       { return OPERATION_FAILED; }
+#define CHECK_NULL_RETURN(status)               if (status == OPERATION_FAILED) { return OPERATION_FAILED; }
