@@ -21,15 +21,8 @@
     #include "printUtility.h"
 #endif //COMMON_UTIL
 
-array *arrayInit(size_t size) {
-    array *arr = calloc(1, sizeof(array));
 
-    arr->items = calloc(size, sizeof(u32));
-    arr->size = size;
-    arr->currentIndex = 0;
-    
-    return arr;
-}
+// Private array helpers
 
 static size_t arrayNewSize(array *arr) {
     return arr->size + (arr->size / 2);
@@ -49,6 +42,20 @@ static STATUS_CODE arrayRealloc(array *arr, size_t newSize) {
     return OPERATION_SUCCESS;
 }
 
+
+
+// Array usage interface
+
+array *arrayInit(size_t size) {
+    array *arr = calloc(1, sizeof(array));
+
+    arr->items = calloc(size, sizeof(u32));
+    arr->size = size;
+    arr->currentIndex = 0;
+    
+    return arr;
+}
+
 STATUS_CODE arrayAppend(array *arr, u32 item) {     
     if (arr == NULL) 
         return OPERATION_FAILED;
@@ -64,7 +71,11 @@ STATUS_CODE arrayAppend(array *arr, u32 item) {
     return OPERATION_SUCCESS;
 }
 
-void arrayPrint(array *arr) {
+
+
+// Array util interface
+
+void printArray(array *arr) {
     size_t index = 0;
 
     for (size_t i = 0; i < arr->currentIndex; i++) {

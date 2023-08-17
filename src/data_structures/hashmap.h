@@ -6,5 +6,5 @@ typedef struct HashMapEntry {
 typedef struct HashMap {
     size_t size;
     size_t currentCount;
-    HashMapEntry **items;
+    HashMapEntry **entries;
 } HashMap;

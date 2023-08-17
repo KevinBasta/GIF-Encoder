@@ -8,5 +8,5 @@ typedef struct array {
 array *arrayInit(size_t size);
 STATUS_CODE arrayAppend(array *arr, u32 item);
 
-void arrayPrint(array *arr);
+void printArray(array *arr);
 void freeArray (array *arr);

@@ -26,7 +26,7 @@ size_t hashFunction(char *str) {
     size_t i = 0;
 
     for (int j = 0; str[j]; j++)
-        i+= str[j];
+        i += str[j];
     
     return i % 10;
 }
@@ -47,12 +47,22 @@ HashMap *hashMapInit(size_t size) {
 
     map->size = size;
     map->currentCount = 0;
-    map->items = (HashMapEntry**) calloc(size, sizeof(HashMapEntry*));
+    map->entries = (HashMapEntry**) calloc(size, sizeof(HashMapEntry*));
 
     return map;
 }
 
 
+
+
+
+void printHashMap(HashMap *map) {
+    for (size_t i = 0; i < map->size; i++) {
+        if (map->entries[i] != NULL) {
+            printf("key: %s \t value: %s \n", map->entries[i]->key, map->entries[i]->value);
+        }
+    }
+}
 
 void freeHashMapEntry(HashMapEntry *entry) {
     free(entry->key);
@@ -60,14 +70,14 @@ void freeHashMapEntry(HashMapEntry *entry) {
 }
 
 void freeHashMap(HashMap *map) {
-    for (int i = 0; i < map->size; i++) {
-        HashMapEntry *entry = map->items[i]
+    for (size_t i = 0; i < map->size; i++) {
+        HashMapEntry *entry = map->entries[i];
 
         if (entry != NULL) {
             freeHashMapEntry(entry);
         }
     }
 
-    free(map->items);
+    free(map->entries);
     free(map);
 }

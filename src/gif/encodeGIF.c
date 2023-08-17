@@ -217,7 +217,7 @@ STATUS_CODE createGIF() {
     for (u32 i = 0; i < sizeof(indexStream); i++) {
         arrayAppend(testArr, indexStream[i]);
     }
-    arrayPrint(testArr);
+    printArray(testArr);
 
     status = encodeImageData(gif, testArr);
     CHECKSTATUS(status);
