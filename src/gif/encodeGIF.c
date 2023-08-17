@@ -145,11 +145,10 @@ STATUS_CODE encodeImageDescriptor(FILE *gif) {
 }
 
 STATUS_CODE createLZWCodeStream(array *indexStream) {
-    array *codeStream  = initArray(indexStream->totalEntries);
-    array *indexBuffer = initArray(indexStream->totalEntries);
+    array *codeStream  = arrayInit(indexStream->size);
+    array *indexBuffer = arrayInit(indexStream->size);
 
-    appendItemArray(codeStream, 2);
-
+    arrayAppend(codeStream, 2);
 
 
 
@@ -214,10 +213,11 @@ STATUS_CODE createGIF() {
      0,1,1,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,
      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-    array *testArr = initArray(sizeof(indexStream));
+    array *testArr = arrayInit(sizeof(indexStream));
     for (u32 i = 0; i < sizeof(indexStream); i++) {
-        appendItemArray(testArr, indexStream[i]);
+        arrayAppend(testArr, indexStream[i]);
     }
+    arrayPrint(testArr);
 
     status = encodeImageData(gif, testArr);
     CHECKSTATUS(status);

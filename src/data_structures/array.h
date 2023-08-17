@@ -1,11 +1,12 @@
 
 typedef struct array {
-    size_t totalEntries;
+    size_t size;
     size_t currentIndex;
     u32 *items;
 } array;
 
-array *initArray(size_t totalEntries);
+array *arrayInit(size_t size);
+STATUS_CODE arrayAppend(array *arr, u32 item);
 
-STATUS_CODE appendItemArray(array *arr, u32 item);
-void freeArray(array *arr);
+void arrayPrint(array *arr);
+void freeArray (array *arr);
