@@ -25,6 +25,11 @@ typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
 
+// math functions
+#ifndef min
+#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
+
 // error handling
 typedef enum STATUS_CODE {
     OPERATION_SUCCESS = 1, 

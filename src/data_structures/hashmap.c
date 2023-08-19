@@ -21,16 +21,31 @@
     #include "printUtility.h"
 #endif //COMMON_UTIL
 
+/**
+ * @brief uses quadratic probing
+ * @param key       a string representing the key 
+ * @param size      size of the map 
+ * @return hashed index of the key
+ */
+static size_t hashFunction(char *key, size_t size) {
+    size_t index = 1;
 
-size_t hashFunction(char *str, size_t size) {
-    size_t i = 0;
-
-    for (int j = 0; str[j]; j++)
-        i += str[j];
+    // create index out of key
+    for (int j = 0; key[j] != '\0'; j++)
+        index *= key[j];
     
-    return i % size;
+    index = index % size;
+    printf("index is: %ld\n", index);
+
+    return index;
 }
 
+/**
+ * @brief creates a hashmap entry
+ * @param key   string
+ * @param value string
+ * @return HashMapEntry 
+ */
 HashMapEntry *hashMapCreateEntry(char *key, char *value) {
     HashMapEntry *entry = (HashMapEntry*) calloc(1, sizeof(HashMapEntry));
     entry->key   = (char*) malloc(strlen(key) + 1);
@@ -42,6 +57,11 @@ HashMapEntry *hashMapCreateEntry(char *key, char *value) {
     return entry;
 }
 
+/**
+ * @brief creates a hashmap
+ * @param size total number of entries map can hold
+ * @return HashMap
+ */
 HashMap *hashMapInit(size_t size) {
     HashMap *map = (HashMap*) calloc(1, sizeof(HashMap));
 
@@ -52,45 +72,61 @@ HashMap *hashMapInit(size_t size) {
     return map;
 }
 
-
+/**
+ * @brief insert a key-value pair in a hashmap
+ * @param map   the map to insert in
+ * @param key   the key of the new entry
+ * @param value the value of the new entry
+ * @return OPERATION_SUCCESS or OPERATION_FAILED
+ */
 STATUS_CODE hashMapInsert(HashMap *map, char *key, char *value) {
-    size_t index = hashFunction(key, map->size);
-    HashMapEntry *newEntry = hashMapCreateEntry(key, value);
-    
-    // collision resolution: Open addressing
-    while (map->entries[index] != NULL && index < map->size) {
-        index++;
-    }
-    
-    HashMapEntry *currentIndexItem = map->entries[index];
-    if (currentIndexItem == NULL) {
-        if (map->currentCount == map->size) {
-            printf("hashmap insert fail\n");
-            freeHashMapEntry(newEntry);
-            return OPERATION_FAILED;
-        }
-
-        map->entries[index] = newEntry;
-        map->currentCount++; 
-    } else {
+    if (map->currentCount == map->size) {
+        printf("hashmap full\n");
         return OPERATION_FAILED;
     }
+
+    size_t index           = hashFunction(key, map->size);
+    HashMapEntry *newEntry = hashMapCreateEntry(key, value);
+    map->entries[index] = newEntry;
+
+    // collision resolution: Open addressing, quadratic probing
+    size_t k = 0;
+    while (map->entries[index] != NULL) {
+        printf("=====================\n");
+        printf("collision at index %ld\n", index);
+        printf("key %s, key at index %s\n", key, map->entries[index]->key);
+        k++;
+        index = (index + (k*k)) % map->size;
+        printf("new index %ld\n", index);
+        printf("=====================\n");
+
+        // terminate if probing takes too long
+        if (k >= map->size) {
+            return OPERATION_FAILED;
+        }
+    }
+
 
     return OPERATION_SUCCESS;
 }
 
+/**
+ * @brief search hashmap by key
+ * @param map hashmap to search in
+ * @param key the key to search for
+ * @return the value or null
+ */
 char *hashMapSearch(HashMap *map, char *key) {
-    int index = hashFunction(key, map->size);
+    size_t index        = hashFunction(key, map->size);
     HashMapEntry *entry = map->entries[index];
 
     while (map->entries[index] != NULL &&
-           index < map->size &&
-           strncmp(entry->key, key, min(sizeof(entry->key), key) != 0)) {
+           strncmp(entry->key, key, min(sizeof(entry->key), sizeof(key)) != 0)) {
         index++;
         entry = map->entries[index];
     }
 
-    if (strncmp(entry->key, key, min(sizeof(entry->key), key) == 0))
+    if (strncmp(entry->key, key, min(sizeof(entry->key), sizeof(key)) == 0))
         return entry->value;
 
     return NULL;
