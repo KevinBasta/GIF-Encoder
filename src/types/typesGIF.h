@@ -1,3 +1,10 @@
+#ifndef DATA_STRUCTURES
+    #define DATA_STRUCTURES
+    #include "linkedList.h"
+    #include "hashmap.h"
+    #include "array.h"
+    #include "typesStorage.h"
+#endif //DATA_STRUCTURES
 
 typedef struct RGB {
     u8 red;

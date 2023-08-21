@@ -162,7 +162,7 @@ char* concatArray(array *arr, char entrySeparator) {
         concat[i + 1] = entrySeparator;
     }
 
-    concat[arr->size * 2] = "\0";
+    concat[(arr->size * 2)] = '\0';
 
     return concat;
 }
@@ -194,8 +194,7 @@ STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable) {
 
     codeTable *codeTable = initCodeTable(clrTable);
 
-
-    appendArray(codeStream, atoi(searchHashMap(codeTable, "cc")));
+    appendArray(codeStream, atoi(searchHashMap(codeTable->map, "cc")));
     appendArray(indexBuffer, getItemArray(indexStream, 0));
     for (size_t i = 1; i < indexStream->size; i++) {
         u32 k = getItemArray(indexStream, i);
@@ -203,8 +202,7 @@ STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable) {
         appendArray(indexBuffer, k);
         char *indexBufferKey = concatArray(indexBuffer, ',');
 
-        if (searchHashMap(codeStream, indexBufferKey) == NULL) {
-            popArray(indexBuffer, k);
+        if (searchHashMap(codeTable->map, indexBufferKey) == NULL) {
 
         }
     }

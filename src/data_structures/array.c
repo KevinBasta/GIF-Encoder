@@ -92,8 +92,6 @@ u32 getItemArray(array *arr, size_t index) {
 void resetArray(array *arr) {
     memset(arr->items, 0, arr->size);
     arr->currentIndex = 0;
-
-    return OPERATION_SUCCESS;
 }
 
 // Array util interface
