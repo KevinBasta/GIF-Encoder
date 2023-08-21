@@ -6,11 +6,11 @@ typedef struct RGB {
 } RGB;
 
 typedef struct colorTable {
-    u32 numberOfEntries;
+    u32 size;
     RGB *arr;
 } colorTable;
 
 typedef struct codeTable {
-    u32 numberOfEntries;
-    
+    u32 index;
+    HashMap *map;
 } codeTable;

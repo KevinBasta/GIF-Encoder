@@ -5,8 +5,11 @@ typedef struct array {
     u32 *items;
 } array;
 
-array *arrayInit(size_t size);
-STATUS_CODE arrayAppend(array *arr, u32 item);
+array *initArray(size_t size);
+STATUS_CODE appendArray(array *arr, u32 item);
+STATUS_CODE popArray(array *arr);
+u32 getItemArray(array *arr, size_t index);
+void resetArray(array *arr);
 
 void printArray(array *arr);
 void freeArray (array *arr);

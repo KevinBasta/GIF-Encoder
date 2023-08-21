@@ -9,10 +9,10 @@ typedef struct HashMap {
     HashMapEntry **entries;
 } HashMap;
 
-HashMap *hashMapInit(size_t size);
+HashMap *initHashMap(size_t size);
 
-STATUS_CODE hashMapInsert(HashMap *map, char *key, char *value);
-char *hashMapSearch(HashMap *map, char *key);
+STATUS_CODE insertHashMap(HashMap *map, char *key, char *value);
+char *searchHashMap(HashMap *map, char *key);
 
 void printHashMap(HashMap *map);
 void printHashMapSearch(HashMap *map, char *key);

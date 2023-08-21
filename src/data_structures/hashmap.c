@@ -22,7 +22,7 @@
 #endif //COMMON_UTIL
 
 /**
- * @brief uses quadratic probing
+ * @brief converts key string to an index
  * @param key       a string representing the key 
  * @param size      size of the map 
  * @return hashed index of the key
@@ -46,7 +46,7 @@ static size_t hashFunction(char *key, size_t size) {
  * @param value string
  * @return HashMapEntry 
  */
-HashMapEntry *hashMapCreateEntry(char *key, char *value) {
+HashMapEntry *createEntryHashMap(char *key, char *value) {
     HashMapEntry *entry = (HashMapEntry*) calloc(1, sizeof(HashMapEntry));
     entry->key   = (char*) malloc(strlen(key) + 1);
     entry->value = (char*) malloc(strlen(value) + 1);
@@ -62,7 +62,7 @@ HashMapEntry *hashMapCreateEntry(char *key, char *value) {
  * @param size total number of entries map can hold
  * @return HashMap
  */
-HashMap *hashMapInit(size_t size) {
+HashMap *initHashMap(size_t size) {
     HashMap *map = (HashMap*) calloc(1, sizeof(HashMap));
 
     map->size = size;
@@ -79,14 +79,14 @@ HashMap *hashMapInit(size_t size) {
  * @param value the value of the new entry
  * @return OPERATION_SUCCESS or OPERATION_FAILED
  */
-STATUS_CODE hashMapInsert(HashMap *map, char *key, char *value) {
+STATUS_CODE insertHashMap(HashMap *map, char *key, char *value) {
     if (map->currentCount == map->size) {
         printf("hashmap full\n");
         return OPERATION_FAILED;
     }
 
     size_t index           = hashFunction(key, map->size);
-    HashMapEntry *newEntry = hashMapCreateEntry(key, value);
+    HashMapEntry *newEntry = createEntryHashMap(key, value);
     map->entries[index] = newEntry;
 
     // collision resolution: Open addressing, quadratic probing
@@ -116,7 +116,7 @@ STATUS_CODE hashMapInsert(HashMap *map, char *key, char *value) {
  * @param key the key to search for
  * @return the value or null
  */
-char *hashMapSearch(HashMap *map, char *key) {
+char *searchHashMap(HashMap *map, char *key) {
     size_t index        = hashFunction(key, map->size);
     HashMapEntry *entry = map->entries[index];
 
@@ -142,7 +142,7 @@ void printHashMap(HashMap *map) {
 }
 
 void printHashMapSearch(HashMap *map, char *key) {
-    char *value = hashMapSearch(map, key);
+    char *value = searchHashMap(map, key);
 
     if (value == NULL) {
         printf("Key [%s] not found\n", key);

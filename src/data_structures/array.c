@@ -28,7 +28,7 @@ static size_t arrayNewSize(array *arr) {
     return arr->size + (arr->size / 2);
 }
 
-static STATUS_CODE arrayRealloc(array *arr, size_t newSize) {
+static STATUS_CODE reallocArray(array *arr, size_t newSize) {
     u32 *status = realloc(arr->items, newSize * sizeof(u32));
     
     if (status == NULL) {
@@ -46,7 +46,7 @@ static STATUS_CODE arrayRealloc(array *arr, size_t newSize) {
 
 // Array usage interface
 
-array *arrayInit(size_t size) {
+array *initArray(size_t size) {
     array *arr = calloc(1, sizeof(array));
 
     arr->items = calloc(size, sizeof(u32));
@@ -56,13 +56,13 @@ array *arrayInit(size_t size) {
     return arr;
 }
 
-STATUS_CODE arrayAppend(array *arr, u32 item) {     
+STATUS_CODE appendArray(array *arr, u32 item) {     
     if (arr == NULL) 
         return OPERATION_FAILED;
     
     if (arr->currentIndex >= arr->size) {
-        size_t status = arrayRealloc(arr, arrayNewSize(arr));
-        CHECK_NULL_RETURN(status);
+        STATUS_CODE status = reallocArray(arr, arrayNewSize(arr));
+        CHECKSTATUS(status);
     }
 
     arr->items[arr->currentIndex] = item;
@@ -71,7 +71,30 @@ STATUS_CODE arrayAppend(array *arr, u32 item) {
     return OPERATION_SUCCESS;
 }
 
+STATUS_CODE popArray(array *arr) {
+    if (arr == NULL) 
+        return OPERATION_FAILED;
 
+    if (arr->currentIndex - 1 < 0)
+        return OPERATION_FAILED;
+
+    arr->items[arr->currentIndex] = 0;
+    arr->currentIndex--;
+
+    return OPERATION_SUCCESS;
+}
+
+
+u32 getItemArray(array *arr, size_t index) {
+    return arr->items[index];
+}
+
+void resetArray(array *arr) {
+    memset(arr->items, 0, arr->size);
+    arr->currentIndex = 0;
+
+    return OPERATION_SUCCESS;
+}
 
 // Array util interface
 

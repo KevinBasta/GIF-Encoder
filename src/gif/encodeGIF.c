@@ -87,7 +87,7 @@ STATUS_CODE encodeGlobalColorTable(FILE *gif, colorTable *globalColorTable) {
     size_t status;
     u32 nmemb = 1;
 
-    for (int i = 0; i < globalColorTable->numberOfEntries; i++) {
+    for (int i = 0; i < globalColorTable->size; i++) {
         RGB entry = globalColorTable->arr[i];
         status = fwrite(&entry.red, sizeof(u8), nmemb, gif);
         CHECK_FWRITE_STATUS(status, nmemb);
@@ -144,22 +144,83 @@ STATUS_CODE encodeImageDescriptor(FILE *gif) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE createLZWCodeStream(array *indexStream) {
-    array *codeStream  = arrayInit(indexStream->size);
-    array *indexBuffer = arrayInit(indexStream->size);
 
-    arrayAppend(codeStream, 2);
+char* intToString(size_t i) {
+    u32 intStrLen = snprintf(NULL, 0, "%ld", i);
+    char *str     = malloc( intStrLen + 1 );
+    snprintf(str, intStrLen, "%ld", i);
+
+    return str;
+}
+
+char* concatArray(array *arr, char entrySeparator) {
+    char *concat = malloc(sizeof(char) * (arr->size * 2));
+    for (size_t i = 0; i < arr->size; i += 2) {
+        char *itemStr = intToString(arr->items[i]);
+        concat[i] = *(itemStr);
+        free(itemStr);
+        concat[i + 1] = entrySeparator;
+    }
+
+    concat[arr->size * 2] = "\0";
+
+    return concat;
+}
+
+codeTable* initCodeTable(colorTable *clrTable) {
+    codeTable *table = calloc(1, sizeof(codeTable));
+    HashMap *map = initHashMap(clrTable->size * 30);
+    table->map = map;
+
+    for (size_t i = 0; i < clrTable->size; i++) {
+        char *str = intToString(i);
+        insertHashMap(map, str, str);
+
+        table->index = i;
+    }
+
+    return table;
+}
+
+void freeCodeTable(codeTable *table) {
+    freeHashMap(table->map);
+    free(table);
+}
+
+
+STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable) {
+    array *codeStream  = initArray(indexStream->size);
+    array *indexBuffer = initArray(indexStream->size);
+
+    codeTable *codeTable = initCodeTable(clrTable);
+
+
+    appendArray(codeStream, atoi(searchHashMap(codeTable, "cc")));
+    appendArray(indexBuffer, getItemArray(indexStream, 0));
+    for (size_t i = 1; i < indexStream->size; i++) {
+        u32 k = getItemArray(indexStream, i);
+
+        appendArray(indexBuffer, k);
+        char *indexBufferKey = concatArray(indexBuffer, ',');
+
+        if (searchHashMap(codeStream, indexBufferKey) == NULL) {
+            popArray(indexBuffer, k);
+
+        }
+    }
+
 
 
 
 }
 
-
-STATUS_CODE encodeImageData(FILE *gif, array *indexStream) {
+STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream) {
     size_t status;
     u32 nmemb = 1;
 
+    //globalColorTable->size
 
+    
 }
 
 
@@ -213,13 +274,13 @@ STATUS_CODE createGIF() {
      0,1,1,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,
      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-    array *testArr = arrayInit(sizeof(indexStream));
+    array *testArr = initArray(sizeof(indexStream));
     for (u32 i = 0; i < sizeof(indexStream); i++) {
-        arrayAppend(testArr, indexStream[i]);
+        appendArray(testArr, indexStream[i]);
     }
     printArray(testArr);
 
-    status = encodeImageData(gif, testArr);
+    //status = encodeImageData(gif, globalColorTable, testArr);
     CHECKSTATUS(status);
 
     status = encodeTrailer(gif);
