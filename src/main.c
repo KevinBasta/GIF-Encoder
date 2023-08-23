@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 
     
     createGIF();
-    /* MPEG_Data *videoData = getMpegData("local_files/op.mp4");
+    MPEG_Data *videoData = getMpegData("local_files/op.mp4");
     createDisplayTimeToSampleTable(videoData);
     
     float startTime = (float)clock()/CLOCKS_PER_SEC;
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     
     float endTime = (float)clock()/CLOCKS_PER_SEC;
     float timeElapsed = endTime - startTime;
-    printf("DATA PROCESSING OPERATION elapsed: %f\n", timeElapsed); */
+    printf("DATA PROCESSING OPERATION elapsed: %f\n", timeElapsed);
     
     
     //sampleSearchByRealTime(15, videoData);
