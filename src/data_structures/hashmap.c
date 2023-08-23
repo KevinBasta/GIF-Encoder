@@ -48,7 +48,7 @@ static size_t hashFunction(char *key, size_t size) {
  */
 HashMapEntry *createEntryHashMap(char *key, char *value) {
     HashMapEntry *entry = (HashMapEntry*) calloc(1, sizeof(HashMapEntry));
-    entry->key   = (char*) malloc(strlen(key) + 1);
+    entry->key   = key;
     entry->value = (char*) malloc(strlen(value) + 1);
 
     strcpy(entry->key, key);

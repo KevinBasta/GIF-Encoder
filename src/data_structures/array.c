@@ -94,6 +94,20 @@ void resetArray(array *arr) {
     arr->currentIndex = 0;
 }
 
+char* concatArray(array *arr, char entrySeparator) {
+    char *concat = malloc(sizeof(char) * (arr->size * 2)); // needs to account for when entry separator isn't 1 char
+    for (size_t i = 0; i < arr->size; i += 2) {
+        char *itemStr = intToString(arr->items[i]);
+        concat[i] = *(itemStr);
+        free(itemStr);
+        concat[i + 1] = entrySeparator;
+    }
+
+    concat[(arr->size * 2)] = '\0';
+
+    return concat;
+}
+
 // Array util interface
 
 void printArray(array *arr) {

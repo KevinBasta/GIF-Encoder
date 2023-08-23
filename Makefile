@@ -1,12 +1,7 @@
 # built using implicit rules
-OBJECTS = main.o \
-		  parseMPEG-4.o decodeMPEG-4.o processMPEG-4.o \
-		  decodeAVC.o AVCUtility.o \
-		  encodeGIF.o \
-		  bitUtility.o endianUtility.o \
-		  linkedList.o array.o hashmap.o \
-		  printUtility.o typesUtility.o \
-		  memoryManagement.o
+SOURCE = $(wildcard src/*.c)
+SOURCE += $(wildcard src/*/*.c)
+OBJECTS = $(SOURCE:src/%.c=%.o)
 
 TEST_OBJECTS = test.o \
 			   bitUtility.o endianUtility.o \

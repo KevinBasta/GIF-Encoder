@@ -16,6 +16,7 @@
     #include "typesAVC.h"
     #include "typesGIF.h"
     #include "typesUtility.h"
+    #include "codeTable.h"
 #endif //COMMON_TYPES
 
 #ifndef DATA_STRUCTURES
@@ -144,50 +145,6 @@ STATUS_CODE encodeImageDescriptor(FILE *gif) {
     return OPERATION_SUCCESS;
 }
 
-
-char* intToString(size_t i) {
-    u32 intStrLen = snprintf(NULL, 0, "%ld", i);
-    char *str     = malloc( intStrLen + 1 );
-    snprintf(str, intStrLen, "%ld", i);
-
-    return str;
-}
-
-char* concatArray(array *arr, char entrySeparator) {
-    char *concat = malloc(sizeof(char) * (arr->size * 2));
-    for (size_t i = 0; i < arr->size; i += 2) {
-        char *itemStr = intToString(arr->items[i]);
-        concat[i] = *(itemStr);
-        free(itemStr);
-        concat[i + 1] = entrySeparator;
-    }
-
-    concat[(arr->size * 2)] = '\0';
-
-    return concat;
-}
-
-codeTable* initCodeTable(colorTable *clrTable) {
-    codeTable *table = calloc(1, sizeof(codeTable));
-    HashMap *map = initHashMap(clrTable->size * 30);
-    table->map = map;
-
-    for (size_t i = 0; i < clrTable->size; i++) {
-        char *str = intToString(i);
-        insertHashMap(map, str, str);
-
-        table->index = i;
-    }
-
-    return table;
-}
-
-void freeCodeTable(codeTable *table) {
-    freeHashMap(table->map);
-    free(table);
-}
-
-
 STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable) {
     array *codeStream  = initArray(indexStream->size);
     array *indexBuffer = initArray(indexStream->size);
@@ -200,16 +157,22 @@ STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable) {
         u32 k = getItemArray(indexStream, i);
 
         appendArray(indexBuffer, k);
-        char *indexBufferKey = concatArray(indexBuffer, ',');
+        char *indexBufferPlusKKey = concatArray(indexBuffer, ',');
 
-        if (searchHashMap(codeTable->map, indexBufferKey) == NULL) {
+        if (searchHashMap(codeTable->map, indexBufferPlusKKey) == NULL) {
+            insertHashMap(codeTable->map, indexBufferPlusKKey, intToString(getNextIndexCodeTable(codeTable)));
+            popArray(indexBuffer);
+            
+            char *indexBufferKey = concatArray(indexBuffer, ',');
+            appendArray(codeStream, atoi(searchHashMap(codeTable->map, indexBufferKey)));
+            free(indexBufferKey);
 
+            resetArray(indexBuffer);
+            appendArray(indexBuffer, k);
         }
     }
 
-
-
-
+    appendArray(codeStream, atoi(searchHashMap(codeTable->map, "eoi")));
 }
 
 STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream) {
