@@ -1,3 +1,7 @@
+
+#ifndef ENDIAN_UTIL_H
+#define ENDIAN_UTIL_H
+
 // the uses of these need to be converted to the interface below:
 u32 bigEndianCharToLittleEndianUnsignedInt(u8 *bigEndianCharArray);
 i32 bigEndianCharToLittleEndianInt(u8 *bigEndianCharArray);
@@ -51,3 +55,5 @@ i8 littleEndianI8(i8 val);
 i16 littleEndianI16(i16 val);
 i32 littleEndianI32(i32 val);
 i64 littleEndianI64(i64 val);
+
+#endif // ENDIAN_UTIL_H

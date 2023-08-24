@@ -28,7 +28,7 @@
 #endif //COMMON_UTIL
 
 
-i32 inverseRasterScan(i32 a, i32 b, i32 c, i32 d, i32 e) { 
+/* i32 inverseRasterScan(i32 a, i32 b, i32 c, i32 d, i32 e) { 
     if (e == 0) { 
         return ((a % (d / b)) * b);
     } else if (e == 1) { 
@@ -36,5 +36,5 @@ i32 inverseRasterScan(i32 a, i32 b, i32 c, i32 d, i32 e) {
     }
 
     return 0;
-}
+} */
 

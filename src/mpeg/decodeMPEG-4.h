@@ -1,4 +1,7 @@
 
+#ifndef DECODE_MPEG_H
+#define DECODE_MPEG_H
+
 void ftypParseBox(box *ftypBox);
 void mvhdParseBox(box *mvhdBox, MPEG_Data *videoData);
 void tkhdParseBox(box *trakBox, MPEG_Data *videoData);
@@ -22,3 +25,5 @@ void paspParseBox(box *paspBox, MPEG_Data *videoData);
 void btrtParseBox(box *btrtBox, MPEG_Data *videoData);
 void colrParseBox(box *colrBox, MPEG_Data *videoData);
 void avccParseBox(box *avccBox, MPEG_Data *videoData);
+
+#endif // DECODE_MPEG_H

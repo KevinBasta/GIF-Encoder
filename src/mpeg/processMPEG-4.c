@@ -9,33 +9,14 @@
     #include <time.h>
 #endif //COMMON_HEAD
 
-#ifndef COMMON_TYPES
-    #define COMMON_TYPES
-    #include "main.h"
-    #include "typesMPEG-4.h"
-    #include "typesAVC.h"
-    #include "linkedList.h"
-    #include "typesStorage.h"
-    #include "typesUtility.h"
-#endif //COMMON_TYPES
+#include "main.h"
+#include "typesMPEG-4.h"
+#include "typesAVC.h"
+#include "linkedList.h"
+#include "typesStorage.h"
+#include "typesUtility.h"
 
-#ifndef COMMON_UTIL
-    #define COMMON_UTIL
-    #include "bitUtility.h"
-    #include "endianUtility.h"
-    #include "printUtility.h"
-    #include "memoryManagement.h"
-#endif //COMMON_UTIL
-
-#ifndef MPEG_HEAD
-    #define MPEG_HEAD
-    #include "parseMPEG-4.h"
-    #include "decodeMPEG-4.h"
-    #include "processMPEG-4.h"
-    #include "decodeAVC.h"
-    #include "AVCUtility.h"
-#endif //MPEG_HEAD
-
+#include "processMPEG-4.h"
 
 /**
  * @brief converts a real time in a real time coordinate system

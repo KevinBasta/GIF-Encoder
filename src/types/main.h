@@ -1,4 +1,7 @@
 
+#ifndef MAIN_H
+#define MAIN_H
+
 // Preprocessor constants
 #define BOX_HEADER_SIZE 8
 #define BOX_HEADER_HALF_SIZE 4 // unused
@@ -39,3 +42,5 @@ typedef enum STATUS_CODE {
 #define CHECKSTATUS(status)                     if (status == OPERATION_FAILED) { return OPERATION_FAILED; }
 #define CHECK_FWRITE_STATUS(returned, expected) if (returned != expected)       { return OPERATION_FAILED; }
 #define CHECK_NULL_RETURN(status)               if (status == OPERATION_FAILED) { return OPERATION_FAILED; }
+
+#endif //MAIN_H

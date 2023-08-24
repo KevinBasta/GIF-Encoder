@@ -33,7 +33,6 @@
     #include "decodeMPEG-4.h"
     #include "processMPEG-4.h"
     #include "decodeAVC.h"
-    #include "AVCUtility.h"
 #endif //MPEG_HEAD
 
 

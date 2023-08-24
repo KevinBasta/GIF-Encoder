@@ -8,9 +8,8 @@ SOURCE += $(wildcard src/data_structures/*.c)
 OBJECTS = $(SOURCE:src/%.c=bin/%.o)
 
 CC = gcc
-CFLAGS += -I src/types 
-CFLAGS += -I src/data_structures
-CFLAGS += -I src/headers
+DIRS = $(sort $(dir $(wildcard src/*/)))
+CFLAGS += $(addprefix -I , $(DIRS))
 
 # main program rule
 main: bin/main.o $(OBJECTS)
@@ -29,3 +28,6 @@ bin/%.o: src/%.c
 clean:
 	-rm $(OBJECTS) bin/main.o bin/test.o a.out 2> /dev/null
 	-rmdir $(sort $(dir $(OBJECTS))) 2> /dev/null
+
+# for testing
+foo: 

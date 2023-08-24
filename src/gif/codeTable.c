@@ -47,6 +47,11 @@ codeTable* initCodeTable(colorTable *clrTable) {
         table->index = i;
     }
 
+    insertHashMap(map, createKeyHashMap("cc", 2), intToString(3));
+    insertHashMap(map, createKeyHashMap("eoi", 3), intToString(4));
+    printHashMap(map);
+    table->index = table->index + 2;
+
     return table;
 }
 

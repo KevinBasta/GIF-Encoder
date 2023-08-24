@@ -32,7 +32,7 @@ static size_t hashFunction(char *key, size_t size) {
 
     // create index out of key
     for (int j = 0; key[j] != '\0'; j++)
-        index *= key[j];
+        index *= (key[j] + 2);
     
     index = index % size;
     printf("index is: %ld\n", index);
@@ -69,6 +69,10 @@ HashMap *initHashMap(size_t size) {
     map->currentCount = 0;
     map->entries = (HashMapEntry**) calloc(size, sizeof(HashMapEntry*));
 
+    for (size_t i = 0; i < map->size; i++) {
+        map->entries[i] = NULL;
+    }
+
     return map;
 }
 
@@ -85,9 +89,10 @@ STATUS_CODE insertHashMap(HashMap *map, char *key, char *value) {
         return OPERATION_FAILED;
     }
 
+    printf("INSERT OPERATING STARTED %s\n", key);
+
     size_t index           = hashFunction(key, map->size);
     HashMapEntry *newEntry = createEntryHashMap(key, value);
-    map->entries[index] = newEntry;
 
     // collision resolution: Open addressing, quadratic probing
     size_t k = 0;
@@ -106,6 +111,7 @@ STATUS_CODE insertHashMap(HashMap *map, char *key, char *value) {
         }
     }
 
+    map->entries[index] = newEntry;
 
     return OPERATION_SUCCESS;
 }
@@ -119,24 +125,40 @@ STATUS_CODE insertHashMap(HashMap *map, char *key, char *value) {
 char *searchHashMap(HashMap *map, char *key) {
     size_t index        = hashFunction(key, map->size);
     HashMapEntry *entry = map->entries[index];
+    char *value         = NULL;
+    printf("%p\n", entry);
 
-    while (map->entries[index] != NULL &&
-           strncmp(entry->key, key, min(sizeof(entry->key), sizeof(key)) != 0)) {
-        index++;
+    size_t k = 0;
+    while (entry != NULL) {
+        if (k >= map->size) {
+            return NULL;
+        }
+
+        if (strcmp(entry->key, key) == 0)
+            value = entry->value;
+            break;
+
+        k++;
+        index = (index + (k*k)) % map->size;
         entry = map->entries[index];
     }
 
-    if (strncmp(entry->key, key, min(sizeof(entry->key), sizeof(key)) == 0))
-        return entry->value;
+    return value;
+}
 
-    return NULL;
+char *createKeyHashMap(char *str, u32 length) {
+    char *key = calloc(1, sizeof(length + 1));
+    strncpy(key, str, length);
+    key[length] = '\0';
+
+    return key;
 }
 
 
 void printHashMap(HashMap *map) {
     for (size_t i = 0; i < map->size; i++) {
         if (map->entries[i] != NULL) {
-            printf("key: %s \t value: %s \n", map->entries[i]->key, map->entries[i]->value);
+            printf("key: %10s   value: %10s \n", map->entries[i]->key, map->entries[i]->value);
         }
     }
 }

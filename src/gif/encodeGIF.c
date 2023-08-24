@@ -155,12 +155,15 @@ STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable) {
     appendArray(indexBuffer, getItemArray(indexStream, 0));
     for (size_t i = 1; i < indexStream->size; i++) {
         u32 k = getItemArray(indexStream, i);
-
         appendArray(indexBuffer, k);
         char *indexBufferPlusKKey = concatArray(indexBuffer, ',');
 
+        printf("GET ITEM\n");
         if (searchHashMap(codeTable->map, indexBufferPlusKKey) == NULL) {
-            insertHashMap(codeTable->map, indexBufferPlusKKey, intToString(getNextIndexCodeTable(codeTable)));
+            printf("GET ITEM\n");
+            char *next = intToString(getNextIndexCodeTable(codeTable));
+            printf("test %s\n", next);
+            insertHashMap(codeTable->map, indexBufferPlusKKey, next);
             popArray(indexBuffer);
             
             char *indexBufferKey = concatArray(indexBuffer, ',');
@@ -170,6 +173,9 @@ STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable) {
             resetArray(indexBuffer);
             appendArray(indexBuffer, k);
         }
+        
+        free(indexBufferPlusKKey);
+        printHashMap(codeTable->map);
     }
 
     appendArray(codeStream, atoi(searchHashMap(codeTable->map, "eoi")));
@@ -179,6 +185,7 @@ STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream)
     size_t status;
     u32 nmemb = 1;
 
+    createLZWCodeStream(indexStream, clrTable);
     //globalColorTable->size
 
     
@@ -241,7 +248,7 @@ STATUS_CODE createGIF() {
     }
     printArray(testArr);
 
-    //status = encodeImageData(gif, globalColorTable, testArr);
+    status = encodeImageData(gif, &globalColorTable, testArr);
     CHECKSTATUS(status);
 
     status = encodeTrailer(gif);

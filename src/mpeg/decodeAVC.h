@@ -1,4 +1,7 @@
 
+#ifndef DECODE_AVC_H
+#define DECODE_AVC_H
+
 void parseAVCSample(sampleInfo *sampleData, MPEG_Data *videoData);
 NALUnitInfo *parseNALUnit(u32 NALUnitDataLength, u8 *NALDataStream);
 
@@ -17,4 +20,4 @@ u32 ue(u8 *data, u32 *bitsRead, u32 *bytesRead, u32 dataLength);
 i32 se(u8 *data, u32 *bitsRead, u32 *bytesRead, u32 dataLength);
 u32 getCodeNum(u8 *data, u32 *bitsRead, u32 *bytesRead, u32 dataLength);
 
-
+#endif // DECODE_AVC_H

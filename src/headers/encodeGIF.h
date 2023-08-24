@@ -1,1 +1,0 @@
-STATUS_CODE createGIF();

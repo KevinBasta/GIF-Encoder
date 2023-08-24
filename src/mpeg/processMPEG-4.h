@@ -1,4 +1,7 @@
 
+#ifndef PROCESS_MPEG_H
+#define PROCESS_MPEG_H
+
 u32 realTimeToMediaTime(u32 time, u32 newTimeScale);
 u32 mediaTimeToDecodeSampleNumber(u32 mediaTime, timeToSampleTableCompressed *timeToSampleTable);
 u32 mediaTimeToDisplaySampleNumber(u32 mediaTime, displayTimeToSampleTable *displayTimeToSampleTable);
@@ -22,3 +25,5 @@ sampleInfo *sampleSearchByRealTime(u32 time, MPEG_Data *videoData);
 sampleInfo *sampleSearchByMediaTime(u32 mediaTime, u32 previousSampleNumber, MPEG_Data *videoData);
 sampleInfo *sampleSearchBySampleNumber(u32 sampleNumber, MPEG_Data *videoData);
 sampleInfo *keyFrameSearch(u32 time, MPEG_Data *videoData);
+
+#endif // PROCESS_MPEG_H

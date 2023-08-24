@@ -104,6 +104,7 @@ char* concatArray(array *arr, char entrySeparator) {
     }
 
     concat[(arr->size * 2)] = '\0';
+    printf("TEST %s\n", concat);
 
     return concat;
 }
