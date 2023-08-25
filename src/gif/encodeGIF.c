@@ -146,39 +146,75 @@ STATUS_CODE encodeImageDescriptor(FILE *gif) {
 }
 
 STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable) {
+    STATUS_CODE status;
+    
     array *codeStream  = initArray(indexStream->size);
     array *indexBuffer = initArray(indexStream->size);
 
     codeTable *codeTable = initCodeTable(clrTable);
 
-    appendArray(codeStream, atoi(searchHashMap(codeTable->map, "cc")));
-    appendArray(indexBuffer, getItemArray(indexStream, 0));
+    // Put the clear code in the code stream
+    char *clearCodeValue = searchHashMap(codeTable->map, "cc");
+    CHECK_NULL_RETURN(clearCodeValue);
+
+    status = appendArray(codeStream, atoi(clearCodeValue));
+    CHECKSTATUS(status);
+
+    // Add first element of index stream to index buffer
+    status = appendArray(indexBuffer, getItemArray(indexStream, 0));
+    CHECKSTATUS(status);
+
     for (size_t i = 1; i < indexStream->size; i++) {
+        // Add next index stream entry to index buffer temporarily
         u32 k = getItemArray(indexStream, i);
-        appendArray(indexBuffer, k);
+        status = appendArray(indexBuffer, k);
+        CHECKSTATUS(status);
+
+        printf("================================\n");
         char *indexBufferPlusKKey = concatArray(indexBuffer, ',');
 
-        printf("GET ITEM\n");
         if (searchHashMap(codeTable->map, indexBufferPlusKKey) == NULL) {
-            printf("GET ITEM\n");
-            char *next = intToString(getNextIndexCodeTable(codeTable));
-            printf("test %s\n", next);
-            insertHashMap(codeTable->map, indexBufferPlusKKey, next);
-            popArray(indexBuffer);
+            printf("index buffer + k not in hash map\n");
             
+            // Add entry for index buffer + k in code table
+            // with value as the next smallest code table index
+            u32 test = getNextIndexCodeTable(codeTable);
+            char *next = intToString(test);
+
+            status = insertHashMap(codeTable->map, indexBufferPlusKKey, next);
+            CHECKSTATUS(status);
+
+            // Add the code for just the index buffer to the code stream
+            status = popArray(indexBuffer);
+            CHECKSTATUS(status);
+
             char *indexBufferKey = concatArray(indexBuffer, ',');
-            appendArray(codeStream, atoi(searchHashMap(codeTable->map, indexBufferKey)));
+            char *value = searchHashMap(codeTable->map, indexBufferKey);
+            CHECK_NULL_RETURN(value);
+
+            status = appendArray(codeStream, atoi(value));
+            CHECKSTATUS(status);
             free(indexBufferKey);
 
+            // Set index buffer to k
             resetArray(indexBuffer);
             appendArray(indexBuffer, k);
+        } else {
+            free(indexBufferPlusKKey);
         }
         
-        free(indexBufferPlusKKey);
-        printHashMap(codeTable->map);
+        //printHashMap(codeTable->map);
     }
 
-    appendArray(codeStream, atoi(searchHashMap(codeTable->map, "eoi")));
+    char *endOfInfoValue = searchHashMap(codeTable->map, "eoi");
+    CHECK_NULL_RETURN(endOfInfoValue);
+
+    status = appendArray(codeStream, atoi(endOfInfoValue));
+    CHECKSTATUS(status);
+
+    printArray(codeStream);
+
+    return OPERATION_SUCCESS;
 }
 
 STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream) {

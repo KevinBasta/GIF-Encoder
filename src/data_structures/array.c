@@ -79,7 +79,9 @@ STATUS_CODE popArray(array *arr) {
         return OPERATION_FAILED;
 
     arr->items[arr->currentIndex] = 0;
+    printf("current index bef: %d\n", arr->currentIndex);
     arr->currentIndex--;
+    printf("current index aft: %d\n", arr->currentIndex);
 
     return OPERATION_SUCCESS;
 }
@@ -95,15 +97,23 @@ void resetArray(array *arr) {
 }
 
 char* concatArray(array *arr, char entrySeparator) {
-    char *concat = malloc(sizeof(char) * (arr->size * 2)); // needs to account for when entry separator isn't 1 char
-    for (size_t i = 0; i < arr->size; i += 2) {
-        char *itemStr = intToString(arr->items[i]);
-        concat[i] = *(itemStr);
-        free(itemStr);
-        concat[i + 1] = entrySeparator;
-    }
+    char *concat = malloc(sizeof(char) * (arr->currentIndex * 2));
+    size_t k = 0;
 
-    concat[(arr->size * 2)] = '\0';
+    for (size_t i = 0; i < arr->currentIndex; i += 1) {
+        char *itemStr = intToString(arr->items[i]);
+        
+        for (size_t j = 0; itemStr[j] != '\0'; j++) {
+            concat[k] = itemStr[j];
+            k++;
+        }
+        
+        concat[k] = entrySeparator;
+        k++;
+
+        free(itemStr);
+    }
+    concat[(arr->currentIndex * 2) - 1] = '\0';
     printf("TEST %s\n", concat);
 
     return concat;

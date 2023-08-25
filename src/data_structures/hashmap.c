@@ -32,10 +32,10 @@ static size_t hashFunction(char *key, size_t size) {
 
     // create index out of key
     for (int j = 0; key[j] != '\0'; j++)
-        index *= (key[j] + 2);
+        index += pow( (u8) key[j] + 2, 3);
     
     index = index % size;
-    printf("index is: %ld\n", index);
+    //printf("index is: %ld\n", index);
 
     return index;
 }
@@ -97,13 +97,13 @@ STATUS_CODE insertHashMap(HashMap *map, char *key, char *value) {
     // collision resolution: Open addressing, quadratic probing
     size_t k = 0;
     while (map->entries[index] != NULL) {
-        printf("=====================\n");
-        printf("collision at index %ld\n", index);
-        printf("key %s, key at index %s\n", key, map->entries[index]->key);
+        //printf(">>>>>>>>>>>>>>>>>>>>>>\n");
+        //printf("collision at index %ld\n", index);
+        //printf("key %s, key at index %s\n", key, map->entries[index]->key);
         k++;
         index = (index + (k*k)) % map->size;
-        printf("new index %ld\n", index);
-        printf("=====================\n");
+        //printf("new index %ld\n", index);
+        //printf("<<<<<<<<<<<<<<<<<<<<<<\n");
 
         // terminate if probing takes too long
         if (k >= map->size) {
@@ -112,6 +112,7 @@ STATUS_CODE insertHashMap(HashMap *map, char *key, char *value) {
     }
 
     map->entries[index] = newEntry;
+    printf("FINAL INDEX: %d\n", index);
 
     return OPERATION_SUCCESS;
 }
@@ -126,7 +127,7 @@ char *searchHashMap(HashMap *map, char *key) {
     size_t index        = hashFunction(key, map->size);
     HashMapEntry *entry = map->entries[index];
     char *value         = NULL;
-    printf("%p\n", entry);
+    //printf("%p\n", entry);
 
     size_t k = 0;
     while (entry != NULL) {
@@ -134,9 +135,11 @@ char *searchHashMap(HashMap *map, char *key) {
             return NULL;
         }
 
-        if (strcmp(entry->key, key) == 0)
+        if (strcmp(entry->key, key) == 0) {
             value = entry->value;
+            printf("search found: %s\n", value);
             break;
+        }
 
         k++;
         index = (index + (k*k)) % map->size;

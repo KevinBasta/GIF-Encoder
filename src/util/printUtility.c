@@ -110,10 +110,10 @@ void printBits(void const * const ptr, size_t const size) {
 
 char* intToString(size_t i) {
     //u32 intStrLen = snprintf(NULL, 0, "%ld", i);
-    char *str     = malloc( 100 );
+    char *str     = malloc( sizeof(char) * 100 );
     //snprintf(str, intStrLen, "%ld", i);
     sprintf(str, "%ld", i);
-    printf("%s\n", str);
+    //printf("%s\n", str);
     
     return str;
 }

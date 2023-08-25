@@ -37,7 +37,7 @@
 
 codeTable* initCodeTable(colorTable *clrTable) {
     codeTable *table = calloc(1, sizeof(codeTable));
-    HashMap *map = initHashMap(clrTable->size * 30);
+    HashMap *map = initHashMap(293);
     table->map = map;
 
     for (size_t i = 0; i < clrTable->size; i++) {
@@ -50,13 +50,13 @@ codeTable* initCodeTable(colorTable *clrTable) {
     insertHashMap(map, createKeyHashMap("cc", 2), intToString(3));
     insertHashMap(map, createKeyHashMap("eoi", 3), intToString(4));
     printHashMap(map);
-    table->index = table->index + 2;
+    table->index = table->index + 3;
 
     return table;
 }
 
 u32 getNextIndexCodeTable(codeTable *table) {
-    table->index = table->index + 1;
+    table->index++;
 
     return table->index;
 }
