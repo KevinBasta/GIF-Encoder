@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "LinkedList.h"
+#include "linkedlist.h"
 #include "typesMPEG-4.h"
 #include "typesStorage.h"
 
@@ -37,7 +37,7 @@ void stsdParseBox(box *stsdBox, MPEG_Data *videoData) { //sample description req
     u32 numberOfEntriesInt = bigEndianU8ArrToLittleEndianU32(numberOfEntries);
     printf("entries numb: %d\n", numberOfEntriesInt);
     
-    linkedList *sampleDescriptionsLL = LinkedListInit();
+    linkedList *sampleDescriptionsLL = linkedlistInit();
 
     for (u32 i = 0; i < numberOfEntriesInt; i++) { 
         // General Structure Of A Sample Description        
@@ -93,21 +93,21 @@ void stsdParseBox(box *stsdBox, MPEG_Data *videoData) { //sample description req
 
         printf("read: %d, end: %d\n", bytesRead, absoluteEndOfThisSampleDescription);
         if (bytesRead != absoluteEndOfThisSampleDescription) {
-            linkedList *stsdVideoExtentions = LinkedListInit();
+            linkedList *stsdVideoExtentions = linkedlistInit();
             parseNestedChildBoxes(boxData, &bytesRead, absoluteEndOfThisSampleDescription, stsdVideoExtentions);
-            LinkedListPrintAllBoxes(stsdVideoExtentions);
+            linkedlistPrintAllBoxes(stsdVideoExtentions);
 
             printf("=============== avcc =================\n");
-            box *avccBox = LinkedListGetBox(stsdVideoExtentions, "avcC");
+            box *avccBox = linkedlistGetBox(stsdVideoExtentions, "avcC");
             avccParseBox(avccBox, videoData);
             printf("=============== pasp =================\n");
-            box *paspBox = LinkedListGetBox(stsdVideoExtentions, "pasp");
+            box *paspBox = linkedlistGetBox(stsdVideoExtentions, "pasp");
             paspParseBox(paspBox, videoData);
             printf("=============== btrt =================\n");
-            box *btrtBox = LinkedListGetBox(stsdVideoExtentions, "btrt");
+            box *btrtBox = linkedlistGetBox(stsdVideoExtentions, "btrt");
             btrtParseBox(btrtBox, videoData);
             printf("=============== colr =================\n");
-            box *colrBox = LinkedListGetBox(stsdVideoExtentions, "colr");
+            box *colrBox = linkedlistGetBox(stsdVideoExtentions, "colr");
             colrParseBox(colrBox, videoData);
 
         }

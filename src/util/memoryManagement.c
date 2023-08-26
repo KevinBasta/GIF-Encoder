@@ -6,7 +6,7 @@
 
 #include "typesMPEG-4.h"
 #include "typesAVC.h"
-#include "LinkedList.h"
+#include "linkedlist.h"
 #include "typesStorage.h"
 
 u8 isNULL(void *data) {

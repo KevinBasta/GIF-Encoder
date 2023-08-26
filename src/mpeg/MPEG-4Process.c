@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "LinkedList.h"
+#include "linkedlist.h"
 #include "typesMPEG-4.h"
 #include "typesStorage.h"
 #include "typesUtility.h"
@@ -331,8 +331,8 @@ void getVideoDataRangeByMediaTime(u32 startTime, u32 endTime, MPEG_Data *videoDa
     //printf("Start Sample\n");
     //parseAVCSample(startSample, videoData);
 
-    linkedList *sampleLL = LinkedListInit();
-    LinkedListAppendNode(sampleLL, startSample);
+    linkedList *sampleLL = linkedlistInit();
+    linkedlistAppendNode(sampleLL, startSample);
 
     u32 previousSampleNumber = startSample->sampleNumber;
     int j = 0;
@@ -342,14 +342,14 @@ void getVideoDataRangeByMediaTime(u32 startTime, u32 endTime, MPEG_Data *videoDa
         if (sample != NULL) { 
             j++;
             previousSampleNumber = sample->sampleNumber;
-            LinkedListAppendNode(sampleLL, sample);
+            linkedlistAppendNode(sampleLL, sample);
             //printf("j: %d\n", j);
             //parseAVCSample(sample, videoData);
         }
     }
 
     if (((sampleInfo*) sampleLL->last->currentItem)->sampleNumber != endSample->sampleNumber) { 
-        LinkedListAppendNode(sampleLL, endSample);
+        linkedlistAppendNode(sampleLL, endSample);
     } else { 
         // does media time of end sample be considered?
         printf("%d %d\n", ((sampleInfo*) sampleLL->last->currentItem)->mediaTime, endSample->mediaTime);

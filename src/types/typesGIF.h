@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 #include "main.h"
-#include "HashMap.h"
+#include "hashmap.h"
 #include "GIFEncode.h"
 
 typedef struct RGB {

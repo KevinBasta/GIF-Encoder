@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "LinkedList.h"
+#include "linkedlist.h"
 #include "typesAVC.h"
 #include "typesStorage.h"
 #include "typesUtility.h"

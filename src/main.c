@@ -20,9 +20,9 @@
 
 #ifndef DATA_STRUCTURES
     #define DATA_STRUCTURES
-    #include "LinkedList.h"
-    #include "HashMap.h"
-    #include "Array.h"
+    #include "linkedlist.h"
+    #include "hashmap.h"
+    #include "array.h"
     #include "typesStorage.h"
 #endif //DATA_STRUCTURES
 

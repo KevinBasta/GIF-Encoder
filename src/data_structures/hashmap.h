@@ -16,14 +16,14 @@ typedef struct HashMap {
     HashMapEntry **entries;
 } HashMap;
 
-HashMap *HashMapInit(size_t size);
+HashMap *hashmapInit(size_t size);
 
-STATUS_CODE HashMapInsert(HashMap *map, char *key, char *value);
-char *HashMapSearch(HashMap *map, char *key);
+STATUS_CODE hashmapInsert(HashMap *map, char *key, char *value);
+char *hashmapSearch(HashMap *map, char *key);
 
-char *HashMapCreateKey(char *str, u32 length);
-void HashMapPrint(HashMap *map);
-void HashMapSearchPrint(HashMap *map, char *key);
+char *hashmapCreateKey(char *str, u32 length);
+void hashmapPrint(HashMap *map);
+void hashmapSearchPrint(HashMap *map, char *key);
 
 void freeHashMapEntry(HashMapEntry *entry);
 void freeHashMap(HashMap *map);

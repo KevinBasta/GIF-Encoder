@@ -7,7 +7,7 @@
 #include "main.h"
 
 #include "typesMPEG-4.h"
-#include "LinkedList.h"
+#include "linkedlist.h"
 #include "typesStorage.h"
 
 #include "bitUtility.h"
@@ -19,105 +19,105 @@
 MPEG_Data *getMpegData(char *fileName) { 
     float startTime = (float)clock()/CLOCKS_PER_SEC;
     
-    linkedList *topBoxesLL = LinkedListInit();
+    linkedList *topBoxesLL = linkedlistInit();
     MPEG_Data *videoData = (MPEG_Data*) calloc(1, sizeof(MPEG_Data));
     
 
     printf("----------TOP LEVEL----------\n");
     readMainBoxes(fileName, topBoxesLL); // fopen takes in a relative path from executable location
-    LinkedListPrintAllBoxes(topBoxesLL);
+    linkedlistPrintAllBoxes(topBoxesLL);
 
     // MDAT
-    videoData->mdatBox = LinkedListGetBox(topBoxesLL, "mdat");
-    videoData->mdatDataOffsetInFile = LinkedListGetOffsetToBox(topBoxesLL, "mdat") + BOX_HEADER_SIZE;
+    videoData->mdatBox = linkedlistGetBox(topBoxesLL, "mdat");
+    videoData->mdatDataOffsetInFile = linkedlistGetOffsetToBox(topBoxesLL, "mdat") + BOX_HEADER_SIZE;
     //videoData->topBoxesLL = topBoxesLL;
 
 
     printf("----------MOOV LEVEL----------\n");
-    box *moovBox = LinkedListGetBox(topBoxesLL, "moov");
+    box *moovBox = linkedlistGetBox(topBoxesLL, "moov");
     
-    linkedList *moovLL = LinkedListInit();
+    linkedList *moovLL = linkedlistInit();
     parseChildBoxes(moovBox, moovLL);
-    LinkedListPrintAllBoxes(moovLL);
+    linkedlistPrintAllBoxes(moovLL);
 
 
     printf(">>>----------MVHD LEVEL----------<<<\n");
-    box *mvhdBox = LinkedListGetBox(moovLL, "mvhd");
+    box *mvhdBox = linkedlistGetBox(moovLL, "mvhd");
     mvhdParseBox(mvhdBox, videoData);
 
 
     printf("----------TRAK LEVEL----------\n");
     box *trakBox = getVideTrak(moovLL);
 
-    linkedList *trakLL = LinkedListInit();
+    linkedList *trakLL = linkedlistInit();
     parseChildBoxes(trakBox, trakLL);
-    LinkedListPrintAllBoxes(trakLL);
+    linkedlistPrintAllBoxes(trakLL);
 
 
     printf(">>>----------TKHD LEVEL----------<<<\n");
-    box *tkhdBox = LinkedListGetBox(trakLL, "tkhd");
+    box *tkhdBox = linkedlistGetBox(trakLL, "tkhd");
     tkhdParseBox(tkhdBox, videoData);
 
 
     printf(">>>----------EDTS LEVEL----------<<<\n");
-    box *edtsBox = LinkedListGetBox(trakLL, "edts");
+    box *edtsBox = linkedlistGetBox(trakLL, "edts");
     edtsParseBox(edtsBox, videoData);
 
 
     printf("----------MDIA LEVEL----------\n");
-    box *mdia = LinkedListGetBox(trakLL, "mdia");
+    box *mdia = linkedlistGetBox(trakLL, "mdia");
 
-    linkedList *mdiaLL = LinkedListInit();
+    linkedList *mdiaLL = linkedlistInit();
     parseChildBoxes(mdia, mdiaLL);
-    LinkedListPrintAllBoxes(mdiaLL);
+    linkedlistPrintAllBoxes(mdiaLL);
 
 
     printf(">>>----------MDHD LEVEL----------<<<\n");
-    box *mdhdBox = LinkedListGetBox(mdiaLL, "mdhd");
+    box *mdhdBox = linkedlistGetBox(mdiaLL, "mdhd");
     mdhdParseBox(mdhdBox, videoData);
 
 
     printf(">>>----------HDLR LEVEL----------<<<\n");
-    box *hdlrBox = LinkedListGetBox(mdiaLL, "hdlr");
+    box *hdlrBox = linkedlistGetBox(mdiaLL, "hdlr");
     hdlrParseBox(hdlrBox);
 
 
     printf("----------MINF LEVEL----------\n");
-    box *minf = LinkedListGetBox(mdiaLL, "minf");
+    box *minf = linkedlistGetBox(mdiaLL, "minf");
 
-    linkedList *minfLL = LinkedListInit();
+    linkedList *minfLL = linkedlistInit();
     parseChildBoxes(minf, minfLL);
-    LinkedListPrintAllBoxes(minfLL);
+    linkedlistPrintAllBoxes(minfLL);
 
 
     printf(">>>----------DINF LEVEL----------<<<\n");
-    box *dinfBox = LinkedListGetBox(minfLL, "dinf");
+    box *dinfBox = linkedlistGetBox(minfLL, "dinf");
     dinfParseBox(dinfBox, videoData);
 
 
     printf("----------STBL LEVEL----------\n");
-    box *stbl = LinkedListGetBox(minfLL, "stbl");
+    box *stbl = linkedlistGetBox(minfLL, "stbl");
 
-    linkedList *stblLL = LinkedListInit();
+    linkedList *stblLL = linkedlistInit();
     parseChildBoxes(stbl, stblLL);
-    LinkedListPrintAllBoxes(stblLL);
+    linkedlistPrintAllBoxes(stblLL);
 
 
     printf(">>>--------STBL CHILDREN LEVEL--------<<<\n");
-    box *stco = LinkedListGetBox(stblLL, "stco");
+    box *stco = linkedlistGetBox(stblLL, "stco");
     stcoParseBox(stco, videoData);
-    box *stsz = LinkedListGetBox(stblLL, "stsz");
+    box *stsz = linkedlistGetBox(stblLL, "stsz");
     stszParseBox(stsz, videoData);
-    box *stsc = LinkedListGetBox(stblLL, "stsc");
+    box *stsc = linkedlistGetBox(stblLL, "stsc");
     stscParseBox(stsc, videoData);
-    box *stss = LinkedListGetBox(stblLL, "stss");
+    box *stss = linkedlistGetBox(stblLL, "stss");
     stssParseBox(stss, videoData);
-    box *ctts = LinkedListGetBox(stblLL, "ctts");
+    box *ctts = linkedlistGetBox(stblLL, "ctts");
     cttsParseBox(ctts, videoData);
-    box *stts = LinkedListGetBox(stblLL, "stts");
+    box *stts = linkedlistGetBox(stblLL, "stts");
     sttsParseBox(stts, videoData);
     printf("=====================================\n");
-    box *stsd = LinkedListGetBox(stblLL, "stsd");
+    box *stsd = linkedlistGetBox(stblLL, "stsd");
     stsdParseBox(stsd, videoData);
     printf("=====================================\n");
     
@@ -146,15 +146,15 @@ MPEG_Data *getMpegData(char *fileName) {
 box *getVideTrak(linkedList *moovLL) { 
     box *trakBox;
 
-    while ((trakBox = LinkedListGetBox(moovLL, "trak")) != NULL) { 
-        linkedList *trakLL = LinkedListInit();
+    while ((trakBox = linkedlistGetBox(moovLL, "trak")) != NULL) { 
+        linkedList *trakLL = linkedlistInit();
         parseChildBoxes(trakBox, trakLL);
 
-        box *mdiaBox = LinkedListGetBox(trakLL, "mdia");
-        linkedList *mdiaLL = LinkedListInit();
+        box *mdiaBox = linkedlistGetBox(trakLL, "mdia");
+        linkedList *mdiaLL = linkedlistInit();
         parseChildBoxes(mdiaBox, mdiaLL);
 
-        box *hdlrBox = LinkedListGetBox(mdiaLL, "hdlr");
+        box *hdlrBox = linkedlistGetBox(mdiaLL, "hdlr");
         if (compareNBytes(hdlrParseBox(hdlrBox), "vide", 4) == TRUE) { 
             // gather other info into MPEG_Data then
             freeLinkedList(trakLL, "box");
@@ -199,9 +199,9 @@ void parseNestedChildBoxes(u8 *boxData, u32 *bytesRead, u32 endIndex, linkedList
         box *currentChildBoxRead = parseSingleNestedChildBox(boxData, bytesRead);
 
         // Storing the current box in the current Node and allocating memory for the next box
-        LinkedListAppendNode(list, currentChildBoxRead);
+        linkedlistAppendNode(list, currentChildBoxRead);
         if (*bytesRead >= endIndex) {
-            LinkedListNullifyLastNode(list);
+            linkedlistNullifyLastNode(list);
         }
     }
 }
@@ -245,7 +245,7 @@ void readMainBoxes(u8 fileName[], linkedList *list) {
         */
         if (feof(video)) { // can also use if chunksread == 0
             free(headerSize);
-            LinkedListNullifyLastNode(list);
+            linkedlistNullifyLastNode(list);
             //DEBUG printf("end of file reached\n");
             break;
         }
@@ -291,6 +291,6 @@ void readMainBoxes(u8 fileName[], linkedList *list) {
             setting the last node to the current node 
             (this is for setting it's nextBoxNode to null incase there is no next node)
         */
-        LinkedListAppendNode(list, currentBoxRead);
+        linkedlistAppendNode(list, currentBoxRead);
     }
 }

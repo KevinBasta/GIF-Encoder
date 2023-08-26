@@ -33,14 +33,14 @@ typedef struct linkedList {
     Node *current;
 } linkedList;
 
-linkedList* LinkedListInit();
-void LinkedListAppendNode(linkedList *list, void *item);
-void LinkedListNullifyLastNode(linkedList *list);
+linkedList* linkedlistInit();
+void linkedlistAppendNode(linkedList *list, void *item);
+void linkedlistNullifyLastNode(linkedList *list);
 
-void LinkedListPrintAllBoxes(linkedList *list);
+void linkedlistPrintAllBoxes(linkedList *list);
 
-u32 LinkedListGetOffsetToBox(linkedList *list, u8 boxCompareType[]);
-box *LinkedListGetBox(linkedList *list, u8 boxReturnType[]);
+u32 linkedlistGetOffsetToBox(linkedList *list, u8 boxCompareType[]);
+box *linkedlistGetBox(linkedList *list, u8 boxReturnType[]);
 
 void freeBox(box *boxStruct);
 Node *freeBoxNode(Node *nodeStruct);
