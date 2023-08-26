@@ -1,10 +1,14 @@
 
 #include <stdlib.h>
-#include <stdint.h>
 #include <stdio.h>
+#include <string.h>
+
+#include <stdint.h>
 #include "main.h"
-#include "typesMPEG-4.h"
+
 #include "linkedList.h"
+#include "typesMPEG-4.h"
+#include "bitUtility.h"
 #include "printUtility.h"
 
 /**

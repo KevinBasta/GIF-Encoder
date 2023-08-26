@@ -1,11 +1,14 @@
 
 #include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <math.h>
+
+#include <stdint.h>
 #include "main.h"
-#include "bitUtility.h"
+
 #include "endianUtility.h"
+#include "printUtility.h"
 
 // endian check
 const int endiannessCheck = 1;

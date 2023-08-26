@@ -1,8 +1,10 @@
 
 #include <stdlib.h>
+#include <math.h>
+
 #include <stdint.h>
-#include <stdbool.h>
 #include "main.h"
+
 #include "bitUtility.h"
 
 /**

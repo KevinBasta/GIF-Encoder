@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include "main.h"
+#include "typesMPEG-4.h"
 
 /**
  * @brief Holds a different type in currentItem and Node (same) type in nextNode

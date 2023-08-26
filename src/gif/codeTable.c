@@ -1,8 +1,9 @@
 
 #include <stdlib.h>
+
 #include <stdint.h>
-#include <stdio.h>
 #include "main.h"
+
 #include "hashmap.h"
 #include "typesGIF.h"
 #include "printUtility.h"

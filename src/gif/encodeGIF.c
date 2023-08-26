@@ -1,8 +1,10 @@
+
 #include <stdlib.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <stdbool.h>
+
+#include <stdint.h>
 #include "main.h"
+
 #include "typesGIF.h"
 #include "codeTable.h"
 

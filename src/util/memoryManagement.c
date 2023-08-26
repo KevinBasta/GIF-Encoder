@@ -1,14 +1,13 @@
 
 #include <stdlib.h>
-#include <stdint.h>
-#include <stdio.h>
 
+#include <stdint.h>
 #include "main.h"
+
 #include "typesMPEG-4.h"
 #include "typesAVC.h"
 #include "linkedList.h"
 #include "typesStorage.h"
-#include "typesUtility.h"
 
 u8 isNULL(void *data) {
     if (data == NULL) { 

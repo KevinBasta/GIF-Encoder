@@ -1,21 +1,19 @@
 
 #include <stdlib.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <time.h>
 
+#include <stdint.h>
 #include "main.h"
+
 #include "typesMPEG-4.h"
 #include "linkedList.h"
 #include "typesStorage.h"
 
 #include "bitUtility.h"
 #include "endianUtility.h"
-#include "printUtility.h"
-#include "memoryManagement.h"
+#include "decodeMPEG-4.h"
 #include "parseMPEG-4.h"
-
-
 
 
 MPEG_Data *getMpegData(char *fileName) { 

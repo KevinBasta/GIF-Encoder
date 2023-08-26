@@ -1,9 +1,12 @@
 
 #include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
+#include <math.h>
+
+#include <stdint.h>
 #include "main.h"
+
 #include "hashmap.h"
 #include "printUtility.h"
 
@@ -98,7 +101,7 @@ STATUS_CODE insertHashMap(HashMap *map, char *key, char *value) {
     }
 
     map->entries[index] = newEntry;
-    printf("FINAL INDEX: %d\n", index);
+    printf("FINAL INDEX: %ld\n", index);
 
     return OPERATION_SUCCESS;
 }
