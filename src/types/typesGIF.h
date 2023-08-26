@@ -4,8 +4,8 @@
 
 #include <stdint.h>
 #include "main.h"
-#include "hashmap.h"
-#include "encodeGIF.h"
+#include "HashMap.h"
+#include "GIFEncode.h"
 
 typedef struct RGB {
     u8 red;

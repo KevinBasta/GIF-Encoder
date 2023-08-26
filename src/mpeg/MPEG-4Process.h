@@ -1,6 +1,6 @@
 
-#ifndef PROCESS_MPEG_H
-#define PROCESS_MPEG_H
+#ifndef MPEG_PROCESS_H
+#define MPEG_PROCESS_H
 
 #include <stdint.h>
 #include "main.h"
@@ -31,4 +31,4 @@ sampleInfo *sampleSearchByMediaTime(u32 mediaTime, u32 previousSampleNumber, MPE
 sampleInfo *sampleSearchBySampleNumber(u32 sampleNumber, MPEG_Data *videoData);
 sampleInfo *keyFrameSearch(u32 time, MPEG_Data *videoData);
 
-#endif // PROCESS_MPEG_H
+#endif // MPEG_PROCESS_H

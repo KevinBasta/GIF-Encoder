@@ -1,10 +1,10 @@
 
-#ifndef PARSE_MPEG_H
-#define PARSE_MPEG_H
+#ifndef MPEG_PARSE_H
+#define MPEG_PARSE_H
 
 #include <stdint.h>
 #include "main.h"
-#include "linkedlist.h"
+#include "LinkedList.h"
 #include "typesStorage.h"
 
 MPEG_Data *getMpegData(char *fileName);
@@ -14,4 +14,4 @@ void parseNestedChildBoxes(u8 *boxData, u32 *bytesRead, u32 endIndex, linkedList
 box *parseSingleNestedChildBox(u8 *boxData, u32 *bytesRead);
 box *getVideTrak(linkedList *moovLL);
 
-#endif // PARSE_MPEG_H
+#endif // MPEG_PARSE_H

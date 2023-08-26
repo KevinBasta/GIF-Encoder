@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "linkedlist.h"
+#include "LinkedList.h"
 #include "typesMPEG-4.h"
 #include "typesStorage.h"
 
@@ -13,9 +13,9 @@
 #include "endianUtility.h"
 #include "printUtility.h"
 
-#include "parseMPEG-4.h"
-#include "decodeMPEG-4.h"
-#include "decodeAVC.h"
+#include "MPEG-4Parse.h"
+#include "MPEG-4Decode.h"
+#include "AVCDecode.h"
 
 //https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap2/qtff2.html#//apple_ref/doc/uid/TP40000939-CH204-25680
 //the following child atoms are required: sample description, sample size, sample to chunk, and chunk offset

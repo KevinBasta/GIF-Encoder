@@ -6,10 +6,10 @@
 #include "main.h"
 
 #include "typesGIF.h"
-#include "codeTable.h"
+#include "GIFCodeTable.h"
 
-#include "hashmap.h"
-#include "array.h"
+#include "HashMap.h"
+#include "Array.h"
 #include "endianUtility.h"
 #include "printUtility.h"
 

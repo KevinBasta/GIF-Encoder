@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "hashmap.h"
+#include "HashMap.h"
 #include "typesGIF.h"
 #include "printUtility.h"
 

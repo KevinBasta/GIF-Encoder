@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "array.h"
+#include "Array.h"
 #include "printUtility.h"
 
 // Private array helpers

@@ -7,13 +7,13 @@
 #include "main.h"
 
 #include "typesMPEG-4.h"
-#include "linkedlist.h"
+#include "LinkedList.h"
 #include "typesStorage.h"
 
 #include "bitUtility.h"
 #include "endianUtility.h"
-#include "decodeMPEG-4.h"
-#include "parseMPEG-4.h"
+#include "MPEG-4Decode.h"
+#include "MPEG-4Parse.h"
 
 
 MPEG_Data *getMpegData(char *fileName) { 

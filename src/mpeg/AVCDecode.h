@@ -1,6 +1,6 @@
 
-#ifndef DECODE_AVC_H
-#define DECODE_AVC_H
+#ifndef AVC_DECODE_H
+#define AVC_DECODE_H
 
 #include <stdint.h>
 #include "main.h"
@@ -17,4 +17,4 @@ void sliceHeaderDecode(u32 NALUnitDataLength, u8 *NALDataStream, sampleInfo *sam
 u8 byteAligned(u32 *bitsRead);
 void rbspTrailingBits(u8 *data, u32 *bitsRead, u32 *bytesRead, u32 numberOfBits);
 
-#endif // DECODE_AVC_H
+#endif // AVC_DECODE_H

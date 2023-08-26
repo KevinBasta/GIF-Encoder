@@ -6,12 +6,12 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "linkedlist.h"
+#include "LinkedList.h"
 #include "typesMPEG-4.h"
 #include "typesStorage.h"
 #include "typesUtility.h"
 
-#include "processMPEG-4.h"
+#include "MPEG-4Process.h"
 
 /**
  * @brief converts a real time in a real time coordinate system
@@ -414,8 +414,6 @@ sampleInfo *sampleSearchBySampleNumber(u32 sampleNumber, MPEG_Data *videoData) {
 
     return sample;
 }
-
-
 
 
 sampleInfo *keyFrameSearch(u32 time, MPEG_Data *videoData) { 

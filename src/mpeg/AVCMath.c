@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "calcAVC.h"
+#include "AVCMath.h"
 #include "bitUtility.h"
 #include "endianUtility.h"
 

@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "hashmap.h"
+#include "HashMap.h"
 #include "printUtility.h"
 
 /**
@@ -16,7 +16,7 @@
  * @param size      size of the map 
  * @return hashed index of the key
  */
-static size_t hashFunction(char *key, size_t size) {
+static size_t HashFunction(char *key, size_t size) {
     size_t index = 1;
 
     // create index out of key
@@ -80,7 +80,7 @@ STATUS_CODE HashMapInsert(HashMap *map, char *key, char *value) {
 
     printf("INSERT OPERATING STARTED %s\n", key);
 
-    size_t index           = hashFunction(key, map->size);
+    size_t index           = HashFunction(key, map->size);
     HashMapEntry *newEntry = HashMapCreateEntry(key, value);
 
     // collision resolution: Open addressing, quadratic probing
@@ -113,7 +113,7 @@ STATUS_CODE HashMapInsert(HashMap *map, char *key, char *value) {
  * @return the value or null
  */
 char *HashMapSearch(HashMap *map, char *key) {
-    size_t index        = hashFunction(key, map->size);
+    size_t index        = HashFunction(key, map->size);
     HashMapEntry *entry = map->entries[index];
     char *value         = NULL;
     //printf("%p\n", entry);

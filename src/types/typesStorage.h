@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 #include "main.h"
-#include "linkedlist.h"
+#include "LinkedList.h"
 #include "typesMPEG-4.h"
 #include "typesAVC.h"
 

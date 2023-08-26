@@ -1,6 +1,6 @@
 
-#ifndef CALC_AVC_H
-#define CALC_AVC_H
+#ifndef AVC_MATH_H
+#define AVC_MATH_H
 
 #include <stdint.h>
 #include "main.h"
@@ -13,4 +13,4 @@ u32 ue(u8 *data, u32 *bitsRead, u32 *bytesRead, u32 dataLength);
 i32 se(u8 *data, u32 *bitsRead, u32 *bytesRead, u32 dataLength);
 u32 getCodeNum(u8 *data, u32 *bitsRead, u32 *bytesRead, u32 dataLength);
 
-#endif // CALC_AVC_H
+#endif // AVC_MATH_H

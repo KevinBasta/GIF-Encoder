@@ -1,6 +1,6 @@
 
-#ifndef DECODE_MPEG_H
-#define DECODE_MPEG_H
+#ifndef MPEG_DECODE_H
+#define MPEG_DECODE_H
 
 #include <stdint.h>
 #include "main.h"
@@ -31,4 +31,4 @@ void btrtParseBox(box *btrtBox, MPEG_Data *videoData);
 void colrParseBox(box *colrBox, MPEG_Data *videoData);
 void avccParseBox(box *avccBox, MPEG_Data *videoData);
 
-#endif // DECODE_MPEG_H
+#endif // MPEG_DECODE_H

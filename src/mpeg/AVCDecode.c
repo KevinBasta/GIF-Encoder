@@ -6,14 +6,13 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "linkedlist.h"
+#include "LinkedList.h"
 #include "typesAVC.h"
 #include "typesStorage.h"
 #include "typesUtility.h"
 
-
-#include "calcAVC.h"
-#include "decodeAVC.h"
+#include "AVCMath.h"
+#include "AVCDecode.h"
 #include "bitUtility.h"
 #include "endianUtility.h"
 #include "printUtility.h"
