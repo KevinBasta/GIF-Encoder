@@ -2,6 +2,11 @@
 #ifndef PARSE_MPEG_H
 #define PARSE_MPEG_H
 
+#include <stdint.h>
+#include "main.h"
+#include "linkedList.h"
+#include "typesStorage.h"
+
 MPEG_Data *getMpegData(char *fileName);
 void readMainBoxes(u8 fileName[], linkedList *list);
 void parseChildBoxes(box *parentBox, linkedList *list);

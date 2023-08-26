@@ -1,4 +1,13 @@
 
+#ifndef STORAGE_TYPES_H
+#define STORAGE_TYPES_H
+
+#include <stdint.h>
+#include "main.h"
+#include "linkedList.h"
+#include "typesMPEG-4.h"
+#include "typesAVC.h"
+
 // Main Storage Structs //
 
 typedef struct sampleInfo {
@@ -81,3 +90,5 @@ typedef struct MPEG_Data {
     
 
 } MPEG_Data;
+
+#endif // STORAGE_TYPES_H

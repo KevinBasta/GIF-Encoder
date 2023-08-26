@@ -1,26 +1,10 @@
-#ifndef COMMON_HEAD
-    #define COMMON_HEAD
-    #include <stdlib.h>
-    #include <stdint.h>
-    #include <string.h>
-    #include <stdbool.h>
-    #include <stdio.h>
-    #include <math.h>
-    #include <time.h>
-#endif //COMMON_HEAD
 
-#ifndef COMMON_TYPES
-    #define COMMON_TYPES
-    #include "main.h"
-    #include "array.h"
-    #include "typesUtility.h"
-#endif //COMMON_TYPES
-
-#ifndef COMMON_UTIL
-    #define COMMON_UTIL
-    #include "printUtility.h"
-#endif //COMMON_UTIL
-
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
+#include "main.h"
+#include "array.h"
+#include "printUtility.h"
 
 // Private array helpers
 
@@ -79,9 +63,7 @@ STATUS_CODE popArray(array *arr) {
         return OPERATION_FAILED;
 
     arr->items[arr->currentIndex] = 0;
-    printf("current index bef: %d\n", arr->currentIndex);
     arr->currentIndex--;
-    printf("current index aft: %d\n", arr->currentIndex);
 
     return OPERATION_SUCCESS;
 }
@@ -131,6 +113,8 @@ void printArray(array *arr) {
             printf("\n");
         }
     }
+
+    printf("\n");
 }
 
 void freeArray(array *arr) {

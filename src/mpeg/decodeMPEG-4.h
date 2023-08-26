@@ -2,6 +2,11 @@
 #ifndef DECODE_MPEG_H
 #define DECODE_MPEG_H
 
+#include <stdint.h>
+#include "main.h"
+#include "typesStorage.h"
+#include "typesMPEG-4.h"
+
 void ftypParseBox(box *ftypBox);
 void mvhdParseBox(box *mvhdBox, MPEG_Data *videoData);
 void tkhdParseBox(box *trakBox, MPEG_Data *videoData);

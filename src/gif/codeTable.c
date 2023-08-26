@@ -1,43 +1,18 @@
-#ifndef COMMON_HEAD
-    #define COMMON_HEAD
-    #include <stdlib.h>
-    #include <stdint.h>
-    #include <string.h>
-    #include <stdbool.h>
-    #include <stdio.h>
-    #include <math.h>
-    #include <time.h>
-    #include "main.h"
-#endif //COMMON_HEAD
 
-#ifndef COMMON_TYPES
-    #define COMMON_TYPES
-    #include "typesMPEG-4.h"
-    #include "typesAVC.h"
-    #include "typesGIF.h"
-    #include "typesUtility.h"
-#endif //COMMON_TYPES
-
-#ifndef DATA_STRUCTURES
-    #define DATA_STRUCTURES
-    #include "linkedList.h"
-    #include "hashmap.h"
-    #include "array.h"
-    #include "typesStorage.h"
-#endif //DATA_STRUCTURES
-
-#ifndef COMMON_UTIL
-    #define COMMON_UTIL
-    #include "bitUtility.h"
-    #include "endianUtility.h"
-    #include "printUtility.h"
-    #include "memoryManagement.h"
-#endif //COMMON_UTIL
-
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
+#include "main.h"
+#include "hashmap.h"
+#include "typesGIF.h"
+#include "printUtility.h"
 
 codeTable* initCodeTable(colorTable *clrTable) {
     codeTable *table = calloc(1, sizeof(codeTable));
-    HashMap *map = initHashMap(293);
+    
+    // Max code table entries is 4095 as defined by the GIF format
+    // To allow for a max load factor <= 0.5, the closest prime to (4095 * 2) is used
+    HashMap *map = initHashMap(8191);
     table->map = map;
 
     for (size_t i = 0; i < clrTable->size; i++) {

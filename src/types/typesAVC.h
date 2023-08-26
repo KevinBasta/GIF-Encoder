@@ -1,4 +1,10 @@
 
+#ifndef AVC_TYPES_H
+#define AVC_TYPES_H
+
+#include <stdint.h>
+#include "main.h"
+
 // AVC Structs //
 typedef struct NALUnitInfo {
     u8 NALRefIdc;
@@ -136,3 +142,5 @@ typedef struct parsingInfo {
     u32 *bytesRead;
     u8 *data;
 } parsingInfo;
+
+#endif // AVC_TYPES_H

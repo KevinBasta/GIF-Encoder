@@ -1,3 +1,10 @@
+
+#ifndef LINKED_LIST_H
+#define LINKED_LIST_H
+
+#include <stdint.h>
+#include "main.h"
+
 /**
  * @brief Holds a different type in currentItem and Node (same) type in nextNode
  * @param *currentItem  -   usually type of box
@@ -37,3 +44,5 @@ box *getBoxFromLinkedList(linkedList *list, u8 boxReturnType[]);
 void freeBox(box *boxStruct);
 Node *freeBoxNode(Node *nodeStruct);
 void freeLinkedList(linkedList *list, char type[]);
+
+#endif // LINKED_LIST_H

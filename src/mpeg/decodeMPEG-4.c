@@ -1,40 +1,21 @@
-#ifndef COMMON_HEAD
-    #define COMMON_HEAD
-    #include <stdlib.h>
-    #include <stdint.h>
-    #include <string.h>
-    #include <stdbool.h>
-    #include <stdio.h>
-    #include <math.h>
-    #include <time.h>
-#endif //COMMON_HEAD
 
-#ifndef COMMON_TYPES
-    #define COMMON_TYPES
-    #include "main.h"
-    #include "typesMPEG-4.h"
-    #include "typesAVC.h"
-    #include "linkedList.h"
-    #include "typesStorage.h"
-    #include "typesUtility.h"
-#endif //COMMON_TYPES
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
 
-#ifndef COMMON_UTIL
-    #define COMMON_UTIL
-    #include "bitUtility.h"
-    #include "endianUtility.h"
-    #include "printUtility.h"
-    #include "memoryManagement.h"
-#endif //COMMON_UTIL
+#include "main.h"
+#include "typesMPEG-4.h"
+#include "linkedList.h"
+#include "typesStorage.h"
 
-#ifndef MPEG_HEAD
-    #define MPEG_HEAD
-    #include "parseMPEG-4.h"
-    #include "decodeMPEG-4.h"
-    #include "processMPEG-4.h"
-    #include "decodeAVC.h"
-#endif //MPEG_HEAD
+#include "bitUtility.h"
+#include "endianUtility.h"
+#include "printUtility.h"
+#include "memoryManagement.h"
 
+#include "parseMPEG-4.h"
+#include "decodeMPEG-4.h"
+#include "decodeAVC.h"
 
 //https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap2/qtff2.html#//apple_ref/doc/uid/TP40000939-CH204-25680
 //the following child atoms are required: sample description, sample size, sample to chunk, and chunk offset

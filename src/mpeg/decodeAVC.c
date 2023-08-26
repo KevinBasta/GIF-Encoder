@@ -1,15 +1,9 @@
-#ifndef COMMON_HEAD
-    #define COMMON_HEAD
-    #include <stdlib.h>
-    #include <stdint.h>
-    #include <string.h>
-    #include <stdbool.h>
-    #include <stdio.h>
-    #include <math.h>
-    #include <time.h>
-#endif //COMMON_HEAD
 
-
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include "math.h"
+#include <stdio.h>
 #include "main.h"
 #include "typesMPEG-4.h"
 #include "typesAVC.h"
@@ -17,18 +11,10 @@
 #include "typesStorage.h"
 #include "typesUtility.h"
 
-
 #include "bitUtility.h"
 #include "endianUtility.h"
 #include "printUtility.h"
-
-#ifndef MPEG_HEAD
-    #define MPEG_HEAD
-    #include "parseMPEG-4.h"
-    #include "decodeMPEG-4.h"
-    #include "processMPEG-4.h"
-    #include "decodeAVC.h"
-#endif //MPEG_HEAD
+#include "decodeAVC.h"
 
 
 void parseAVCSample(sampleInfo *sampleData, MPEG_Data *videoData) { 

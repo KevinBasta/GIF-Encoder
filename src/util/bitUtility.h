@@ -2,6 +2,9 @@
 #ifndef BIT_UTIL_H
 #define BIT_UTIL_H
 
+#include <stdint.h>
+#include "main.h"
+
 i32 compareNBytes(u8 *firstItem, u8 secondItem[], u32 numberOfBytes);
 u8 *copyNBytes(u32 numberOfBytes, u8 *originalData, u32 *byteOffset);
 u8 *referenceNBytes(u32 numberOfBytes, u8 *originalData, u32 *byteOffset);

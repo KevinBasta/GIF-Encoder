@@ -1,4 +1,10 @@
 
+#ifndef ARRAY_H
+#define ARRAY_H
+
+#include <stdint.h>
+#include "main.h"
+
 typedef struct array {
     size_t size;
     size_t currentIndex;
@@ -14,3 +20,5 @@ char* concatArray(array *arr, char entrySeparator);
 
 void printArray(array *arr);
 void freeArray (array *arr);
+
+#endif // ARRAY_H

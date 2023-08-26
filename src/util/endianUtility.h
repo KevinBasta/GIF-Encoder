@@ -2,6 +2,10 @@
 #ifndef ENDIAN_UTIL_H
 #define ENDIAN_UTIL_H
 
+#include <stdint.h>
+#include <stdbool.h>
+#include "main.h"
+
 // the uses of these need to be converted to the interface below:
 u32 bigEndianCharToLittleEndianUnsignedInt(u8 *bigEndianCharArray);
 i32 bigEndianCharToLittleEndianInt(u8 *bigEndianCharArray);

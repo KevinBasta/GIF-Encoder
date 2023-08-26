@@ -1,14 +1,8 @@
-#ifndef COMMON_HEAD
-    #define COMMON_HEAD
-    #include <stdlib.h>
-    #include <stdint.h>
-    #include <string.h>
-    #include <stdbool.h>
-    #include <stdio.h>
-    #include <math.h>
-    #include <time.h>
-#endif //COMMON_HEAD
 
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <time.h>
 #include "main.h"
 #include "typesMPEG-4.h"
 #include "typesAVC.h"

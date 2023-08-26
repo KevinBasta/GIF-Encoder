@@ -1,39 +1,15 @@
-#ifndef COMMON_HEAD
-    #define COMMON_HEAD
-    #include <stdlib.h>
-    #include <stdint.h>
-    #include <string.h>
-    #include <stdbool.h>
-    #include <stdio.h>
-    #include <math.h>
-    #include <time.h>
-    #include "main.h"
-#endif //COMMON_HEAD
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include "main.h"
+#include "typesGIF.h"
+#include "codeTable.h"
 
-#ifndef COMMON_TYPES
-    #define COMMON_TYPES
-    #include "typesMPEG-4.h"
-    #include "typesAVC.h"
-    #include "typesGIF.h"
-    #include "typesUtility.h"
-    #include "codeTable.h"
-#endif //COMMON_TYPES
-
-#ifndef DATA_STRUCTURES
-    #define DATA_STRUCTURES
-    #include "linkedList.h"
-    #include "hashmap.h"
-    #include "array.h"
-    #include "typesStorage.h"
-#endif //DATA_STRUCTURES
-
-#ifndef COMMON_UTIL
-    #define COMMON_UTIL
-    #include "bitUtility.h"
-    #include "endianUtility.h"
-    #include "printUtility.h"
-    #include "memoryManagement.h"
-#endif //COMMON_UTIL
+#include "hashmap.h"
+#include "array.h"
+#include "endianUtility.h"
+#include "printUtility.h"
 
 
 STATUS_CODE encodeHeader(FILE *gif) {
@@ -199,6 +175,11 @@ STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable) {
             // Set index buffer to k
             resetArray(indexBuffer);
             appendArray(indexBuffer, k);
+
+            /**
+             Need to handle code table having max number of entries
+             4095. Send clear code and reset table?
+            */
         } else {
             free(indexBufferPlusKKey);
         }
@@ -211,6 +192,9 @@ STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable) {
 
     status = appendArray(codeStream, atoi(endOfInfoValue));
     CHECKSTATUS(status);
+
+    freeArray(indexBuffer);
+    freeCodeTable(codeTable);
 
     printArray(codeStream);
 

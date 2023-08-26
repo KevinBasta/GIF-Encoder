@@ -1,31 +1,8 @@
-#ifndef COMMON_HEAD
-    #define COMMON_HEAD
-    #include <stdlib.h>
-    #include <stdint.h>
-    #include <string.h>
-    #include <stdbool.h>
-    #include <stdio.h>
-    #include <math.h>
-    #include <time.h>
-#endif //COMMON_HEAD
 
-#ifndef COMMON_TYPES
-    #define COMMON_TYPES
-    #include "main.h"
-    #include "typesMPEG-4.h"
-    #include "typesAVC.h"
-    #include "linkedList.h"
-    #include "typesStorage.h"
-    #include "typesUtility.h"
-#endif //COMMON_TYPES
-
-#ifndef COMMON_UTIL
-    #define COMMON_UTIL
-    #include "bitUtility.h"
-    #include "endianUtility.h"
-    #include "printUtility.h"
-    #include "memoryManagement.h"
-#endif //COMMON_UTIL
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include "main.h"
 
 /**
  *  prints n bytes from a char array.
@@ -42,7 +19,6 @@ void printNBytes(u8 *string, u32 bytesToPrint, u8 prefixString[], u8 postfixStri
     }
     printf("%s", postfixString);
 }
-
 
 /**
  *  prints hex representation of an n byte char array
@@ -71,7 +47,6 @@ void printCharArrayBits(u8 *bitPattern) {
     }
     printf("\n");
 }
-
 
 /**
  *  prints the binary bits for any type passed

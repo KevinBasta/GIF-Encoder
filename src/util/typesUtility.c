@@ -1,10 +1,6 @@
-#ifndef COMMON_HEAD
-    #define COMMON_HEAD
-    #include <stdint.h>
-#endif //COMMON_HEAD
 
+#include <stdint.h>
 #include "main.h"
-
 
 // search algorithm for stss/sync sample
 // returns the preceeding 

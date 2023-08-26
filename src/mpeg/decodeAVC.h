@@ -2,6 +2,12 @@
 #ifndef DECODE_AVC_H
 #define DECODE_AVC_H
 
+#include <stdint.h>
+#include "main.h"
+#include "typesStorage.h"
+#include "typesAVC.h"
+
+
 void parseAVCSample(sampleInfo *sampleData, MPEG_Data *videoData);
 NALUnitInfo *parseNALUnit(u32 NALUnitDataLength, u8 *NALDataStream);
 

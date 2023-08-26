@@ -1,3 +1,10 @@
+
+#ifndef HASHMAP_H
+#define HASHMAP_H
+
+#include <stdint.h>
+#include "main.h"
+
 typedef struct HashMapEntry {
     char *key;
     char *value;
@@ -20,3 +27,5 @@ void printHashMapSearch(HashMap *map, char *key);
 
 void freeHashMapEntry(HashMapEntry *entry);
 void freeHashMap(HashMap *map);
+
+#endif // HASHMAP_H

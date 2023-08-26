@@ -1,10 +1,11 @@
-#ifndef DATA_STRUCTURES
-    #define DATA_STRUCTURES
-    #include "linkedList.h"
-    #include "hashmap.h"
-    #include "array.h"
-    #include "typesStorage.h"
-#endif //DATA_STRUCTURES
+
+#ifndef GIF_TYPES_H
+#define GIF_TYPES_H
+
+#include <stdint.h>
+#include "main.h"
+#include "hashmap.h"
+#include "encodeGIF.h"
 
 typedef struct RGB {
     u8 red;
@@ -21,3 +22,5 @@ typedef struct codeTable {
     u32 index;
     HashMap *map;
 } codeTable;
+
+#endif // GIF_TYPES_H

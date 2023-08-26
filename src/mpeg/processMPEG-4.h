@@ -2,6 +2,11 @@
 #ifndef PROCESS_MPEG_H
 #define PROCESS_MPEG_H
 
+#include <stdint.h>
+#include "main.h"
+#include "typesStorage.h"
+#include "typesMPEG-4.h"
+
 u32 realTimeToMediaTime(u32 time, u32 newTimeScale);
 u32 mediaTimeToDecodeSampleNumber(u32 mediaTime, timeToSampleTableCompressed *timeToSampleTable);
 u32 mediaTimeToDisplaySampleNumber(u32 mediaTime, displayTimeToSampleTable *displayTimeToSampleTable);

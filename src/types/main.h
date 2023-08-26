@@ -2,6 +2,8 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include <stdint.h>
+
 // Preprocessor constants
 #define BOX_HEADER_SIZE 8
 #define BOX_HEADER_HALF_SIZE 4 // unused

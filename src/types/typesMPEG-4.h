@@ -1,4 +1,10 @@
 
+#ifndef MPEG_TYPES_H
+#define MPEG_TYPES_H
+
+#include <stdint.h>
+#include "main.h"
+
 /**
  * @brief Holds an MPEG-4 Box/Atom. 
  * @param *boxSize  -   4 Bytes for full size of Box/Atom including Header
@@ -114,4 +120,4 @@ typedef struct displayTimeToSampleTable {
     u32 *sampleNumberArr;
 } displayTimeToSampleTable;
 
-
+#endif // MPEG_TYPES_H
