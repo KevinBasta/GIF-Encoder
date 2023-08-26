@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "linkedList.h"
+#include "linkedlist.h"
 #include "typesMPEG-4.h"
 #include "bitUtility.h"
 #include "printUtility.h"
@@ -15,7 +15,7 @@
  * @brief create a new linkedList
  * @return a new linked list struct with all values initialized
  */
-linkedList* initLinkedList() { 
+linkedList* LinkedListInit() { 
     linkedList *newLinkedList = (linkedList*) calloc(1, sizeof(linkedList));
     
     newLinkedList->size = 0;
@@ -34,7 +34,7 @@ linkedList* initLinkedList() {
  * @param *list     -   the linkedList to append to
  * @param *item     -   the item to add to the tail node's currentItem
  */
-void appendNodeLinkedList(linkedList *list, void *item) {
+void LinkedListAppendNode(linkedList *list, void *item) {
     list->tail->currentItem = item;
     list->last = list->tail;
     list->tail->nextNode = (Node*) calloc(1, sizeof(Node)); 
@@ -52,7 +52,7 @@ void appendNodeLinkedList(linkedList *list, void *item) {
  * @brief set last node's nextNode to null
  * @param *list     -   the linkedList affected  
  */
-void nullifyLastNodeLinkedList(linkedList *list) {
+void LinkedListNullifyLastNode(linkedList *list) {
     //free(list->tail->nextNode); NextNode not initalized
     list->tail->nextNode = NULL;
 }
@@ -62,7 +62,7 @@ void nullifyLastNodeLinkedList(linkedList *list) {
  * @brief print boxType & boxSize of each box in a linkedList
  * @param *list  -   the linkedList read from
  */
-void printAllBoxesLinkedList(linkedList *list) { 
+void LinkedListPrintAllBoxes(linkedList *list) { 
     if (DEBUG_PRINT_ENABLE == FALSE) { 
         return;
     }
@@ -83,7 +83,7 @@ void printAllBoxesLinkedList(linkedList *list) {
  * @param boxCompareType    -   box to stop accumulating at
  * @return the sum of the sizes of all boxes preceding boxCompareType
  */
-u32 getOffsetToBoxLinkedList(linkedList *list, u8 boxCompareType[]) { 
+u32 LinkedListGetOffsetToBox(linkedList *list, u8 boxCompareType[]) { 
     u32 offsetAccumulator = 0;
     
     Node *currentNode = list->head;
@@ -109,7 +109,7 @@ u32 getOffsetToBoxLinkedList(linkedList *list, u8 boxCompareType[]) {
  * @param *boxReturnType    -   the type to find    
  * @return NULL or box pointer to a box of type *boxReturnType
  */
-box *getBoxFromLinkedList(linkedList *list, u8 boxReturnType[]) { 
+box *LinkedListGetBox(linkedList *list, u8 boxReturnType[]) { 
     box *boxToReturn = NULL;
     list->current = list->head;
 
@@ -137,11 +137,11 @@ box *getBoxFromLinkedList(linkedList *list, u8 boxReturnType[]) {
 
 
 /**
- * @brief reset list->current to allow for another getBoxFromLinkedList
+ * @brief reset list->current to allow for another LinkedListGetBox
  * from the start of the linkedList
  * @param list      -   the linkedlist to reset list->current for
  */
-void resetCurrentNodeLinkedList(linkedList *list) { 
+void LinkedListResetCurrentNode(linkedList *list) { 
     list->current = list->head;
 }
 
@@ -192,7 +192,7 @@ void freeLinkedList(linkedList *list, char type[]) {
     Node *currentNode = list->head;
 
     // stopping right before last element to avoid 
-    // attempting to free a NULL created by nullifyLastNodeLinkedList
+    // attempting to free a NULL created by LinkedListNullifyLastNode
     if (strncmp(type, "box", 3)) { 
         for (u32 i = 0; i < list->size - 1; i++) {
                 currentNode = freeBoxNode(currentNode);
@@ -214,13 +214,13 @@ void freeLinkedList(linkedList *list, char type[]) {
 }
 
 /* int main() {
-    linkedList *test = initLinkedList();
+    linkedList *test = LinkedListInit();
     box *testBox1 = (box*) malloc(sizeof(box));
     box *testBox2 = (box*) malloc(sizeof(box));
     box *testBox3 = (box*) malloc(sizeof(box));
-    appendNodeLinkedList(test, testBox1);
-    appendNodeLinkedList(test, testBox2);
-    appendNodeLinkedList(test, testBox3);
+    LinkedListAppendNode(test, testBox1);
+    LinkedListAppendNode(test, testBox2);
+    LinkedListAppendNode(test, testBox3);
 
     freeLinkedList(test, "box");
 } */

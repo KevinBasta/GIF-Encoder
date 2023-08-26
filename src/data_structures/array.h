@@ -11,14 +11,14 @@ typedef struct array {
     u32 *items;
 } array;
 
-array *initArray(size_t size);
-STATUS_CODE appendArray(array *arr, u32 item);
-STATUS_CODE popArray(array *arr);
-u32 getItemArray(array *arr, size_t index);
-void resetArray(array *arr);
-char* concatArray(array *arr, char entrySeparator);
+array *ArrayInit(size_t size);
+STATUS_CODE ArrayAppend(array *arr, u32 item);
+STATUS_CODE ArrayPop(array *arr);
+u32 ArrayGetItem(array *arr, size_t index);
+void ArrayReset(array *arr);
+char* ArrayConcat(array *arr, char entrySeparator);
 
-void printArray(array *arr);
+void ArrayPrint(array *arr);
 void freeArray (array *arr);
 
 #endif // ARRAY_H

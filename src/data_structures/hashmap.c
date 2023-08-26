@@ -35,7 +35,7 @@ static size_t hashFunction(char *key, size_t size) {
  * @param value string
  * @return HashMapEntry 
  */
-HashMapEntry *createEntryHashMap(char *key, char *value) {
+HashMapEntry *HashMapCreateEntry(char *key, char *value) {
     HashMapEntry *entry = (HashMapEntry*) calloc(1, sizeof(HashMapEntry));
     entry->key   = key;
     entry->value = (char*) malloc(strlen(value) + 1);
@@ -51,7 +51,7 @@ HashMapEntry *createEntryHashMap(char *key, char *value) {
  * @param size total number of entries map can hold
  * @return HashMap
  */
-HashMap *initHashMap(size_t size) {
+HashMap *HashMapInit(size_t size) {
     HashMap *map = (HashMap*) calloc(1, sizeof(HashMap));
 
     map->size = size;
@@ -72,7 +72,7 @@ HashMap *initHashMap(size_t size) {
  * @param value the value of the new entry
  * @return OPERATION_SUCCESS or OPERATION_FAILED
  */
-STATUS_CODE insertHashMap(HashMap *map, char *key, char *value) {
+STATUS_CODE HashMapInsert(HashMap *map, char *key, char *value) {
     if (map->currentCount == map->size) {
         printf("hashmap full\n");
         return OPERATION_FAILED;
@@ -81,7 +81,7 @@ STATUS_CODE insertHashMap(HashMap *map, char *key, char *value) {
     printf("INSERT OPERATING STARTED %s\n", key);
 
     size_t index           = hashFunction(key, map->size);
-    HashMapEntry *newEntry = createEntryHashMap(key, value);
+    HashMapEntry *newEntry = HashMapCreateEntry(key, value);
 
     // collision resolution: Open addressing, quadratic probing
     size_t k = 0;
@@ -112,7 +112,7 @@ STATUS_CODE insertHashMap(HashMap *map, char *key, char *value) {
  * @param key the key to search for
  * @return the value or null
  */
-char *searchHashMap(HashMap *map, char *key) {
+char *HashMapSearch(HashMap *map, char *key) {
     size_t index        = hashFunction(key, map->size);
     HashMapEntry *entry = map->entries[index];
     char *value         = NULL;
@@ -138,7 +138,7 @@ char *searchHashMap(HashMap *map, char *key) {
     return value;
 }
 
-char *createKeyHashMap(char *str, u32 length) {
+char *HashMapCreateKey(char *str, u32 length) {
     char *key = calloc(1, sizeof(length + 1));
     strncpy(key, str, length);
     key[length] = '\0';
@@ -147,7 +147,7 @@ char *createKeyHashMap(char *str, u32 length) {
 }
 
 
-void printHashMap(HashMap *map) {
+void HashMapPrint(HashMap *map) {
     for (size_t i = 0; i < map->size; i++) {
         if (map->entries[i] != NULL) {
             printf("key: %10s   value: %10s \n", map->entries[i]->key, map->entries[i]->value);
@@ -155,8 +155,8 @@ void printHashMap(HashMap *map) {
     }
 }
 
-void printHashMapSearch(HashMap *map, char *key) {
-    char *value = searchHashMap(map, key);
+void HashMapSearchPrint(HashMap *map, char *key) {
+    char *value = HashMapSearch(map, key);
 
     if (value == NULL) {
         printf("Key [%s] not found\n", key);

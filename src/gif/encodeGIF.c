@@ -126,32 +126,32 @@ STATUS_CODE encodeImageDescriptor(FILE *gif) {
 STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable) {
     STATUS_CODE status;
     
-    array *codeStream  = initArray(indexStream->size);
-    array *indexBuffer = initArray(indexStream->size);
+    array *codeStream  = ArrayInit(indexStream->size);
+    array *indexBuffer = ArrayInit(indexStream->size);
 
     codeTable *codeTable = initCodeTable(clrTable);
 
     // Put the clear code in the code stream
-    char *clearCodeValue = searchHashMap(codeTable->map, "cc");
+    char *clearCodeValue = HashMapSearch(codeTable->map, "cc");
     CHECK_NULL_RETURN(clearCodeValue);
 
-    status = appendArray(codeStream, atoi(clearCodeValue));
+    status = ArrayAppend(codeStream, atoi(clearCodeValue));
     CHECKSTATUS(status);
 
     // Add first element of index stream to index buffer
-    status = appendArray(indexBuffer, getItemArray(indexStream, 0));
+    status = ArrayAppend(indexBuffer, ArrayGetItem(indexStream, 0));
     CHECKSTATUS(status);
 
     for (size_t i = 1; i < indexStream->size; i++) {
         // Add next index stream entry to index buffer temporarily
-        u32 k = getItemArray(indexStream, i);
-        status = appendArray(indexBuffer, k);
+        u32 k = ArrayGetItem(indexStream, i);
+        status = ArrayAppend(indexBuffer, k);
         CHECKSTATUS(status);
 
         printf("================================\n");
-        char *indexBufferPlusKKey = concatArray(indexBuffer, ',');
+        char *indexBufferPlusKKey = ArrayConcat(indexBuffer, ',');
 
-        if (searchHashMap(codeTable->map, indexBufferPlusKKey) == NULL) {
+        if (HashMapSearch(codeTable->map, indexBufferPlusKKey) == NULL) {
             printf("index buffer + k not in hash map\n");
             
             // Add entry for index buffer + k in code table
@@ -159,24 +159,24 @@ STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable) {
             u32 test = getNextIndexCodeTable(codeTable);
             char *next = intToString(test);
 
-            status = insertHashMap(codeTable->map, indexBufferPlusKKey, next);
+            status = HashMapInsert(codeTable->map, indexBufferPlusKKey, next);
             CHECKSTATUS(status);
 
             // Add the code for just the index buffer to the code stream
-            status = popArray(indexBuffer);
+            status = ArrayPop(indexBuffer);
             CHECKSTATUS(status);
 
-            char *indexBufferKey = concatArray(indexBuffer, ',');
-            char *value = searchHashMap(codeTable->map, indexBufferKey);
+            char *indexBufferKey = ArrayConcat(indexBuffer, ',');
+            char *value = HashMapSearch(codeTable->map, indexBufferKey);
             CHECK_NULL_RETURN(value);
 
-            status = appendArray(codeStream, atoi(value));
+            status = ArrayAppend(codeStream, atoi(value));
             CHECKSTATUS(status);
             free(indexBufferKey);
 
             // Set index buffer to k
-            resetArray(indexBuffer);
-            appendArray(indexBuffer, k);
+            ArrayReset(indexBuffer);
+            ArrayAppend(indexBuffer, k);
 
             /**
              Need to handle code table having max number of entries
@@ -186,19 +186,19 @@ STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable) {
             free(indexBufferPlusKKey);
         }
         
-        //printHashMap(codeTable->map);
+        //HashMapPrint(codeTable->map);
     }
 
-    char *endOfInfoValue = searchHashMap(codeTable->map, "eoi");
+    char *endOfInfoValue = HashMapSearch(codeTable->map, "eoi");
     CHECK_NULL_RETURN(endOfInfoValue);
 
-    status = appendArray(codeStream, atoi(endOfInfoValue));
+    status = ArrayAppend(codeStream, atoi(endOfInfoValue));
     CHECKSTATUS(status);
 
     freeArray(indexBuffer);
     freeCodeTable(codeTable);
 
-    printArray(codeStream);
+    ArrayPrint(codeStream);
 
     return OPERATION_SUCCESS;
 }
@@ -264,11 +264,11 @@ STATUS_CODE createGIF() {
      0,1,1,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,
      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-    array *testArr = initArray(sizeof(indexStream));
+    array *testArr = ArrayInit(sizeof(indexStream));
     for (u32 i = 0; i < sizeof(indexStream); i++) {
-        appendArray(testArr, indexStream[i]);
+        ArrayAppend(testArr, indexStream[i]);
     }
-    printArray(testArr);
+    ArrayPrint(testArr);
 
     status = encodeImageData(gif, &globalColorTable, testArr);
     CHECKSTATUS(status);

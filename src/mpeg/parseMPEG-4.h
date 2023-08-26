@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 #include "main.h"
-#include "linkedList.h"
+#include "linkedlist.h"
 #include "typesStorage.h"
 
 MPEG_Data *getMpegData(char *fileName);

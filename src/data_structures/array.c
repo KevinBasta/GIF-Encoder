@@ -11,11 +11,11 @@
 
 // Private array helpers
 
-static size_t arrayNewSize(array *arr) {
+static size_t ArrayNewSize(array *arr) {
     return arr->size + (arr->size / 2);
 }
 
-static STATUS_CODE reallocArray(array *arr, size_t newSize) {
+static STATUS_CODE ArrayRealloc(array *arr, size_t newSize) {
     u32 *status = realloc(arr->items, newSize * sizeof(u32));
     
     if (status == NULL) {
@@ -33,7 +33,7 @@ static STATUS_CODE reallocArray(array *arr, size_t newSize) {
 
 // Array usage interface
 
-array *initArray(size_t size) {
+array *ArrayInit(size_t size) {
     array *arr = calloc(1, sizeof(array));
 
     arr->items = calloc(size, sizeof(u32));
@@ -43,12 +43,12 @@ array *initArray(size_t size) {
     return arr;
 }
 
-STATUS_CODE appendArray(array *arr, u32 item) {     
+STATUS_CODE ArrayAppend(array *arr, u32 item) {     
     if (arr == NULL) 
         return OPERATION_FAILED;
     
     if (arr->currentIndex >= arr->size) {
-        STATUS_CODE status = reallocArray(arr, arrayNewSize(arr));
+        STATUS_CODE status = ArrayRealloc(arr, ArrayNewSize(arr));
         CHECKSTATUS(status);
     }
 
@@ -58,7 +58,7 @@ STATUS_CODE appendArray(array *arr, u32 item) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE popArray(array *arr) {
+STATUS_CODE ArrayPop(array *arr) {
     if (arr == NULL) 
         return OPERATION_FAILED;
 
@@ -72,16 +72,16 @@ STATUS_CODE popArray(array *arr) {
 }
 
 
-u32 getItemArray(array *arr, size_t index) {
+u32 ArrayGetItem(array *arr, size_t index) {
     return arr->items[index];
 }
 
-void resetArray(array *arr) {
+void ArrayReset(array *arr) {
     memset(arr->items, 0, arr->size);
     arr->currentIndex = 0;
 }
 
-char* concatArray(array *arr, char entrySeparator) {
+char* ArrayConcat(array *arr, char entrySeparator) {
     char *concat = malloc(sizeof(char) * (arr->currentIndex * 2));
     size_t k = 0;
 
@@ -106,7 +106,7 @@ char* concatArray(array *arr, char entrySeparator) {
 
 // Array util interface
 
-void printArray(array *arr) {
+void ArrayPrint(array *arr) {
     size_t index = 0;
 
     for (size_t i = 0; i < arr->currentIndex; i++) {
