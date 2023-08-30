@@ -8,8 +8,8 @@
 #include "typesGIF.h"
 #include "GIFCodeTable.h"
 
-#include "hashmap.h"
 #include "array.h"
+#include "hashmap.h"
 #include "endianUtility.h"
 #include "printUtility.h"
 
@@ -123,10 +123,10 @@ STATUS_CODE encodeImageDescriptor(FILE *gif) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable) {
+STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable, array *codeStream) {
     STATUS_CODE status;
     
-    array *codeStream  = arrayInit(indexStream->size);
+    codeStream  = arrayInit(indexStream->size);
     array *indexBuffer = arrayInit(indexStream->size);
 
     codeTable *codeTable = initCodeTable(clrTable);
@@ -203,11 +203,20 @@ STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable) {
     return OPERATION_SUCCESS;
 }
 
+STATUS_CODE codeStreamflexibleCodeSizes(array *codeStream) {
+
+}
+
+
+
 STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream) {
     size_t status;
     u32 nmemb = 1;
 
-    createLZWCodeStream(indexStream, clrTable);
+    array *codeStream;
+    createLZWCodeStream(indexStream, clrTable, codeStream);
+
+
     //globalColorTable->size
 
     
