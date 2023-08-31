@@ -9,6 +9,7 @@
 #include "GIFCodeTable.h"
 
 #include "array.h"
+#include "bitarray.h"
 #include "hashmap.h"
 #include "endianUtility.h"
 #include "printUtility.h"
@@ -203,8 +204,8 @@ STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable, array 
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE codeStreamflexibleCodeSizes(array *codeStream) {
-
+STATUS_CODE codeStreamFlexibleCodeSizes(array *codeStream, bitarray *imageData) {
+    
 }
 
 
@@ -214,8 +215,9 @@ STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream)
     u32 nmemb = 1;
 
     array *codeStream;
+    bitarray *imageData;
     createLZWCodeStream(indexStream, clrTable, codeStream);
-
+    codeStreamFlexibleCodeSizes(codeStream, imageData);
 
     //globalColorTable->size
 

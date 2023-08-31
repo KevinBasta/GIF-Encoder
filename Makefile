@@ -29,5 +29,6 @@ clean:
 	-rm $(OBJECTS) bin/main.o bin/test.o a.out 2> /dev/null
 	-rmdir $(sort $(dir $(OBJECTS))) 2> /dev/null
 
-# for testing
-foo: 
+# for testing modules individually during development
+foo: $(OBJECTS)
+	gcc -o a.out $(OBJECTS) -lm -Wall -Werror -Wpedantic

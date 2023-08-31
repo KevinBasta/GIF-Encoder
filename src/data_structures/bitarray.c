@@ -1,16 +1,40 @@
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdbool.h>
 
 #include <stdint.h>
 #include "main.h"
 
 #include "bitarray.h"
+#include "bitUtility.h"
+#include "printUtility.h"
 
 STATUS_CODE zeroRestOfByte(u8 *item, u8 currentBit) {
     for (u8 i = currentBit; i < 8; i++) {
         *item &= ~(1 << i);
     }
+}
+
+STATUS_CODE bitarrayBookMark(bitarray *arr) {
+    if (arr == NULL)
+        return OPERATION_FAILED;
+
+    arr->mark = &(arr->items[arr->currentIndex]);
+
+    return OPERATION_SUCCESS;
+}
+
+STATUS_CODE bitarraySetBookMarkValue(bitarray *arr, u8 item) {
+    if (arr == NULL)
+        return OPERATION_FAILED;
+
+    if (arr->mark == NULL)
+        return OPERATION_FAILED;
+
+    *(arr->mark) = item;
+
+    return OPERATION_SUCCESS;
 }
 
 bitarray *bitarrayInit(size_t size) {
@@ -25,9 +49,8 @@ bitarray *bitarrayInit(size_t size) {
 }
 
 STATUS_CODE bitarrayAppend(bitarray *arr, u8 item) {
-    if (arr == NULL) {
+    if (arr == NULL)
         return OPERATION_FAILED;
-    }
 
     if (arr->currentIndex + 1 >= arr->size) {
         // realloc
@@ -45,38 +68,71 @@ STATUS_CODE bitarrayAppend(bitarray *arr, u8 item) {
     return OPERATION_SUCCESS;
 }
 
-/**
- * @brief Compute the min number of bits it takes
- * (with no leading zeros) to represent the integer
- * @param item integer getting the bitsize of
- * @return number of bits the item occupies
- */
-u32 getOccupiedBits(u32 item) {
-    // count bits from left side to first non zero bit
-    u32 leadingBits = 0;
-
-    for (u32 i = 0; i < sizeof(item) * 8; i++) {
-        bool isZero = (item & (1 << (sizeof(item) - i - 1))) == 0;
-
-        if (isZero == false) {
-            break;
-        } else {
-            leadingBits++;
-        }
-    }
-
-    return sizeof(item) - leadingBits;
-}
-
 STATUS_CODE bitarrayAppendPacked(bitarray *arr, u32 item) {
-    u32 itemBitLength = getOccupiedBits(item);
-    u32 remainingBitsInCurrentArrayByte = 7 - arr->currentBit;
+    if (arr == NULL)
+        return OPERATION_FAILED;
 
-    if (remainingBitsInCurrentArrayByte > itemBitLength) {
-        for (u32 i = 0; i < itemBitLength; i++) {
+    if (arr->currentIndex + 1 >= arr->size) {
+        // realloc
+    }
+
+    u32 itemBitLength = getOccupiedBits(item);
+    u32 remainingBitsInCurrentArrayByte = 8 - arr->currentBit;
+
+
+    if (remainingBitsInCurrentArrayByte >= itemBitLength) {
+        u8 currentItem = arr->items[arr->currentIndex];
+
+        arr->items[arr->currentIndex] = currentItem | (item << (remainingBitsInCurrentArrayByte - itemBitLength));
+        arr->currentBit += itemBitLength;
+        
+        if (arr->currentBit == 8) {
+            arr->currentIndex++;
+            arr->currentBit = 0;
+        }
+    } else {
+        u32 remainingBitsToBeWritten = itemBitLength;
+        while (remainingBitsToBeWritten > 0) {
             u8 currentItem = arr->items[arr->currentIndex];
-            //arr->items[arr->currentIndex] = currentItem
+
+            if (remainingBitsToBeWritten > remainingBitsInCurrentArrayByte) {
+                u32 leftOverBits = (remainingBitsToBeWritten - remainingBitsInCurrentArrayByte);
+                
+                arr->items[arr->currentIndex] = currentItem | (item >> leftOverBits);
+                arr->currentBit += remainingBitsToBeWritten - leftOverBits;
+                
+                remainingBitsToBeWritten -= remainingBitsInCurrentArrayByte;
+            } else { 
+                arr->items[arr->currentIndex] = currentItem | (item << (remainingBitsInCurrentArrayByte - remainingBitsToBeWritten));
+                arr->currentBit += remainingBitsToBeWritten;
+                
+                remainingBitsToBeWritten -= min(8, remainingBitsToBeWritten); // min not required
+            }
+
+            if (arr->currentBit == 8) {
+                (arr->currentIndex)++;
+                arr->currentBit = 0;
+            }
+
+            remainingBitsInCurrentArrayByte = 8 - arr->currentBit;
         }
     }
 
+    /* printf("current bit: %ld current index: %ld\n", arr->currentBit, arr->currentIndex);
+    printIntBits(&(arr->items[0]), sizeof(u8));
+    printIntBits(&(arr->items[1]), sizeof(u8));
+    printIntBits(&(arr->items[2]), sizeof(u8)); */
+
+    return OPERATION_SUCCESS;
 }
+
+/* int main() {
+    STATUS_CODE status;
+    
+    bitarray *arr = bitarrayInit(100);
+    status = bitarrayAppendPacked(arr, 4);
+    status = bitarrayAppendPacked(arr, 2);
+    status = bitarrayAppendPacked(arr, 4001); //1111 1010 0001
+    status = bitarrayAppendPacked(arr, 1);
+    status = bitarrayAppendPacked(arr, 5);
+} */

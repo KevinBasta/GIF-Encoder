@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <stdint.h>
 #include "main.h"
@@ -7,6 +8,49 @@
 #include "hashmap.h"
 #include "typesGIF.h"
 #include "printUtility.h"
+
+u32 colorTableSizeToCodeTableEntry(char *request, u32 colorTableSize) {
+    // 0: LWZMinCodeSize 1: ClearCode 2: EOICode
+    u16 LWZ_CC_EOI[3] = {0, 0, 0};
+
+    if (colorTableSize <= 3) {
+        LWZ_CC_EOI[0] = 2; LWZ_CC_EOI[1] = 4; LWZ_CC_EOI[2] = 5;
+    } else if (colorTableSize <= 7) {
+        LWZ_CC_EOI[0] = 3; LWZ_CC_EOI[1] = 8; LWZ_CC_EOI[2] = 9;
+    } else if (colorTableSize <= 15) {
+        LWZ_CC_EOI[0] = 4; LWZ_CC_EOI[1] = 16; LWZ_CC_EOI[2] = 17;
+    } else if (colorTableSize <= 31) {
+        LWZ_CC_EOI[0] = 5; LWZ_CC_EOI[1] = 32; LWZ_CC_EOI[2] = 33;
+    } else if (colorTableSize <= 63) {
+        LWZ_CC_EOI[0] = 6; LWZ_CC_EOI[1] = 64; LWZ_CC_EOI[2] = 65;
+    } else if (colorTableSize <= 127) {
+        LWZ_CC_EOI[0] = 7; LWZ_CC_EOI[1] = 128; LWZ_CC_EOI[2] = 129;
+    } else if (colorTableSize <= 255) {
+        LWZ_CC_EOI[0] = 8; LWZ_CC_EOI[1] = 256; LWZ_CC_EOI[2] = 257;
+    } else {
+        return 0;
+    }
+
+    if (strcmp(request, "LWZ") == 0) {
+        return LWZ_CC_EOI[0];
+    } else if (strcmp(request, "CC") == 0) {
+        return LWZ_CC_EOI[1];
+    } else if (strcmp(request, "EOI") == 0) {
+        return LWZ_CC_EOI[2];
+    }
+}
+
+u32 getLWZMinCodeSize(u32 colorTableSize) {
+    return colorTableSizeToCodeTableEntry("LWZ", colorTableSize);
+}
+
+u32 getClearCodeValue(u32 colorTableSize) {
+    return colorTableSizeToCodeTableEntry("CC", colorTableSize);
+}
+
+u32 getEOICodeValue(u32 colorTableSize) {
+    return colorTableSizeToCodeTableEntry("EOI", colorTableSize);
+}
 
 codeTable* initCodeTable(colorTable *clrTable) {
     codeTable *table = calloc(1, sizeof(codeTable));
@@ -23,8 +67,10 @@ codeTable* initCodeTable(colorTable *clrTable) {
         table->index = i;
     }
 
-    hashmapInsert(map, hashmapCreateKey("cc", 2), intToString(3));
-    hashmapInsert(map, hashmapCreateKey("eoi", 3), intToString(4));
+    table->LWZMinCodeSize = getLWZMinCodeSize(clrTable->size);
+
+    hashmapInsert(map, hashmapCreateKey("cc", 2), intToString(getClearCodeValue(clrTable->size)));
+    hashmapInsert(map, hashmapCreateKey("eoi", 3), intToString(getEOICodeValue(clrTable->size)));
     hashmapPrint(map);
     table->index = table->index + 3;
 

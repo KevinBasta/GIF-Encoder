@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <stdbool.h>
 #include <math.h>
 
 #include <stdint.h>
@@ -117,7 +118,8 @@ u8 *referenceNBits(u32 numberOfBits, u8 *originalData, u32 *bitOffset, u32 *byte
 }
 
 /**
- * @brief count zero bits + first non-zero bit from startingBitInPointer
+ * @brief Count zero bits + first non-zero bit from bitOffset
+ * @note For AVC math functions
  * @param originalData          - array pointer
  * @param startingBitInPointer  - 0-7 
  * @param byteBoundary          - last array byte
@@ -160,6 +162,33 @@ u32 countBitsToFirstNonZero(u8 *originalData, u32 *bitOffset, u32 *byteOffset, u
     return 0;
 }
 
+/**
+ * @brief Compute the min number of bits it takes
+ * (with no leading zeros) to represent the integer
+ * @note For GIF flexible code sizes
+ * @param item integer getting the bitsize of
+ * @return number of bits the item occupies
+ */
+u32 getOccupiedBits(u32 item) {
+    // count bits from left side to first non zero bit
+    u32 leadingBits = 0;
+
+    for (u32 i = 0; i < sizeof(item) * 8; i++) {
+        bool isZero = (item & (1 << ((sizeof(item) * 8) - i - 1))) == 0;
+
+        if (isZero == false) {
+            break;
+        } else {
+            leadingBits++;
+        }
+    }
+
+    u32 itemSize = (sizeof(item) * 8) - leadingBits;
+    //printf("leading bits: %d\n", leadingBits);
+    //printf("final size: %d\n", itemSize);
+    
+    return itemSize;
+}
 
 /**
  * @brief get a range of bits shifted to the least segnificant bit. bits numbered 0-7
