@@ -19,5 +19,7 @@ STATUS_CODE bitarraySetBookMarkValue(bitarray *arr, u8 item);
 bitarray *bitarrayInit(size_t size);
 STATUS_CODE bitarrayAppend(bitarray *arr, u8 item);
 STATUS_CODE bitarrayAppendPacked(bitarray *arr, u32 item);
+STATUS_CODE bitarrayAppendPackedNormalized(bitarray *arr, u32 item, u32 occupiedBits, u32 minNumberOfBits);
+void bitarrayPrint(bitarray *arr);
 
 #endif // BIT_ARRAY_H

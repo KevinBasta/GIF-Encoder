@@ -19,7 +19,6 @@ typedef struct colorTable {
 } colorTable;
 
 typedef struct codeTable {
-    u8 LWZMinCodeSize;
     u32 index;
     HashMap *map;
 } codeTable;

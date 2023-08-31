@@ -8,6 +8,7 @@
 
 codeTable* initCodeTable(colorTable *clrTable);
 u32 getNextIndexCodeTable(codeTable *table);
+u8 getLWZMinCodeSize(u32 colorTableSize);
 void freeCodeTable(codeTable *table);
 
 #endif // GIF_CODE_TABLE_H

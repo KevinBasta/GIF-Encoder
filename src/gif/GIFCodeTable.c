@@ -40,15 +40,15 @@ u32 colorTableSizeToCodeTableEntry(char *request, u32 colorTableSize) {
     }
 }
 
-u32 getLWZMinCodeSize(u32 colorTableSize) {
+u8 getLWZMinCodeSize(u32 colorTableSize) {
     return colorTableSizeToCodeTableEntry("LWZ", colorTableSize);
 }
 
-u32 getClearCodeValue(u32 colorTableSize) {
+u16 getClearCodeValue(u32 colorTableSize) {
     return colorTableSizeToCodeTableEntry("CC", colorTableSize);
 }
 
-u32 getEOICodeValue(u32 colorTableSize) {
+u16 getEOICodeValue(u32 colorTableSize) {
     return colorTableSizeToCodeTableEntry("EOI", colorTableSize);
 }
 
@@ -66,8 +66,6 @@ codeTable* initCodeTable(colorTable *clrTable) {
 
         table->index = i;
     }
-
-    table->LWZMinCodeSize = getLWZMinCodeSize(clrTable->size);
 
     hashmapInsert(map, hashmapCreateKey("cc", 2), intToString(getClearCodeValue(clrTable->size)));
     hashmapInsert(map, hashmapCreateKey("eoi", 3), intToString(getEOICodeValue(clrTable->size)));

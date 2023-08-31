@@ -1,6 +1,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include <stdint.h>
 #include "main.h"
@@ -11,6 +12,7 @@
 #include "array.h"
 #include "bitarray.h"
 #include "hashmap.h"
+#include "bitUtility.h"
 #include "endianUtility.h"
 #include "printUtility.h"
 
@@ -124,10 +126,9 @@ STATUS_CODE encodeImageDescriptor(FILE *gif) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable, array *codeStream) {
+STATUS_CODE createLZWCodeStream(colorTable *clrTable, array *indexStream, array *codeStream) {
     STATUS_CODE status;
     
-    codeStream  = arrayInit(indexStream->size);
     array *indexBuffer = arrayInit(indexStream->size);
 
     codeTable *codeTable = initCodeTable(clrTable);
@@ -204,8 +205,54 @@ STATUS_CODE createLZWCodeStream(array *indexStream, colorTable *clrTable, array 
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE codeStreamFlexibleCodeSizes(array *codeStream, bitarray *imageData) {
-    
+STATUS_CODE codeStreamFlexibleCodeSizes(colorTable *clrTable, array *codeStream, bitarray *imageData) {
+    STATUS_CODE status;
+
+    u8 currentCodeSize = getLWZMinCodeSize(clrTable->size);
+    bitarrayAppend(imageData, currentCodeSize);
+    bitarrayBookMark(imageData); // Mark to put number of bytes of data
+    bitarrayAppend(imageData, 0);
+
+    u8 numberOfBytesOfDataInSubBlock = 0;
+    u32 startByte = imageData->currentIndex;
+
+    for (size_t i = 0; i < codeStream->currentIndex; i++) {
+        bitarrayPrint(imageData);
+        printf("%d\n", codeStream->items[i]);
+        u32 occupiedBits = getOccupiedBits(codeStream->items[i]);
+
+        if (pow(2, currentCodeSize) == codeStream->items[i]) {
+            // append the next code with new code size
+            bitarrayAppendPackedNormalized(imageData, codeStream->items[i], occupiedBits, currentCodeSize);
+            
+            // Set the second byte in the image data block
+            numberOfBytesOfDataInSubBlock = imageData->currentIndex - startByte + 1;
+            bitarraySetBookMarkValue(imageData, numberOfBytesOfDataInSubBlock);
+            
+            // Image block terminator
+            bitarrayAppend(imageData, 0);
+
+            // Start next image data block
+            currentCodeSize++;
+            bitarrayAppend(imageData, currentCodeSize);
+            bitarrayBookMark(imageData); // Mark to put number of bytes of data
+            bitarrayAppend(imageData, 0);
+            startByte = imageData->currentIndex;
+        } else {
+            bitarrayAppendPackedNormalized(imageData, codeStream->items[i], occupiedBits, currentCodeSize);
+        }
+    }
+
+    // Set the second byte in the image data block
+    numberOfBytesOfDataInSubBlock = imageData->currentIndex - startByte;
+    bitarraySetBookMarkValue(imageData, numberOfBytesOfDataInSubBlock);
+            
+    // Image block terminator
+    bitarrayAppend(imageData, 0);
+
+
+
+    return OPERATION_SUCCESS;
 }
 
 
@@ -214,14 +261,17 @@ STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream)
     size_t status;
     u32 nmemb = 1;
 
-    array *codeStream;
-    bitarray *imageData;
-    createLZWCodeStream(indexStream, clrTable, codeStream);
-    codeStreamFlexibleCodeSizes(codeStream, imageData);
+    array *codeStream = arrayInit(indexStream->size);
+    bitarray *imageData = bitarrayInit(codeStream->size * 2);
+    createLZWCodeStream(clrTable, indexStream, codeStream);
+    codeStreamFlexibleCodeSizes(clrTable, codeStream, imageData);
+    bitarrayPrint(imageData);
+    for (u32 i = 0; i < imageData->currentIndex; i++) {
+        status = fwrite(&(imageData->items[i]), sizeof(u8), nmemb, gif);
+        CHECK_FWRITE_STATUS(status, nmemb);
+    }
 
-    //globalColorTable->size
-
-    
+    return OPERATION_SUCCESS;
 }
 
 
