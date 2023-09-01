@@ -217,13 +217,13 @@ STATUS_CODE codeStreamFlexibleCodeSizes(colorTable *clrTable, array *codeStream,
     u32 startByte = imageData->currentIndex;
 
     for (size_t i = 0; i < codeStream->currentIndex; i++) {
-        bitarrayPrint(imageData);
-        printf("%d\n", codeStream->items[i]);
+        //bitarrayPrint(imageData);
+        //printf("%d\n", codeStream->items[i]);
         u32 occupiedBits = getOccupiedBits(codeStream->items[i]);
 
         if (pow(2, currentCodeSize) == codeStream->items[i]) {
             // append the next code with new code size
-            bitarrayAppendPackedNormalized(imageData, codeStream->items[i], occupiedBits, currentCodeSize);
+            bitarrayAppendPackedNormalizedRight(imageData, codeStream->items[i], occupiedBits, currentCodeSize);
             
             // Set the second byte in the image data block
             numberOfBytesOfDataInSubBlock = imageData->currentIndex - startByte + 1;
@@ -239,7 +239,7 @@ STATUS_CODE codeStreamFlexibleCodeSizes(colorTable *clrTable, array *codeStream,
             bitarrayAppend(imageData, 0);
             startByte = imageData->currentIndex;
         } else {
-            bitarrayAppendPackedNormalized(imageData, codeStream->items[i], occupiedBits, currentCodeSize);
+            bitarrayAppendPackedNormalizedRight(imageData, codeStream->items[i], occupiedBits, currentCodeSize);
         }
     }
 
@@ -306,7 +306,8 @@ STATUS_CODE createGIF() {
     RGB *blackAndWhite = calloc(2, sizeof(RGB));
     addRGBArrayEntry(blackAndWhite, 0, 0, 0, 0);
     addRGBArrayEntry(blackAndWhite, 1, 255, 255, 255);
-    colorTable globalColorTable = { 2, blackAndWhite };
+    addRGBArrayEntry(blackAndWhite, 2, 255, 255, 0);
+    colorTable globalColorTable = { 3, blackAndWhite };
 
     // may need to pass in a gif struct that contains color resolution
     // for number of entries 
@@ -316,14 +317,26 @@ STATUS_CODE createGIF() {
     status = encodeImageDescriptor(gif);
     CHECKSTATUS(status);
 
-    u8 indexStream[] = 
+    /* u8 indexStream[] = 
     {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
      0,1,1,1,0,1,1,0,0,1,1,0,0,0,1,1,0,0,1,1,0,0,1,0,
      0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,
      0,1,1,1,0,1,1,0,0,1,1,0,0,1,0,0,1,0,1,1,0,0,1,0,
      0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,0,0,
      0,1,1,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,
-     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; */
+
+    u8 indexStream[] =
+    { 1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
+      1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
+      1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
+      1, 1, 1, 0, 0, 0, 0, 2, 2, 2,
+      1, 1, 1, 0, 0, 0, 0, 2, 2, 2,
+      2, 2, 2, 0, 0, 0, 0, 1, 1, 1,
+      2, 2, 2, 0, 0, 0, 0, 1, 1, 1,
+      2, 2, 2, 2, 2, 1, 1, 1, 1, 1,
+      2, 2, 2, 2, 2, 1, 1, 1, 1, 1,
+      2, 2, 2, 2, 2, 1, 1, 1, 1, 1 };
 
     array *testArr = arrayInit(sizeof(indexStream));
     for (u32 i = 0; i < sizeof(indexStream); i++) {
