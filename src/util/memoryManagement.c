@@ -6,6 +6,8 @@
 
 #include "typesMPEG-4.h"
 #include "typesAVC.h"
+#include "typesGIF.h"
+#include "array.h"
 #include "linkedlist.h"
 #include "typesStorage.h"
 

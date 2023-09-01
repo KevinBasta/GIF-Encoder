@@ -47,6 +47,7 @@
     #define GIF_HEAD
     #include "GIFEncode.h"
     #include "GIFCodeTable.h"
+    #include "GIFError.h"
 #endif //GIF_HEAD
 
 STATUS_CODE gifErrorOutput() {
@@ -67,7 +68,7 @@ int main(int argc, char **argv) {
     // "pipe" that information into a the gif interface functional style
 
     
-    createGIF();
+    createTestGif();
     /* MPEG_Data *videoData = getMpegData("local_files/op.mp4");
     createDisplayTimeToSampleTable(videoData);
     

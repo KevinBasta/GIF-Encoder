@@ -4,11 +4,37 @@
 
 #include <stdint.h>
 #include "main.h"
+
+#include "array.h"
 #include "linkedlist.h"
 #include "typesMPEG-4.h"
+#include "typesGIF.h"
 #include "typesAVC.h"
 
 // Main Storage Structs //
+
+typedef struct GIF_Data {
+    // LogicalScreenDescriptor
+    u16 canvasWidth; 
+    u16 canvasHeight;
+    u8 packedFieldCanvas;
+    u8 backgroundColorIndex;
+    u8 pixelAspectRatio;
+    
+    colorTable *globalColorTable;
+
+    // ImageDescriptor
+    u16 imageLeftPosition;
+    u16 imageTopPosition;
+    u16 imageWidth;
+    u16 imageHeight;
+    u8 packedFieldImage;
+
+    colorTable *localColorTable;
+
+    array *indexStream;
+} GIF_Data;
+
 
 typedef struct sampleInfo {
     u32 realTime; // may remove 

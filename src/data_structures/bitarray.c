@@ -181,12 +181,12 @@ STATUS_CODE bitarrayAppendPackedNormalizedLeft(bitarray *arr, u32 item, u32 occu
         }
     }
 
-    printf("current bit: %ld current index: %ld\n", arr->currentBit, arr->currentIndex);
+   /*  printf("current bit: %ld current index: %ld\n", arr->currentBit, arr->currentIndex);
     printIntBits(&(arr->items[0]), sizeof(u8));
     printIntBits(&(arr->items[1]), sizeof(u8));
     printIntBits(&(arr->items[2]), sizeof(u8));
     printIntBits(&(arr->items[3]), sizeof(u8));
-    printIntBits(&(arr->items[4]), sizeof(u8));
+    printIntBits(&(arr->items[4]), sizeof(u8)); */
 
     return OPERATION_SUCCESS;
 }
@@ -275,6 +275,14 @@ void bitarrayPrint(bitarray *arr) {
 
     printf("\n");
 }
+
+void freeBitArray(bitarray *arr) {
+    arr->mark = NULL;
+    
+    free(arr->items);
+    free(arr);
+}
+
 
 /* int main() {
     STATUS_CODE status;
