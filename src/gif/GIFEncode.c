@@ -84,14 +84,6 @@ STATUS_CODE encodeGlobalColorTable(FILE *gif, colorTable *globalColorTable) {
     return OPERATION_SUCCESS;
 }
 
-
-STATUS_CODE encodeGraphicsControlExtension(FILE *gif) {
-    size_t status;
-    u32 nmemb = 1;
-
-
-}
-
 STATUS_CODE encodeImageDescriptor(FILE *gif) {
     size_t status;
     u32 nmemb = 1;
@@ -99,8 +91,10 @@ STATUS_CODE encodeImageDescriptor(FILE *gif) {
     u8 imageSeparator = 0x2C;
     u16 imageLeftPosition = 0x0000;
     u16 imageTopPosition  = 0x0000;
-    u16 imageWidth  = 24;
-    u16 imageHeight = 7;
+    //u16 imageWidth  = 24;
+    u16 imageWidth  = 0x0A;
+    //u16 imageHeight = 7;
+    u16 imageHeight = 0x0A;
     u8 packedField = 0b00000000;
 
     status = fwrite(&imageSeparator, sizeof(imageSeparator), nmemb, gif);
@@ -126,12 +120,47 @@ STATUS_CODE encodeImageDescriptor(FILE *gif) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE createLZWCodeStream(colorTable *clrTable, array *indexStream, array *codeStream) {
+
+void checkCondidtionsForCodeSizeIncrease(bool *increaseCodeSizeFlag, u32 *entriesEqualCodeSize, u32 *currentCodeSize) {    
+    if (*increaseCodeSizeFlag == true) {
+        if (*entriesEqualCodeSize % 2 == 0) {
+            (*currentCodeSize)++;
+        }
+
+        if (*entriesEqualCodeSize == 0) {
+            *increaseCodeSizeFlag = false;
+        } else {
+            (*entriesEqualCodeSize)--;
+        }
+    }
+}
+
+void addCodeStreamValueToImageData(bitarray *imageData, 
+                                   u32 value,
+                                   u32 currentCodeSize,
+                                   bool hasNewCodeTableEntry,
+                                   u32 newCodeTableEntry,
+                                   bool *increaseCodeSizeFlag,
+                                   u32 *entriesEqualCodeSize) {    
+    u32 occupiedBits = getOccupiedBits(value);
+    
+    bitarrayAppendPackedNormalizedRight(imageData, value, occupiedBits, currentCodeSize);
+    if (hasNewCodeTableEntry == true) {
+        if (pow(2, currentCodeSize) - 1 == newCodeTableEntry) {
+            *increaseCodeSizeFlag = true;
+            *entriesEqualCodeSize += 1;
+
+            //printf("CODE SIZE FLAG INCREASE SET\n");
+        }
+    }
+}
+
+STATUS_CODE createLZWCodeStream(colorTable *clrTable, array *indexStream, bitarray *imageData) {
     STATUS_CODE status;
     
-    array *indexBuffer = arrayInit(indexStream->size);
-
     codeTable *codeTable = initCodeTable(clrTable);
+    array *indexBuffer = arrayInit(indexStream->size);
+    array *codeStream = arrayInit(indexStream->size);
 
     // Put the clear code in the code stream
     char *clearCodeValue = hashmapSearch(codeTable->map, "cc");
@@ -144,18 +173,34 @@ STATUS_CODE createLZWCodeStream(colorTable *clrTable, array *indexStream, array 
     status = arrayAppend(indexBuffer, arrayGetItem(indexStream, 0));
     CHECKSTATUS(status);
 
+
+    // Setting up imageData for flexible code sizes
+    u8 currentCodeSize = getLWZMinCodeSize(clrTable->size - 1);
+    bitarrayAppend(imageData, currentCodeSize);
+    bitarrayBookMark(imageData); // Mark to put number of bytes of data
+    bitarrayAppend(imageData, 0);
+    currentCodeSize += 1;
+
+    u8 numberOfBytesOfDataInSubBlock = 0;
+    u32 startByte = imageData->currentIndex;
+
+    bool increaseCodeSizeFlag = false;
+    int entriesEqualCodeSize = 0;
+    
+    addCodeStreamValueToImageData(imageData, codeStream->items[0], currentCodeSize, false, 0, &increaseCodeSizeFlag, &entriesEqualCodeSize);
+
     for (size_t i = 1; i < indexStream->size; i++) {
         // Add next index stream entry to index buffer temporarily
         u32 k = arrayGetItem(indexStream, i);
         status = arrayAppend(indexBuffer, k);
         CHECKSTATUS(status);
 
-        printf("================================\n");
+        //printf("================================\n");
         char *indexBufferPlusKKey = arrayConcat(indexBuffer, ',');
 
         if (hashmapSearch(codeTable->map, indexBufferPlusKKey) == NULL) {
-            printf("index buffer + k not in hash map\n");
-            
+            //printf("index buffer + k not in hash map\n");
+
             // Add entry for index buffer + k in code table
             // with value as the next smallest code table index
             u32 test = getNextIndexCodeTable(codeTable);
@@ -180,6 +225,10 @@ STATUS_CODE createLZWCodeStream(colorTable *clrTable, array *indexStream, array 
             arrayReset(indexBuffer);
             arrayAppend(indexBuffer, k);
 
+            // Pack into flexible code size and put into final ImageData
+            addCodeStreamValueToImageData(imageData, atoi(value), currentCodeSize, true, test, &increaseCodeSizeFlag, &entriesEqualCodeSize);
+            checkCondidtionsForCodeSizeIncrease(&increaseCodeSizeFlag, &entriesEqualCodeSize, &currentCodeSize);
+
             /**
              Need to handle code table having max number of entries
              4095. Send clear code and reset table?
@@ -191,11 +240,36 @@ STATUS_CODE createLZWCodeStream(colorTable *clrTable, array *indexStream, array 
         //hashmapPrint(codeTable->map);
     }
 
+    // Add last value to the codeStream and imageData
+    char *indexBufferKey = arrayConcat(indexBuffer, ',');
+    char *value = hashmapSearch(codeTable->map, indexBufferKey);
+    CHECK_NULL_RETURN(value);
+
+    status = arrayAppend(codeStream, atoi(value));
+    CHECKSTATUS(status);
+    free(indexBufferKey);
+    
+    addCodeStreamValueToImageData(imageData, atoi(value), currentCodeSize, false, 0, &increaseCodeSizeFlag, &entriesEqualCodeSize);
+    checkCondidtionsForCodeSizeIncrease(&increaseCodeSizeFlag, &entriesEqualCodeSize, &currentCodeSize);
+
+
+    // Add the end of information value
     char *endOfInfoValue = hashmapSearch(codeTable->map, "eoi");
     CHECK_NULL_RETURN(endOfInfoValue);
 
     status = arrayAppend(codeStream, atoi(endOfInfoValue));
     CHECKSTATUS(status);
+
+    addCodeStreamValueToImageData(imageData, atoi(endOfInfoValue), currentCodeSize, false, 0, &increaseCodeSizeFlag, &entriesEqualCodeSize);
+    checkCondidtionsForCodeSizeIncrease(&increaseCodeSizeFlag, &entriesEqualCodeSize, &currentCodeSize);
+
+    
+    // imageData set the second byte to number of bytes
+    numberOfBytesOfDataInSubBlock = imageData->currentIndex + 1 - startByte;
+    bitarraySetBookMarkValue(imageData, numberOfBytesOfDataInSubBlock);
+    // imageData block terminator
+    bitarrayAppend(imageData, 0x00);
+
 
     freeArray(indexBuffer);
     freeCodeTable(codeTable);
@@ -205,67 +279,14 @@ STATUS_CODE createLZWCodeStream(colorTable *clrTable, array *indexStream, array 
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE codeStreamFlexibleCodeSizes(colorTable *clrTable, array *codeStream, bitarray *imageData) {
-    STATUS_CODE status;
-
-    u8 currentCodeSize = getLWZMinCodeSize(clrTable->size);
-    bitarrayAppend(imageData, currentCodeSize);
-    bitarrayBookMark(imageData); // Mark to put number of bytes of data
-    bitarrayAppend(imageData, 0);
-
-    u8 numberOfBytesOfDataInSubBlock = 0;
-    u32 startByte = imageData->currentIndex;
-
-    for (size_t i = 0; i < codeStream->currentIndex; i++) {
-        //bitarrayPrint(imageData);
-        //printf("%d\n", codeStream->items[i]);
-        u32 occupiedBits = getOccupiedBits(codeStream->items[i]);
-
-        if (pow(2, currentCodeSize) == codeStream->items[i]) {
-            // append the next code with new code size
-            bitarrayAppendPackedNormalizedRight(imageData, codeStream->items[i], occupiedBits, currentCodeSize);
-            
-            // Set the second byte in the image data block
-            numberOfBytesOfDataInSubBlock = imageData->currentIndex - startByte + 1;
-            bitarraySetBookMarkValue(imageData, numberOfBytesOfDataInSubBlock);
-            
-            // Image block terminator
-            bitarrayAppend(imageData, 0);
-
-            // Start next image data block
-            currentCodeSize++;
-            bitarrayAppend(imageData, currentCodeSize);
-            bitarrayBookMark(imageData); // Mark to put number of bytes of data
-            bitarrayAppend(imageData, 0);
-            startByte = imageData->currentIndex;
-        } else {
-            bitarrayAppendPackedNormalizedRight(imageData, codeStream->items[i], occupiedBits, currentCodeSize);
-        }
-    }
-
-    // Set the second byte in the image data block
-    numberOfBytesOfDataInSubBlock = imageData->currentIndex - startByte;
-    bitarraySetBookMarkValue(imageData, numberOfBytesOfDataInSubBlock);
-            
-    // Image block terminator
-    bitarrayAppend(imageData, 0);
-
-
-
-    return OPERATION_SUCCESS;
-}
-
-
-
 STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream) {
     size_t status;
     u32 nmemb = 1;
 
-    array *codeStream = arrayInit(indexStream->size);
-    bitarray *imageData = bitarrayInit(codeStream->size * 2);
-    createLZWCodeStream(clrTable, indexStream, codeStream);
-    codeStreamFlexibleCodeSizes(clrTable, codeStream, imageData);
+    bitarray *imageData = bitarrayInit(indexStream->size * 2);
+    createLZWCodeStream(clrTable, indexStream, imageData);
     bitarrayPrint(imageData);
+    
     for (u32 i = 0; i < imageData->currentIndex; i++) {
         status = fwrite(&(imageData->items[i]), sizeof(u8), nmemb, gif);
         CHECK_FWRITE_STATUS(status, nmemb);
@@ -292,6 +313,13 @@ void addRGBArrayEntry(RGB *table, u32 index, u8 red, u8 green, u8 blue) {
     table[index].blue = blue;
 }
 
+STATUS_CODE encodeGraphicsControlExtension(FILE *gif) {
+    size_t status;
+    u32 nmemb = 1;
+
+
+}
+
 STATUS_CODE createGIF() {
     size_t status;
     FILE *gif = fopen("test.gif","wb");
@@ -299,15 +327,19 @@ STATUS_CODE createGIF() {
     status = encodeHeader(gif);
     CHECKSTATUS(status);
 
-    status = encodeLogicalScreenDescriptor(gif, 24, 7, 0b10000001, 0, 0);
+    //status = encodeLogicalScreenDescriptor(gif, 24, 7, 0b10000001, 0, 0);
+    status = encodeLogicalScreenDescriptor(gif, 0x0A, 0x0A, 0b10010001, 0, 0);
     CHECKSTATUS(status);
 
     // temp for testing
-    RGB *blackAndWhite = calloc(2, sizeof(RGB));
-    addRGBArrayEntry(blackAndWhite, 0, 0, 0, 0);
-    addRGBArrayEntry(blackAndWhite, 1, 255, 255, 255);
-    addRGBArrayEntry(blackAndWhite, 2, 255, 255, 0);
-    colorTable globalColorTable = { 3, blackAndWhite };
+    RGB *blackAndWhite = calloc(4, sizeof(RGB));
+    addRGBArrayEntry(blackAndWhite, 0, 0xFF, 0xFF, 0xFF);
+    addRGBArrayEntry(blackAndWhite, 1, 0xFF, 0x00, 0x00);
+    addRGBArrayEntry(blackAndWhite, 2, 0x00, 0x00, 0xFF);
+    addRGBArrayEntry(blackAndWhite, 3, 0x00, 0x00, 0x00);
+    //addRGBArrayEntry(blackAndWhite, 0, 0, 0, 0);
+    //addRGBArrayEntry(blackAndWhite, 1, 255, 255, 255);
+    colorTable globalColorTable = { 4, blackAndWhite };
 
     // may need to pass in a gif struct that contains color resolution
     // for number of entries 
@@ -317,6 +349,8 @@ STATUS_CODE createGIF() {
     status = encodeImageDescriptor(gif);
     CHECKSTATUS(status);
 
+    //status = encodeGraphicsControlExtension(gif);
+    
     /* u8 indexStream[] = 
     {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
      0,1,1,1,0,1,1,0,0,1,1,0,0,0,1,1,0,0,1,1,0,0,1,0,

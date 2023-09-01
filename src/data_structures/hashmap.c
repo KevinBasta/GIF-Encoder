@@ -78,7 +78,7 @@ STATUS_CODE hashmapInsert(HashMap *map, char *key, char *value) {
         return OPERATION_FAILED;
     }
 
-    printf("INSERT OPERATING STARTED %s\n", key);
+    //printf("INSERT OPERATING STARTED %s\n", key);
 
     size_t index           = hashFunction(key, map->size);
     HashMapEntry *newEntry = hashmapCreateEntry(key, value);
@@ -101,7 +101,7 @@ STATUS_CODE hashmapInsert(HashMap *map, char *key, char *value) {
     }
 
     map->entries[index] = newEntry;
-    printf("FINAL INDEX: %ld\n", index);
+    //printf("FINAL INDEX: %ld\n", index);
 
     return OPERATION_SUCCESS;
 }
@@ -126,7 +126,7 @@ char *hashmapSearch(HashMap *map, char *key) {
 
         if (strcmp(entry->key, key) == 0) {
             value = entry->value;
-            printf("search found: %s\n", value);
+            //printf("search found: %s\n", value);
             break;
         }
 

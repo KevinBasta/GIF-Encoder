@@ -67,10 +67,10 @@ codeTable* initCodeTable(colorTable *clrTable) {
         table->index = i;
     }
 
-    hashmapInsert(map, hashmapCreateKey("cc", 2), intToString(getClearCodeValue(clrTable->size)));
-    hashmapInsert(map, hashmapCreateKey("eoi", 3), intToString(getEOICodeValue(clrTable->size)));
+    hashmapInsert(map, hashmapCreateKey("cc", 2), intToString(getClearCodeValue(clrTable->size - 1)));
+    hashmapInsert(map, hashmapCreateKey("eoi", 3), intToString(getEOICodeValue(clrTable->size - 1)));
     hashmapPrint(map);
-    table->index = table->index + 3;
+    table->index = table->index + 2;
 
     return table;
 }

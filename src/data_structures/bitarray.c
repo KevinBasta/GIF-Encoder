@@ -195,7 +195,7 @@ STATUS_CODE bitarrayAppendPackedNormalizedRight(bitarray *arr, u32 item, u32 occ
     if (arr == NULL)
         return OPERATION_FAILED;
 
-    if (minNumberOfBits + 1 < occupiedBits) {
+    if (minNumberOfBits < occupiedBits) {
         printf("LESS THAN\n");
         //return OPERATION_FAILED;
     }
@@ -266,7 +266,7 @@ void bitarrayPrint(bitarray *arr) {
     size_t index = 0;
 
     for (size_t i = 0; i < arr->currentIndex; i++) {
-        printf("%d ", arr->items[i]);
+        printf("%X ", arr->items[i]);
         index++;
         if (index % 24 == 0) {
             printf("\n");

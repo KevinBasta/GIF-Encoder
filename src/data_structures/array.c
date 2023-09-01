@@ -99,7 +99,7 @@ char* arrayConcat(array *arr, char entrySeparator) {
         free(itemStr);
     }
     concat[(arr->currentIndex * 2) - 1] = '\0';
-    printf("TEST %s\n", concat);
+    //printf("TEST %s\n", concat);
 
     return concat;
 }
