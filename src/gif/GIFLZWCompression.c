@@ -28,7 +28,13 @@
  */
 static void checkCondidtionsForCodeSizeIncrease(bool *increaseCodeSizeFlag, u32 *entriesEqualCodeSize, u8 *currentCodeSize) {    
     if (*increaseCodeSizeFlag == true) {
-        if (*entriesEqualCodeSize % 2 == 0) {
+        if (*entriesEqualCodeSize == 0) {
+            (*currentCodeSize)++;
+            *increaseCodeSizeFlag = false;
+        } else {
+            (*entriesEqualCodeSize)--;
+        }
+        /* if (*entriesEqualCodeSize % 2 == 0) {
             (*currentCodeSize)++;
         }
 
@@ -36,7 +42,7 @@ static void checkCondidtionsForCodeSizeIncrease(bool *increaseCodeSizeFlag, u32 
             *increaseCodeSizeFlag = false;
         } else {
             (*entriesEqualCodeSize)--;
-        }
+        } */
     }
 }
 
@@ -64,6 +70,7 @@ static void addCodeStreamValueToImageData(bitarray *imageData,
         if (pow(2, currentCodeSize) - 1 == newCodeTableEntry) {
             *increaseCodeSizeFlag = true;
             *entriesEqualCodeSize += 1;
+            printf("entries equal code size: %d\n", *entriesEqualCodeSize);
             //printf("CODE SIZE FLAG INCREASE SET\n");
         }
     }
@@ -82,8 +89,8 @@ STATUS_CODE createLZWImageData(colorTable *clrTable, array *indexStream, bitarra
     STATUS_CODE status;
     
     codeTable *codeTable = initCodeTable(clrTable);
-    array *indexBuffer = arrayInit(indexStream->size);
-    array *codeStream = arrayInit(indexStream->size);
+    array *indexBuffer = arrayInit(indexStream->size * 10);
+    array *codeStream = arrayInit(indexStream->size * 10);
 
     // Put the clear code in the code stream
     char *clearCodeValue = hashmapSearch(codeTable->map, "cc");
@@ -156,6 +163,21 @@ STATUS_CODE createLZWImageData(colorTable *clrTable, array *indexStream, bitarra
              Need to handle code table having max number of entries
              4095. Send clear code and reset table?
             */
+            //printf("current code size: %d\n", currentCodeSize);
+            if (getCurrentIndexCodeTable(codeTable) > 4095 || currentCodeSize >= 12) {
+                printf("GREATER THAN MAX CODE TABLE ENTRY\n");
+                /* char *clearCodeValue = hashmapSearch(codeTable->map, "cc");
+                CHECK_NULL_RETURN(clearCodeValue);
+
+                status = arrayAppend(codeStream, atoi(clearCodeValue));
+                CHECKSTATUS(status);
+
+                freeArray(indexBuffer);
+                freeCodeTable(codeTable);
+                codeTable = initCodeTable(clrTable);
+                indexBuffer = arrayInit(indexStream->size);
+                arrayAppend(indexBuffer, k); */
+            }
         } else {
             free(indexBufferPlusKKey);
         }

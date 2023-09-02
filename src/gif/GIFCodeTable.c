@@ -1,6 +1,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <stdint.h>
 #include "main.h"
@@ -77,7 +78,12 @@ codeTable* initCodeTable(colorTable *clrTable) {
 
 u32 getNextIndexCodeTable(codeTable *table) {
     table->index++;
+    //printf("%d\n", table->index);
 
+    return table->index;
+}
+
+u32 getCurrentIndexCodeTable(codeTable *table) {
     return table->index;
 }
 

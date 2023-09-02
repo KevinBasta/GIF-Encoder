@@ -50,13 +50,13 @@ STATUS_CODE encodeLogicalScreenDescriptor(FILE *gif, GIF_Data *gifData) {
     u16 canvasWidth         = littleEndianU16(gifData->canvasWidth);
     u16 canvasHeight        = littleEndianU16(gifData->canvasHeight);
     
-    /**
-    * Packed field:
-    * [7]    : global color table flag. (1) global color table will follow (0) no table
-    * [4-6]  : color resolution (2^(n+1) computes entries in global color table)
-    * [3]    : sort flag. (1) global color table sorted in decreasing importance (0) no sort
-    * [0-2]  : size of global color table
-    */
+    //
+    // Packed field:
+    // [7]    : global color table flag. (1) global color table will follow (0) no table
+    // [4-6]  : color resolution (2^(n+1) computes entries in global color table)
+    // [3]    : sort flag. (1) global color table sorted in decreasing importance (0) no sort
+    // [0-2]  : size of global color table
+    //
     u8 packedField          = gifData->packedFieldCanvas;
     
     // Represents which index in the global color table should be used 
@@ -98,14 +98,14 @@ STATUS_CODE encodeImageDescriptor(FILE *gif, GIF_Data *gifData) {
     u16 imageWidth          = littleEndianU16(gifData->imageWidth);
     u16 imageHeight         = littleEndianU16(gifData->imageHeight);
     
-    /**
-    * Packed field:
-    * [7]   : local color table flag (1) use differnt color table than global (0) no table
-    * [6]   : interlace flag, changes the way images are rendered onto the screen to reduce flicker
-    * [5]   : sort flag (1) local color table sorted in decreasing importance (0) no sort
-    * [3-4] : Reserved
-    * [0-2] : size of local color table
-    */
+    //
+    // Packed field:
+    // [7]   : local color table flag (1) use differnt color table than global (0) no table
+    // [6]   : interlace flag, changes the way images are rendered onto the screen to reduce flicker
+    // [5]   : sort flag (1) local color table sorted in decreasing importance (0) no sort
+    // [3-4] : Reserved
+    // [0-2] : size of local color table
+    //
     u8 packedField          = gifData->packedFieldImage;
 
     status = fwrite(&imageSeparator, sizeof(imageSeparator), nmemb, gif);
@@ -173,7 +173,7 @@ STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream)
     size_t status;
     u32 nmemb = 1;
 
-    bitarray *imageData = bitarrayInit(indexStream->size * 2);
+    bitarray *imageData = bitarrayInit(indexStream->size * 10);
     createLZWImageData(clrTable, indexStream, imageData);
     bitarrayPrint(imageData);
 

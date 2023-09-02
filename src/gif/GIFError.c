@@ -1,12 +1,62 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "main.h"
 
 #include "array.h"
 #include "typesGIF.h"
 #include "typesStorage.h"
 #include "GIFEncode.h"
+
+static void expandFrame(array *newFrame, GIF_Data *gifData, 
+                        u8 *frameArray, u32 widthMuliplier,
+                        u32 heightMuliplier) {
+    u16 oldWidth  = gifData->canvasWidth;
+    u16 oldHeight = gifData->canvasHeight;
+
+    u16 newWidth  = gifData->canvasWidth  * widthMuliplier;
+    u16 newHeight = gifData->canvasHeight * heightMuliplier;
+  
+    gifData->canvasWidth  = newWidth;
+    gifData->canvasHeight = newHeight;
+    gifData->imageWidth   = newWidth;
+    gifData->imageHeight  = newHeight;
+
+    u32 newArraySize = newWidth * newHeight;
+
+    for (int i = 0; i < oldHeight; i++) {
+        for (int j = 0; j < oldWidth; j++) {
+            for (int k = 0; k < widthMuliplier; k++) {
+                for (int l = 0; l < heightMuliplier; l++) {
+                    // 
+                    // current frame entry: (i * oldWidth) + j
+                    // 
+                    // new frame entry transformations:
+                    // x axis: (j * widthMuliplier) + k 
+                    //         (j * widthMuliplier): get starting x position in new array
+                    //         + k: repeat the pixel (factor multipler) times in the x axis
+                    // 
+                    // y axis: (((i * heightMuliplier) + l) * newWidth)
+                    //         (((i * heightMuliplier): get starting y position in new array
+                    //         + l): repeat the pixel (factor multiper) times in the y axis
+                    //         * newWidth): skip already written rows in new array
+                    //
+                    newFrame->items[(((i * heightMuliplier) + l) * newWidth) + (j * widthMuliplier) + k] = frameArray[(i * oldWidth) + j];
+                    newFrame->currentIndex++;
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < newArraySize; i++) {
+        printf("%d", newFrame->items[i]);
+        if (i % newWidth == newWidth - 1) {
+            printf("\n");
+        }
+    }
+
+}
 
 STATUS_CODE createTestGif() {
     GIF_Data *gifData = calloc(1, sizeof(GIF_Data));
@@ -35,12 +85,15 @@ STATUS_CODE createTestGif() {
       2, 2, 2, 2, 2, 1, 1, 1, 1, 1,
       2, 2, 2, 2, 2, 1, 1, 1, 1, 1 };
 
-    array *frameOne = arrayInit(sizeof(indexStreamFrameOne));
-    for (u32 i = 0; i < sizeof(indexStreamFrameOne); i++) {
-        arrayAppend(frameOne, indexStreamFrameOne[i]);
-    }
+    u32 widthMuliplier  = 6;
+    u32 heightMuliplier = 7;
+    // u32 widthMuliplier  = 6;
+    // u32 heightMuliplier = 20;
+    
+    array *newFrame = arrayInit((widthMuliplier * gifData->canvasWidth) * (heightMuliplier * gifData->canvasHeight));
+    expandFrame(newFrame, gifData, (u8*) &indexStreamFrameOne, widthMuliplier, heightMuliplier);
 
-    gifData->indexStream = frameOne;
+    gifData->indexStream = newFrame;
 
     RGB *colorsArray = calloc(4, sizeof(RGB));
     addRGBArrayEntry(colorsArray, 0, 0xFF, 0xFF, 0xFF);
@@ -53,7 +106,6 @@ STATUS_CODE createTestGif() {
 
     createGIF(gifData);
 }
-
 
 STATUS_CODE createErrorGif() {
     GIF_Data *gifData = calloc(1, sizeof(GIF_Data));
@@ -79,18 +131,23 @@ STATUS_CODE createErrorGif() {
       0,1,1,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
-    array *frameOne = arrayInit(sizeof(indexStreamFrameOne));
-    for (u32 i = 0; i < sizeof(indexStreamFrameOne); i++) {
-        arrayAppend(frameOne, indexStreamFrameOne[i]);
-    }
+    u32 widthMuliplier  = 3;
+    u32 heightMuliplier = 4;
+    
+    array *newFrame = arrayInit((widthMuliplier * gifData->canvasWidth) * (heightMuliplier * gifData->canvasHeight));
+    expandFrame(newFrame, gifData, (u8*) &indexStreamFrameOne, widthMuliplier, heightMuliplier);
 
-    gifData->indexStream = frameOne;
+    gifData->indexStream = newFrame;
 
-    RGB *colorsArray = calloc(2, sizeof(RGB));
+    RGB *colorsArray = calloc(4, sizeof(RGB));
     addRGBArrayEntry(colorsArray, 0, 0, 0, 0);
     addRGBArrayEntry(colorsArray, 1, 255, 255, 255);
+    // When colors occupy less than the total size
+    // they need to be filled with fake (or 0) values
+    addRGBArrayEntry(colorsArray, 2, 0, 255, 255);
+    addRGBArrayEntry(colorsArray, 3, 255, 0, 255);
     colorTable *globalColorTable = calloc(1, sizeof(colorTable));
-    globalColorTable->size = 2; globalColorTable->arr = colorsArray;
+    globalColorTable->size = 4; globalColorTable->arr = colorsArray;
     gifData->globalColorTable = globalColorTable;
 
   createGIF(gifData);
