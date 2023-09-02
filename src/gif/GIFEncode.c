@@ -133,6 +133,10 @@ STATUS_CODE encodeGraphicsControlExtension(FILE *gif, GIF_Data *gifData) {
     size_t status;
     u32 nmemb = 1;
 
+    // temporariy
+    u8 buffer[] = {0x21, 0xF9, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00};
+    fwrite(&buffer, sizeof(u8) * 8, nmemb, gif);
+
     return OPERATION_SUCCESS;
 }
 
@@ -174,7 +178,8 @@ STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream)
     u32 nmemb = 1;
 
     bitarray *imageData = bitarrayInit(indexStream->size * 10);
-    createLZWImageData(clrTable, indexStream, imageData);
+    status = revisedLZWImageData(clrTable, indexStream, imageData);
+    CHECKSTATUS(status);
     bitarrayPrint(imageData);
 
     for (u32 i = 0; i < imageData->currentIndex; i++) {
@@ -225,8 +230,8 @@ STATUS_CODE createGIF(GIF_Data *gifData) {
     status = encodeColorTable(gif, gifData->globalColorTable);
     CHECKSTATUS(status);
 
-    //status = encodeGraphicsControlExtension(gif, gifData);
-    //CHECKSTATUS(status);
+    status = encodeGraphicsControlExtension(gif, gifData);
+    CHECKSTATUS(status);
 
     status = encodeImageDescriptor(gif, gifData);
     CHECKSTATUS(status);
@@ -236,6 +241,8 @@ STATUS_CODE createGIF(GIF_Data *gifData) {
 
     status = encodeTrailer(gif);
     CHECKSTATUS(status);
+
+    fclose(gif);
 
     return OPERATION_SUCCESS;
 }

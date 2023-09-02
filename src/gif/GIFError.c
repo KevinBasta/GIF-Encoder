@@ -85,10 +85,10 @@ STATUS_CODE createTestGif() {
       2, 2, 2, 2, 2, 1, 1, 1, 1, 1,
       2, 2, 2, 2, 2, 1, 1, 1, 1, 1 };
 
-    u32 widthMuliplier  = 6;
-    u32 heightMuliplier = 7;
     // u32 widthMuliplier  = 6;
-    // u32 heightMuliplier = 20;
+    // u32 heightMuliplier = 7;
+    u32 widthMuliplier  = 6;
+    u32 heightMuliplier = 15;
     
     array *newFrame = arrayInit((widthMuliplier * gifData->canvasWidth) * (heightMuliplier * gifData->canvasHeight));
     expandFrame(newFrame, gifData, (u8*) &indexStreamFrameOne, widthMuliplier, heightMuliplier);

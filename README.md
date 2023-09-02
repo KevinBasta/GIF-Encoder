@@ -1,15 +1,14 @@
 # video-to-gif
-a video to gif converter written in c
-parseMPEG-4.c parses mp4 files according to the (iso MPEG4) specification.
+A Video (MPEG-4 with sample data stored in AVC format) to GIF (Graphics Interchange Format) converter written in the c programming language. The goal of this project is to parse MP4 files according to the (ISO/IEC MPEG4)/(QuickTime) specification, parse AVC data out of the MPEG4 samples accoriding to the (ISO/IEC AVC) specification, transform the parsed MPEG-4/AVC data into GIF data, and use that data to encode GIFs according to the (GIF 89a Version) specification.
 
-This project is in progress.
+### This project is in progress.
 
-Project Status: 
-- Extracting structures from the MPEG-4 file format is currently supported and working. 
-- Need to extract information out of NAL units in samples for AVC format
-- Need to make a gif encoder
+### Project Status: 
+- MPEG-4 parsing, decoding, and processing is currently supported and working 
+- GIF full encoding almost complete, basic support complete
+- AVC decoding incomplete, need to extract information out of NAL units in MPEG-4 samples
 - Need to convert AVC format output to gif input
 
-mpeg atoms/boxes that can support 64 bit sizes in future: 
-- general box atoms when they have their size set to 1
-- stco can contian 64 bit chunk offsets
+
+### Obligatory Copyright Information For File Formats
+> The Graphics Interchange Format(c) is the Copyright property of CompuServe Incorporated.

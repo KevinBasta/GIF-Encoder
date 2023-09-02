@@ -60,11 +60,11 @@ STATUS_CODE bitarrayAppend(bitarray *arr, u8 item) {
     if (arr->currentBit != 0) {
         zeroRestOfByte(&(arr->items[arr->currentIndex]), arr->currentBit);
         arr->currentBit = 0;
-        arr->currentIndex++;
+        (arr->currentIndex)++;
     }
 
     arr->items[arr->currentIndex] = item;
-    arr->currentIndex++;
+    (arr->currentIndex)++;
     
     return OPERATION_SUCCESS;
 }
@@ -88,7 +88,7 @@ STATUS_CODE bitarrayAppendPacked(bitarray *arr, u32 item) {
         arr->currentBit += itemBitLength;
         
         if (arr->currentBit == 8) {
-            arr->currentIndex++;
+            (arr->currentIndex)++;
             arr->currentBit = 0;
         }
     } else {
@@ -150,7 +150,7 @@ STATUS_CODE bitarrayAppendPackedNormalizedLeft(bitarray *arr, u32 item, u32 occu
         arr->currentBit += minNumberOfBits;
         
         if (arr->currentBit == 8) {
-            arr->currentIndex++;
+            (arr->currentIndex)++;
             arr->currentBit = 0;
         }
     } else {
@@ -191,10 +191,11 @@ STATUS_CODE bitarrayAppendPackedNormalizedLeft(bitarray *arr, u32 item, u32 occu
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE bitarrayAppendPackedNormalizedRight(bitarray *arr, u32 item, u32 occupiedBits, u32 minNumberOfBits) {
+STATUS_CODE bitarrayAppendPackedNormalizedRight(bitarray *arr, u32 item, u32 minNumberOfBits) {
     if (arr == NULL)
         return OPERATION_FAILED;
 
+    u32 occupiedBits = getOccupiedBits(item);
     if (minNumberOfBits < occupiedBits) {
         printf("LESS THAN\n");
         //return OPERATION_FAILED;
@@ -214,7 +215,7 @@ STATUS_CODE bitarrayAppendPackedNormalizedRight(bitarray *arr, u32 item, u32 occ
         arr->currentBit += minNumberOfBits;
         
         if (arr->currentBit == 8) {
-            arr->currentIndex++;
+            (arr->currentIndex)++;
             arr->currentBit = 0;
         }
     } else {
@@ -289,7 +290,9 @@ void freeBitArray(bitarray *arr) {
     
     bitarray *arr = bitarrayInit(100);
     status = bitarrayAppendPackedNormalizedRight(arr, 4, 3, 4);
-    status = bitarrayAppendPackedNormalizedRight(arr, 3, 2, 2);
+    status = bitarrayAppendPackedNormalizedRight(arr, 3, 2, 8);
+    status = bitarrayAppendPackedNormalizedRight(arr, 501, 9, 9);
+    status = bitarrayAppendPackedNormalizedRight(arr, 502, 9, 9);
     status = bitarrayAppendPackedNormalizedRight(arr, 7, 3, 4);
     status = bitarrayAppendPackedNormalizedRight(arr, 1, 1, 3);
     status = bitarrayAppendPackedNormalizedRight(arr, 4001, 12, 13); //1111 1010 0001

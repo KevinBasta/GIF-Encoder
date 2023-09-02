@@ -38,10 +38,7 @@ static size_t hashFunction(char *key, size_t size) {
 HashMapEntry *hashmapCreateEntry(char *key, char *value) {
     HashMapEntry *entry = (HashMapEntry*) calloc(1, sizeof(HashMapEntry));
     entry->key   = key;
-    entry->value = (char*) malloc(strlen(value) + 1);
-
-    strcpy(entry->key, key);
-    strcpy(entry->value, value);
+    entry->value = value;
 
     return entry;
 }
@@ -124,7 +121,8 @@ char *hashmapSearch(HashMap *map, char *key) {
             return NULL;
         }
 
-        if (strcmp(entry->key, key) == 0) {
+        if (strncmp(entry->key, key, strlen(key)) == 0) {
+            //printf("entry key: %s \n      key: %s\n", entry->key, key);
             value = entry->value;
             //printf("search found: %s\n", value);
             break;
@@ -178,6 +176,8 @@ void freeHashMap(HashMap *map) {
         if (entry != NULL) {
             freeHashMapEntry(entry);
         }
+        
+        free(entry);
     }
 
     free(map->entries);

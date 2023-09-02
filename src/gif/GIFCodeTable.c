@@ -62,8 +62,9 @@ codeTable* initCodeTable(colorTable *clrTable) {
     table->map = map;
 
     for (size_t i = 0; i < clrTable->size; i++) {
-        char *str = intToString(i);
-        hashmapInsert(map, str, str);
+        char *str1 = intToString(i);
+        char *str2 = intToString(i);
+        hashmapInsert(map, str1, str2);
 
         table->index = i;
     }
@@ -77,7 +78,7 @@ codeTable* initCodeTable(colorTable *clrTable) {
 }
 
 u32 getNextIndexCodeTable(codeTable *table) {
-    table->index++;
+    (table->index)++;
     //printf("%d\n", table->index);
 
     return table->index;

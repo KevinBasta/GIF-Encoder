@@ -20,7 +20,7 @@ bitarray *bitarrayInit(size_t size);
 STATUS_CODE bitarrayAppend(bitarray *arr, u8 item);
 STATUS_CODE bitarrayAppendPacked(bitarray *arr, u32 item);
 STATUS_CODE bitarrayAppendPackedNormalizedLeft(bitarray *arr, u32 item, u32 occupiedBits, u32 minNumberOfBits);
-STATUS_CODE bitarrayAppendPackedNormalizedRight(bitarray *arr, u32 item, u32 occupiedBits, u32 minNumberOfBits);
+STATUS_CODE bitarrayAppendPackedNormalizedRight(bitarray *arr, u32 item, u32 minNumberOfBits);
 void bitarrayPrint(bitarray *arr);
 void freeBitArray(bitarray *arr);
 
