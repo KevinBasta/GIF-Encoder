@@ -86,9 +86,9 @@ STATUS_CODE createTestGif() {
       2, 2, 2, 2, 2, 1, 1, 1, 1, 1 };
 
     // u32 widthMuliplier  = 6;
-    // u32 heightMuliplier = 7;
-    u32 widthMuliplier  = 6;
-    u32 heightMuliplier = 15;
+    // u32 heightMuliplier = 8;
+    u32 widthMuliplier  = 100;
+    u32 heightMuliplier = 100;
     
     array *newFrame = arrayInit((widthMuliplier * gifData->canvasWidth) * (heightMuliplier * gifData->canvasHeight));
     expandFrame(newFrame, gifData, (u8*) &indexStreamFrameOne, widthMuliplier, heightMuliplier);
@@ -131,8 +131,8 @@ STATUS_CODE createErrorGif() {
       0,1,1,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
-    u32 widthMuliplier  = 3;
-    u32 heightMuliplier = 4;
+    u32 widthMuliplier  = 100;
+    u32 heightMuliplier = 100;
     
     array *newFrame = arrayInit((widthMuliplier * gifData->canvasWidth) * (heightMuliplier * gifData->canvasHeight));
     expandFrame(newFrame, gifData, (u8*) &indexStreamFrameOne, widthMuliplier, heightMuliplier);

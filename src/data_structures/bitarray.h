@@ -8,12 +8,12 @@
 typedef struct bitarray {
     size_t size;
     size_t currentIndex;
+    size_t markIndex;
     u8 currentBit: 4;
-    u8 *mark;
     u8 *items;
 } bitarray;
 
-STATUS_CODE bitarrayBookMark(bitarray *arr);
+STATUS_CODE bitarrayBookMark(bitarray *arr, u32 offset);
 STATUS_CODE bitarraySetBookMarkValue(bitarray *arr, u8 item);
 
 bitarray *bitarrayInit(size_t size);

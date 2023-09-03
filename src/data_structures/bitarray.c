@@ -16,11 +16,11 @@ STATUS_CODE zeroRestOfByte(u8 *item, u8 currentBit) {
     }
 }
 
-STATUS_CODE bitarrayBookMark(bitarray *arr) {
+STATUS_CODE bitarrayBookMark(bitarray *arr, u32 offset) {
     if (arr == NULL)
         return OPERATION_FAILED;
 
-    arr->mark = &(arr->items[arr->currentIndex]);
+    arr->markIndex = arr->currentIndex + offset;
 
     return OPERATION_SUCCESS;
 }
@@ -29,11 +29,8 @@ STATUS_CODE bitarraySetBookMarkValue(bitarray *arr, u8 item) {
     if (arr == NULL)
         return OPERATION_FAILED;
 
-    if (arr->mark == NULL)
-        return OPERATION_FAILED;
-
-    *(arr->mark) = item;
-    printf("%d %d\n", *(arr->mark), item);
+    arr->items[arr->markIndex] = item;
+    printf("%d %d\n", arr->items[arr->markIndex], item);
 
     return OPERATION_SUCCESS;
 }
@@ -45,6 +42,7 @@ bitarray *bitarrayInit(size_t size) {
     arr->size = size;
     arr->currentIndex = 0;
     arr->currentBit = 0;
+    arr->markIndex = 0;
     
     return arr;
 }
@@ -191,6 +189,15 @@ STATUS_CODE bitarrayAppendPackedNormalizedLeft(bitarray *arr, u32 item, u32 occu
     return OPERATION_SUCCESS;
 }
 
+void setMarkValueAndMarkNewLocation(bitarray *arr) {
+    if ((arr->currentIndex - 1) % 0x100 == 0) {
+        bitarraySetBookMarkValue(arr, 0xFF);
+
+        bitarrayBookMark(arr, 0);
+        bitarrayAppend(arr, 0);
+    }
+}
+
 STATUS_CODE bitarrayAppendPackedNormalizedRight(bitarray *arr, u32 item, u32 minNumberOfBits) {
     if (arr == NULL)
         return OPERATION_FAILED;
@@ -217,6 +224,7 @@ STATUS_CODE bitarrayAppendPackedNormalizedRight(bitarray *arr, u32 item, u32 min
         if (arr->currentBit == 8) {
             (arr->currentIndex)++;
             arr->currentBit = 0;
+            setMarkValueAndMarkNewLocation(arr);
         }
     } else {
         u32 remainingBitsToBeWritten = minNumberOfBits;
@@ -246,6 +254,7 @@ STATUS_CODE bitarrayAppendPackedNormalizedRight(bitarray *arr, u32 item, u32 min
             if (arr->currentBit == 8) {
                 (arr->currentIndex)++;
                 arr->currentBit = 0;
+                setMarkValueAndMarkNewLocation(arr);
             }
 
             remainingBitsInCurrentArrayByte = 8 - arr->currentBit;
@@ -278,8 +287,6 @@ void bitarrayPrint(bitarray *arr) {
 }
 
 void freeBitArray(bitarray *arr) {
-    arr->mark = NULL;
-    
     free(arr->items);
     free(arr);
 }

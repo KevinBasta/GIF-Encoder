@@ -9,6 +9,7 @@ log
 *.txt
 local_files
 l_*.c
+*.bak
 
 *.mp4
 *.gif
