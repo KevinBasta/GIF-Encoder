@@ -20,5 +20,6 @@ STATUS_CODE queueEnqueue(queue *queue, bool newItem);
 STATUS_CODE queueDequeue(queue *queue, bool *returnedItem);
 size_t queueGetCurrentLength(queue *queue);
 void queuePrint(queue *queue);
+void freeQueue(queue *queue);
 
 #endif // QUEUE_H

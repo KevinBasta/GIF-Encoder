@@ -177,7 +177,7 @@ STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream)
     size_t status;
     u32 nmemb = 1;
 
-    bitarray *imageData = bitarrayInit(indexStream->size * 10);
+    bitarray *imageData = bitarrayInit(indexStream->size);
     status = revisedLZWImageData(clrTable, indexStream, imageData);
     CHECKSTATUS(status);
     printf("\n");

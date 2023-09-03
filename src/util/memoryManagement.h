@@ -7,6 +7,7 @@
 #include "typesStorage.h"
 
 void freeMpegData(MPEG_Data *videoData);
+void freeGifData(GIF_Data *gifData);
 void safeFree(void *data);
 u8 isNULL(void *data);
 

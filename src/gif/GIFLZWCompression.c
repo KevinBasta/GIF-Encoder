@@ -253,17 +253,14 @@ STATUS_CODE createLZWImageData(colorTable *clrTable, array *indexStream, bitarra
 
 STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarray *imageData) {
     STATUS_CODE status;
+    size_t totalEntries = 0;
     
     codeTable *codeTable    = initCodeTable(clrTable);
-    array *codeStream       = arrayInit(indexStream->size);
     array *indexBuffer      = arrayInit(indexStream->size);
 
     // Put the clear code in the code stream
     char *clearCodeValue = hashmapSearch(codeTable->map, "cc");
     CHECK_NULL_RETURN(clearCodeValue);
-
-    status = arrayAppend(codeStream, atoi(clearCodeValue));
-    CHECKSTATUS(status);
 
     // Add first element of index stream to index buffer
     status = arrayAppend(indexBuffer, arrayGetItem(indexStream, 0));
@@ -300,6 +297,7 @@ STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarr
             u32 codeTableIndex = getNextIndexCodeTable(codeTable);
             char *codeTableIndexString = intToString(codeTableIndex);
             status = hashmapInsert(codeTable->map, indexBufferPlusKKey, codeTableIndexString);
+            totalEntries += 1;
             CHECKSTATUS(status);
             
             char *indexBufferKey = arrayConcat(indexBuffer, ',');
@@ -308,8 +306,6 @@ STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarr
             u32 indexBufferIntegralValue = atoi(indexBufferValue);
             free(indexBufferKey);
             
-            status = arrayAppend(codeStream, indexBufferIntegralValue);
-
             arrayReset(indexBuffer);
             arrayAppend(indexBuffer, k);
             k = 0;
@@ -349,11 +345,7 @@ STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarr
                 printf("BUG KNOWN\n\n\n\n BUG KNOWN\n\n");
 
                 // Put the clear code in the code stream
-                char *clearCodeValue = hashmapSearch(codeTable->map, "cc");
-                CHECK_NULL_RETURN(clearCodeValue);
-
-                status = arrayAppend(codeStream, atoi(clearCodeValue));
-                CHECKSTATUS(status);
+                bitarrayAppendPackedNormalizedRight(imageData, atoi(clearCodeValue), currentCodeSize);
 
                 // reset code table
                 freeCodeTable(codeTable);
@@ -369,8 +361,6 @@ STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarr
     u32 indexBufferIntegralValue = atoi(indexBufferValue);
     free(indexBufferKey);
 
-    status = arrayAppend(codeStream, indexBufferIntegralValue); 
-    CHECKSTATUS(status);
     status = bitarrayAppendPackedNormalizedRight(imageData, indexBufferIntegralValue, currentCodeSize);
     CHECKSTATUS(status);
 
@@ -378,20 +368,17 @@ STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarr
     CHECK_NULL_RETURN(endOfInformationCodeValue);
     u32 endOfInformationCodeIntegralValue = atoi(endOfInformationCodeValue);
 
-    status = arrayAppend(codeStream, endOfInformationCodeIntegralValue); 
-    CHECKSTATUS(status);
     bitarrayAppendPackedNormalizedRight(imageData, endOfInformationCodeIntegralValue, currentCodeSize);
     CHECKSTATUS(status);
 
     // imageData set the second byte to number of bytes
-    printf("image - mark: %d\n", imageData->markIndex);
-    printf("image - mark: %d\n", imageData->items[imageData->markIndex]);
-    printf("image - mark: %d\n", imageData->currentIndex - imageData->markIndex);
     bitarraySetBookMarkValue(imageData, imageData->currentIndex - imageData->markIndex - 1);
 
+    freeQueue(increaseCodeSize);
     freeArray(indexBuffer);
-    freeArray(codeStream);
     freeCodeTable(codeTable);
+
+    printf("ALL CONCATS: %ld\n", totalEntries);
 
     return OPERATION_SUCCESS;
 }

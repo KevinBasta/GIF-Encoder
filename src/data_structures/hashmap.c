@@ -183,3 +183,8 @@ void freeHashMap(HashMap *map) {
     free(map->entries);
     free(map);
 }
+
+
+/* int main() {
+
+} */

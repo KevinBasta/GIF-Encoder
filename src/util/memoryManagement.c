@@ -7,6 +7,7 @@
 #include "typesMPEG-4.h"
 #include "typesAVC.h"
 #include "typesGIF.h"
+#include "GIFCodeTable.h"
 #include "array.h"
 #include "linkedlist.h"
 #include "typesStorage.h"
@@ -24,6 +25,22 @@ void safeFree(void *data) {
         free(data);
     }
 }
+
+
+/////////// GIF_Data Fields ///////////
+void freeGifData(GIF_Data *gifData) {
+
+    if (gifData->globalColorTable != NULL)
+        freeColorTable(gifData->globalColorTable);
+    
+    if (gifData->localColorTable != NULL)
+        freeColorTable(gifData->localColorTable);
+
+    safeFree(gifData->indexStream);
+
+    safeFree(gifData);
+}
+
 
 
 /////////// MPEG_Data Fields ///////////

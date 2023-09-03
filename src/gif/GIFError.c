@@ -8,6 +8,7 @@
 #include "typesGIF.h"
 #include "typesStorage.h"
 #include "GIFEncode.h"
+#include "memoryManagement.h"
 
 static void expandFrame(array *newFrame, GIF_Data *gifData, 
                         u8 *frameArray, u32 widthMuliplier,
@@ -89,6 +90,8 @@ STATUS_CODE createTestGif() {
     // u32 heightMuliplier = 8;
     u32 widthMuliplier  = 100;
     u32 heightMuliplier = 100;
+    // u32 widthMuliplier  = 150;
+    // u32 heightMuliplier = 150;
     
     array *newFrame = arrayInit((widthMuliplier * gifData->canvasWidth) * (heightMuliplier * gifData->canvasHeight));
     expandFrame(newFrame, gifData, (u8*) &indexStreamFrameOne, widthMuliplier, heightMuliplier);
@@ -105,6 +108,8 @@ STATUS_CODE createTestGif() {
     gifData->globalColorTable = globalColorTable;
 
     createGIF(gifData);
+
+    freeGifData(gifData);
 }
 
 STATUS_CODE createErrorGif() {
@@ -131,8 +136,8 @@ STATUS_CODE createErrorGif() {
       0,1,1,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
-    u32 widthMuliplier  = 100;
-    u32 heightMuliplier = 100;
+    u32 widthMuliplier  = 40;
+    u32 heightMuliplier = 40;
     
     array *newFrame = arrayInit((widthMuliplier * gifData->canvasWidth) * (heightMuliplier * gifData->canvasHeight));
     expandFrame(newFrame, gifData, (u8*) &indexStreamFrameOne, widthMuliplier, heightMuliplier);
@@ -150,5 +155,5 @@ STATUS_CODE createErrorGif() {
     globalColorTable->size = 4; globalColorTable->arr = colorsArray;
     gifData->globalColorTable = globalColorTable;
 
-  createGIF(gifData);
+    createGIF(gifData);
 }

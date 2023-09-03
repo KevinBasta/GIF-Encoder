@@ -77,12 +77,13 @@ u32 arrayGetItem(array *arr, size_t index) {
 }
 
 void arrayReset(array *arr) {
-    memset(arr->items, 0, arr->size);
+    memset(arr->items, 0, arr->currentIndex);
     arr->currentIndex = 0;
 }
 
 char* arrayConcat(array *arr, char entrySeparator) {
-    char *concat = calloc(arr->size * 2 + 10, sizeof(char));
+    // printf("CONCAT: %d\n", arr->currentIndex *2 * sizeof(char));
+    char *concat = calloc(arr->currentIndex * 2, sizeof(char));
     size_t k = 0;
 
     for (size_t i = 0; i < arr->currentIndex; i += 1) {

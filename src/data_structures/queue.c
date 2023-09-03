@@ -68,6 +68,11 @@ void queuePrint(queue *queue) {
     printf("\n");
 }
 
+void freeQueue(queue *queue) {
+    free(queue->items);
+    free(queue);
+}
+
 /* int main() {
     queue *newQueue = queueInit(7);
     queuePrint(newQueue);

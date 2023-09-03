@@ -92,3 +92,8 @@ void freeCodeTable(codeTable *table) {
     freeHashMap(table->map);
     free(table);
 }
+
+void freeColorTable(colorTable *table) {
+    free(table->arr);
+    free(table);
+}
