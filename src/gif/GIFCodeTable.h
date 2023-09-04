@@ -10,6 +10,7 @@ codeTable* codetableInit(colorTable *clrTable);
 u32 codetableGetNextIndex(codeTable *table);
 u32 getCurrentIndexCodeTable(codeTable *table);
 u8 getLWZMinCodeSize(u32 colorTableSize);
+u16 getClearCodeValue(u32 colorTableSize);
 void freeCodeTable(codeTable *table);
 void freeColorTable(colorTable *table);
 

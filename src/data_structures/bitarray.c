@@ -29,11 +29,30 @@ STATUS_CODE bitarraySetBookMarkValue(bitarray *arr, u8 item) {
     if (arr == NULL)
         return OPERATION_FAILED;
 
-    arr->items[arr->markIndex] = item;
-    printf("%d %d\n", arr->items[arr->markIndex], item);
+    if (arr->markIndex != -1) {
+        arr->items[arr->markIndex] = item;
+        printf("%d %d\n", arr->items[arr->markIndex], item);
+    }
 
     return OPERATION_SUCCESS;
 }
+
+
+void setMarkValueAndMarkNewLocation(bitarray *arr) {
+    if (arr->intervalInsertFlag == true) {
+        //
+        // NOTE: (arr->currentIndex - 1) because this function is
+        // expected to be called after every current index increment
+        //
+        if ((arr->currentIndex - 1) % arr->intervalInsertBoundry == 0) {
+            bitarraySetBookMarkValue(arr, arr->intervalInsertItem);
+            
+            bitarrayBookMark(arr, 0);
+            bitarrayAppend(arr, 0);
+        }
+    }
+}
+
 
 bitarray *bitarrayInit(size_t size) {
     bitarray *arr = calloc(1, sizeof(bitarray));
@@ -41,8 +60,12 @@ bitarray *bitarrayInit(size_t size) {
     arr->items = calloc(size, sizeof(u8));
     arr->size = size;
     arr->currentIndex = 0;
-    arr->currentBit = 0;
-    arr->markIndex = 0;
+    arr->currentBit   = 0;
+    
+    arr->intervalInsertFlag = false;
+    arr->intervalInsertBoundry = 0;
+    arr->intervalInsertItem    = 0;
+    arr->markIndex             = -1;
     
     return arr;
 }
@@ -59,10 +82,12 @@ STATUS_CODE bitarrayAppend(bitarray *arr, u8 item) {
         zeroRestOfByte(&(arr->items[arr->currentIndex]), arr->currentBit);
         arr->currentBit = 0;
         (arr->currentIndex)++;
+        setMarkValueAndMarkNewLocation(arr);
     }
 
     arr->items[arr->currentIndex] = item;
     (arr->currentIndex)++;
+    setMarkValueAndMarkNewLocation(arr);
     
     return OPERATION_SUCCESS;
 }
@@ -88,6 +113,7 @@ STATUS_CODE bitarrayAppendPacked(bitarray *arr, u32 item) {
         if (arr->currentBit == 8) {
             (arr->currentIndex)++;
             arr->currentBit = 0;
+            setMarkValueAndMarkNewLocation(arr);
         }
     } else {
         u32 remainingBitsToBeWritten = itemBitLength;
@@ -111,6 +137,7 @@ STATUS_CODE bitarrayAppendPacked(bitarray *arr, u32 item) {
             if (arr->currentBit == 8) {
                 (arr->currentIndex)++;
                 arr->currentBit = 0;
+                setMarkValueAndMarkNewLocation(arr);
             }
 
             remainingBitsInCurrentArrayByte = 8 - arr->currentBit;
@@ -150,6 +177,7 @@ STATUS_CODE bitarrayAppendPackedNormalizedLeft(bitarray *arr, u32 item, u32 occu
         if (arr->currentBit == 8) {
             (arr->currentIndex)++;
             arr->currentBit = 0;
+            setMarkValueAndMarkNewLocation(arr);
         }
     } else {
         u32 remainingBitsToBeWritten = minNumberOfBits;
@@ -173,6 +201,7 @@ STATUS_CODE bitarrayAppendPackedNormalizedLeft(bitarray *arr, u32 item, u32 occu
             if (arr->currentBit == 8) {
                 (arr->currentIndex)++;
                 arr->currentBit = 0;
+                setMarkValueAndMarkNewLocation(arr);
             }
 
             remainingBitsInCurrentArrayByte = 8 - arr->currentBit;
@@ -189,13 +218,16 @@ STATUS_CODE bitarrayAppendPackedNormalizedLeft(bitarray *arr, u32 item, u32 occu
     return OPERATION_SUCCESS;
 }
 
-void setMarkValueAndMarkNewLocation(bitarray *arr) {
-    if ((arr->currentIndex - 1) % 0x100 == 0) {
-        bitarraySetBookMarkValue(arr, 0xFF);
 
-        bitarrayBookMark(arr, 0);
-        bitarrayAppend(arr, 0);
-    }
+STATUS_CODE bitarraySetIntervalInsertRule(bitarray *arr, size_t boundry, u8 insertItem) {
+    if (arr == NULL)
+        return OPERATION_FAILED;
+    
+    arr->intervalInsertFlag    = true;
+    arr->intervalInsertBoundry = boundry;
+    arr->intervalInsertItem    = insertItem;
+
+    return OPERATION_SUCCESS;
 }
 
 STATUS_CODE bitarrayAppendPackedNormalizedRight(bitarray *arr, u32 item, u32 minNumberOfBits) {

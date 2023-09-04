@@ -43,6 +43,12 @@ array *arrayInit(size_t size) {
     return arr;
 }
 
+/**
+ * @brief 
+ * @param arr 
+ * @param item 
+ * @return OPERATION_SUCCESS or OPERATION_FAILED
+ */
 STATUS_CODE arrayAppend(array *arr, u32 item) {     
     if (arr == NULL) 
         return OPERATION_FAILED;
@@ -72,8 +78,16 @@ STATUS_CODE arrayPop(array *arr) {
 }
 
 
-u32 arrayGetItem(array *arr, size_t index) {
+u32 arrayGetItemAtIndex(array *arr, size_t index) {
     return arr->items[index];
+}
+
+u32 arrayGetItemAtCurrentIndex(array *arr) {
+    return arr->items[arr->currentIndex];
+}
+
+u32 arrayGetIncrement(array *arr) {
+    return arr->items[(arr->currentIndex)++];
 }
 
 void arrayReset(array *arr) {

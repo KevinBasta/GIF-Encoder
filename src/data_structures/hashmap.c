@@ -137,6 +137,22 @@ char *hashmapSearch(HashMap *map, char *key) {
     return value;
 }
 
+/**
+ * @brief search hashmap by key
+ * @param map   hashmap to search in
+ * @param key   the key to search for
+ * @param value the value returning
+ * @return OPERATION_SUCCESS or OPERATION_FAILED
+ */
+STATUS_CODE hashmapSearchConvert(HashMap *map, char *key, u32 *value) {
+    char *valueSearched = hashmapSearch(map, key);
+    CHECK_NULL_RETURN(valueSearched);
+
+    *value = atoi(valueSearched);
+
+    return OPERATION_SUCCESS;
+}
+
 char *hashmapCreateKey(char *str, u32 length) {
     char *key = calloc(1, sizeof(length + 1));
     strncpy(key, str, length);

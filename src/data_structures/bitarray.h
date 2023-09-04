@@ -2,19 +2,26 @@
 #ifndef BIT_ARRAY_H
 #define BIT_ARRAY_H
 
+#include <stdbool.h>
 #include <stdint.h>
 #include "main.h"
 
 typedef struct bitarray {
     size_t size;
     size_t currentIndex;
-    size_t markIndex;
-    u8 currentBit: 4;
+    u8     currentBit: 4;
+    
+    bool   intervalInsertFlag;
+    size_t intervalInsertBoundry;
+    u8     intervalInsertItem;
+    long   markIndex;
+    
     u8 *items;
 } bitarray;
 
 STATUS_CODE bitarrayBookMark(bitarray *arr, u32 offset);
 STATUS_CODE bitarraySetBookMarkValue(bitarray *arr, u8 item);
+STATUS_CODE bitarraySetIntervalInsertRule(bitarray *arr, size_t boundry, u8 insertItem);
 
 bitarray *bitarrayInit(size_t size);
 STATUS_CODE bitarrayAppend(bitarray *arr, u8 item);

@@ -14,7 +14,9 @@ typedef struct array {
 array *arrayInit(size_t size);
 STATUS_CODE arrayAppend(array *arr, u32 item);
 STATUS_CODE arrayPop(array *arr);
-u32 arrayGetItem(array *arr, size_t index);
+u32 arrayGetItemAtIndex(array *arr, size_t index);
+u32 arrayGetItemAtCurrentIndex(array *arr);
+u32 arrayGetIncrement(array *arr);
 void arrayReset(array *arr);
 char* arrayConcat(array *arr, char entrySeparator);
 
