@@ -180,8 +180,8 @@ STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream)
     bitarray *imageData = bitarrayInit(indexStream->size);
     status = revisedLZWImageData(clrTable, indexStream, imageData);
     CHECKSTATUS(status);
-    printf("\n");
-    bitarrayPrint(imageData);
+    //printf("\n");
+    //bitarrayPrint(imageData);
 
     for (u32 i = 0; i < imageData->currentIndex; i++) {
         status = fwrite(&(imageData->items[i]), sizeof(u8), nmemb, gif);

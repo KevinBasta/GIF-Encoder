@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
     // "pipe" that information into a the gif interface functional style
 
     
-    createTestGif();
+    createErrorGif();
     /* MPEG_Data *videoData = getMpegData("local_files/op.mp4");
     createDisplayTimeToSampleTable(videoData);
     

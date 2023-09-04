@@ -44,7 +44,6 @@ static void expandFrame(array *newFrame, GIF_Data *gifData,
                     //         * newWidth): skip already written rows in new array
                     //
                     newFrame->items[(((i * heightMuliplier) + l) * newWidth) + (j * widthMuliplier) + k] = frameArray[(i * oldWidth) + j];
-                    newFrame->currentIndex++;
                 }
             }
         }
@@ -88,8 +87,8 @@ STATUS_CODE createTestGif() {
 
     // u32 widthMuliplier  = 6;
     // u32 heightMuliplier = 8;
-    u32 widthMuliplier  = 100;
-    u32 heightMuliplier = 100;
+    u32 widthMuliplier  = 200;
+    u32 heightMuliplier = 200;
     // u32 widthMuliplier  = 150;
     // u32 heightMuliplier = 150;
     
@@ -136,8 +135,8 @@ STATUS_CODE createErrorGif() {
       0,1,1,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
-    u32 widthMuliplier  = 40;
-    u32 heightMuliplier = 40;
+    u32 widthMuliplier  = 250;
+    u32 heightMuliplier = 250;
     
     array *newFrame = arrayInit((widthMuliplier * gifData->canvasWidth) * (heightMuliplier * gifData->canvasHeight));
     expandFrame(newFrame, gifData, (u8*) &indexStreamFrameOne, widthMuliplier, heightMuliplier);

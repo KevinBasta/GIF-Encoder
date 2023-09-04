@@ -90,7 +90,7 @@ static void addCodeStreamValueToImageData(bitarray *imageData,
 STATUS_CODE createLZWImageData(colorTable *clrTable, array *indexStream, bitarray *imageData) {
     STATUS_CODE status;
     
-    codeTable *codeTable = initCodeTable(clrTable);
+    codeTable *codeTable = codetableInit(clrTable);
     array *indexBuffer = arrayInit(indexStream->size * 10);
     array *codeStream = arrayInit(indexStream->size * 10);
 
@@ -145,7 +145,7 @@ STATUS_CODE createLZWImageData(colorTable *clrTable, array *indexStream, bitarra
             } */
             // Add entry for index buffer + k in code table
             // with value as the next smallest code table index
-            u32 test = getNextIndexCodeTable(codeTable);
+            u32 test = codetableGetNextIndex(codeTable);
             char *next = intToString(test);
             /* if (i == 4818) {
                 printf("%d\n", test);
@@ -194,7 +194,7 @@ STATUS_CODE createLZWImageData(colorTable *clrTable, array *indexStream, bitarra
                 CHECKSTATUS(status);
 
                 freeCodeTable(codeTable);
-                codeTable = initCodeTable(clrTable);
+                codeTable = codetableInit(clrTable);
                 
                 currentCodeSize = getLWZMinCodeSize(clrTable->size - 1);
                 increaseCodeSizeFlag = false;
@@ -250,16 +250,17 @@ STATUS_CODE createLZWImageData(colorTable *clrTable, array *indexStream, bitarra
 }
 
 
-
+int n;
 STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarray *imageData) {
     STATUS_CODE status;
     size_t totalEntries = 0;
     
-    codeTable *codeTable    = initCodeTable(clrTable);
+    codeTable *codeTable    = codetableInit(clrTable);
     array *indexBuffer      = arrayInit(indexStream->size);
-
+    n = 0;
     // Put the clear code in the code stream
     char *clearCodeValue = hashmapSearch(codeTable->map, "cc");
+    u32 clearCodeIntegralValue = atoi(clearCodeValue);
     CHECK_NULL_RETURN(clearCodeValue);
 
     // Add first element of index stream to index buffer
@@ -277,7 +278,9 @@ STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarr
     u32 startByte = imageData->currentIndex;
     queue *increaseCodeSize = queueInit(100);
 
-    for (size_t i = 1; i < indexStream->currentIndex; i++) {
+    for (size_t i = 1; i < indexStream->size; i++) {
+
+
         // Get next index from index stream
         u32 k = arrayGetItem(indexStream, i);
 
@@ -294,10 +297,9 @@ STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarr
             status = arrayAppend(indexBuffer, k); CHECKSTATUS(status);
             free(indexBufferPlusKKey);
         } else {
-            u32 codeTableIndex = getNextIndexCodeTable(codeTable);
+            u32 codeTableIndex = codetableGetNextIndex(codeTable);
             char *codeTableIndexString = intToString(codeTableIndex);
             status = hashmapInsert(codeTable->map, indexBufferPlusKKey, codeTableIndexString);
-            totalEntries += 1;
             CHECKSTATUS(status);
             
             char *indexBufferKey = arrayConcat(indexBuffer, ',');
@@ -308,7 +310,6 @@ STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarr
             
             arrayReset(indexBuffer);
             arrayAppend(indexBuffer, k);
-            k = 0;
 
             if (queueGetCurrentLength(increaseCodeSize) != 0) {
                 bool dequeueValue;
@@ -318,19 +319,6 @@ STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarr
                 }
             }
 
-
-            /* u32 bytesAdding = ceil(((currentCodeSize * 8) + (8 - imageData->currentBit)) / 8);
-            
-            if (imageData->currentIndex + bytesAdding - startByte > 0xFF) {
-                printf("bytes adding: %d\n", bytesAdding);
-                bitarraySetBookMarkValue(imageData, imageData->currentIndex - startByte + 1);
-                
-                bitarrayBookMark(imageData, 1);
-                bitarrayAppend(imageData, 0);
-
-                startByte = imageData->currentIndex;
-            }
- */
             bitarrayAppendPackedNormalizedRight(imageData, indexBufferIntegralValue, currentCodeSize);
             if (pow(2, currentCodeSize) - 1 == codeTableIndex) {
                 // only increase current code size after the current index buffer 
@@ -339,19 +327,22 @@ STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarr
                 queueEnqueue(increaseCodeSize, true);
             }
 
-
             // if maximum code table value reached, send clear code and reset code table
-            if ((codeTableIndex > 4095 || currentCodeSize > 12) && i + 1 != indexStream->currentIndex) {
-                printf("BUG KNOWN\n\n\n\n BUG KNOWN\n\n");
-
+            if (codeTable->map->currentCount == 4095) {
+                printf("%d %d %d %d\n", i, currentCodeSize, getCurrentIndexCodeTable(codeTable), codeTable->map->currentCount);
+                arrayPrint(indexBuffer);
+                
                 // Put the clear code in the code stream
-                bitarrayAppendPackedNormalizedRight(imageData, atoi(clearCodeValue), currentCodeSize);
+                bitarrayAppendPackedNormalizedRight(imageData, clearCodeIntegralValue, currentCodeSize);
 
                 // reset code table
                 freeCodeTable(codeTable);
-                codeTable       = initCodeTable(clrTable);
+                codeTable       = codetableInit(clrTable);
                 currentCodeSize = getLWZMinCodeSize(clrTable->size - 1) + 1;
             }
+
+            
+            totalEntries += 1;
         }
     }
 

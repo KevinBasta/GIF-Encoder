@@ -6,8 +6,8 @@
 #include "main.h"
 #include "typesGIF.h"
 
-codeTable* initCodeTable(colorTable *clrTable);
-u32 getNextIndexCodeTable(codeTable *table);
+codeTable* codetableInit(colorTable *clrTable);
+u32 codetableGetNextIndex(codeTable *table);
 u32 getCurrentIndexCodeTable(codeTable *table);
 u8 getLWZMinCodeSize(u32 colorTableSize);
 void freeCodeTable(codeTable *table);

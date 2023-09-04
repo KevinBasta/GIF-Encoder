@@ -98,6 +98,7 @@ STATUS_CODE hashmapInsert(HashMap *map, char *key, char *value) {
     }
 
     map->entries[index] = newEntry;
+    map->currentCount++;
     //printf("FINAL INDEX: %ld\n", index);
 
     return OPERATION_SUCCESS;

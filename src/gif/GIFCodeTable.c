@@ -53,7 +53,7 @@ u16 getEOICodeValue(u32 colorTableSize) {
     return colorTableSizeToCodeTableEntry("EOI", colorTableSize);
 }
 
-codeTable* initCodeTable(colorTable *clrTable) {
+codeTable* codetableInit(colorTable *clrTable) {
     codeTable *table = calloc(1, sizeof(codeTable));
     
     // Max code table entries is 4095 as defined by the GIF format
@@ -72,15 +72,14 @@ codeTable* initCodeTable(colorTable *clrTable) {
     hashmapInsert(map, hashmapCreateKey("cc", 2), intToString(getClearCodeValue(clrTable->size - 1)));
     hashmapInsert(map, hashmapCreateKey("eoi", 3), intToString(getEOICodeValue(clrTable->size - 1)));
     hashmapPrint(map);
-    table->index = table->index + 2;
+    table->index += 2;
 
     return table;
 }
 
-u32 getNextIndexCodeTable(codeTable *table) {
-    (table->index)++;
-    //printf("%d\n", table->index);
-
+u32 codetableGetNextIndex(codeTable *table) {
+    table->index++;
+    //printf("%d\n", table->map->currentCount);
     return table->index;
 }
 
