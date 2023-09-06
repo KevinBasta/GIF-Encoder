@@ -10,6 +10,6 @@
 #include "typesGIF.h"
 
 STATUS_CODE createLZWImageData(colorTable *clrTable, array *indexStream, bitarray *imageData);
-STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarray *imageData);
+STATUS_CODE createLZWImageDataInitialDraft(colorTable *clrTable, array *indexStream, bitarray *imageData);
 
 #endif // GIF_LZW_COMPRESSION_H

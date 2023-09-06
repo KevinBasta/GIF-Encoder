@@ -1,5 +1,5 @@
 # video-to-gif
-A Video (MPEG-4 with sample data stored in AVC format) to GIF (Graphics Interchange Format) converter written in the c programming language. The goal of this project is to parse MP4 files according to the ISO/IEC MPEG-4/QuickTime specifications, parse AVC data out of the MPEG-4 samples accoriding to the ISO/IEC AVC specification, transform the parsed MPEG-4/AVC data into GIF data, and use that data to encode GIFs according to the GIF 89a Version specification.
+A Video (MPEG-4 with sample data stored in AVC format) to GIF (Graphics Interchange Format) converter written in the c programming language. The goal of this project is to parse MP4 files according to the ISO/IEC MPEG-4/QuickTime specifications, parse AVC data out of the MPEG-4 samples according to the ISO/IEC AVC specification, transform the parsed MPEG-4/AVC data into GIF data, and use that data to encode GIFs according to the GIF 89a Version specification.
 
 ### This project is in progress.
 

@@ -36,7 +36,7 @@ void freeGifData(GIF_Data *gifData) {
     if (gifData->localColorTable != NULL)
         freeColorTable(gifData->localColorTable);
 
-    safeFree(gifData->indexStream);
+    freeArray(gifData->indexStream);
 
     safeFree(gifData);
 }

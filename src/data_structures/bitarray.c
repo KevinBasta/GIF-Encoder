@@ -10,9 +10,20 @@
 #include "bitUtility.h"
 #include "printUtility.h"
 
-STATUS_CODE zeroRestOfByte(u8 *item, u8 currentBit) {
-    for (u8 i = currentBit; i < 8; i++) {
-        *item &= ~(1 << i);
+/////////// Placing values at markers /////////////
+
+void setMarkValueAndMarkNewLocation(bitarray *arr) {
+    if (arr->intervalInsertFlag == true) {
+        //
+        // NOTE: (arr->currentIndex - 1) because this function is
+        // expected to be called after every current index increment
+        //
+        if ((arr->currentIndex - 1) % arr->intervalInsertBoundry == 0) {
+            bitarraySetBookMarkValue(arr, arr->intervalInsertItem);
+            
+            bitarrayBookMark(arr, 0);
+            bitarrayAppend(arr, 0);
+        }
     }
 }
 
@@ -37,22 +48,29 @@ STATUS_CODE bitarraySetBookMarkValue(bitarray *arr, u8 item) {
     return OPERATION_SUCCESS;
 }
 
+STATUS_CODE bitarraySetIntervalInsertRule(bitarray *arr, size_t boundry, u8 insertItem) {
+    if (arr == NULL)
+        return OPERATION_FAILED;
+    
+    arr->intervalInsertFlag    = true;
+    arr->intervalInsertBoundry = boundry;
+    arr->intervalInsertItem    = insertItem;
 
-void setMarkValueAndMarkNewLocation(bitarray *arr) {
-    if (arr->intervalInsertFlag == true) {
-        //
-        // NOTE: (arr->currentIndex - 1) because this function is
-        // expected to be called after every current index increment
-        //
-        if ((arr->currentIndex - 1) % arr->intervalInsertBoundry == 0) {
-            bitarraySetBookMarkValue(arr, arr->intervalInsertItem);
-            
-            bitarrayBookMark(arr, 0);
-            bitarrayAppend(arr, 0);
-        }
+    return OPERATION_SUCCESS;
+}
+
+
+
+
+STATUS_CODE zeroRestOfByte(u8 *item, u8 currentBit) {
+    for (u8 i = currentBit; i < 8; i++) {
+        *item &= ~(1 << i);
     }
 }
 
+
+
+/////////// Main Interface ///////////
 
 bitarray *bitarrayInit(size_t size) {
     bitarray *arr = calloc(1, sizeof(bitarray));
@@ -152,7 +170,7 @@ STATUS_CODE bitarrayAppendPacked(bitarray *arr, u32 item) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE bitarrayAppendPackedNormalizedLeft(bitarray *arr, u32 item, u32 occupiedBits, u32 minNumberOfBits) {
+STATUS_CODE bitarrayAppendPackedLeft(bitarray *arr, u32 item, u32 occupiedBits, u32 minNumberOfBits) {
     if (arr == NULL)
         return OPERATION_FAILED;
 
@@ -218,19 +236,7 @@ STATUS_CODE bitarrayAppendPackedNormalizedLeft(bitarray *arr, u32 item, u32 occu
     return OPERATION_SUCCESS;
 }
 
-
-STATUS_CODE bitarraySetIntervalInsertRule(bitarray *arr, size_t boundry, u8 insertItem) {
-    if (arr == NULL)
-        return OPERATION_FAILED;
-    
-    arr->intervalInsertFlag    = true;
-    arr->intervalInsertBoundry = boundry;
-    arr->intervalInsertItem    = insertItem;
-
-    return OPERATION_SUCCESS;
-}
-
-STATUS_CODE bitarrayAppendPackedNormalizedRight(bitarray *arr, u32 item, u32 minNumberOfBits) {
+STATUS_CODE bitarrayAppendPackedRight(bitarray *arr, u32 item, u32 minNumberOfBits) {
     if (arr == NULL)
         return OPERATION_FAILED;
 
@@ -328,13 +334,13 @@ void freeBitArray(bitarray *arr) {
     STATUS_CODE status;
     
     bitarray *arr = bitarrayInit(100);
-    status = bitarrayAppendPackedNormalizedRight(arr, 4, 3, 4);
-    status = bitarrayAppendPackedNormalizedRight(arr, 3, 2, 8);
-    status = bitarrayAppendPackedNormalizedRight(arr, 501, 9, 9);
-    status = bitarrayAppendPackedNormalizedRight(arr, 502, 9, 9);
-    status = bitarrayAppendPackedNormalizedRight(arr, 7, 3, 4);
-    status = bitarrayAppendPackedNormalizedRight(arr, 1, 1, 3);
-    status = bitarrayAppendPackedNormalizedRight(arr, 4001, 12, 13); //1111 1010 0001
-    status = bitarrayAppendPackedNormalizedRight(arr, 1, 1, 5);
-    status = bitarrayAppendPackedNormalizedRight(arr, 5, 3, 3);
+    status = bitarrayAppendPackedRight(arr, 4, 3, 4);
+    status = bitarrayAppendPackedRight(arr, 3, 2, 8);
+    status = bitarrayAppendPackedRight(arr, 501, 9, 9);
+    status = bitarrayAppendPackedRight(arr, 502, 9, 9);
+    status = bitarrayAppendPackedRight(arr, 7, 3, 4);
+    status = bitarrayAppendPackedRight(arr, 1, 1, 3);
+    status = bitarrayAppendPackedRight(arr, 4001, 12, 13); //1111 1010 0001
+    status = bitarrayAppendPackedRight(arr, 1, 1, 5);
+    status = bitarrayAppendPackedRight(arr, 5, 3, 3);
 } */

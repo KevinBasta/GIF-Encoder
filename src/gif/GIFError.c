@@ -135,8 +135,8 @@ STATUS_CODE createErrorGif() {
       0,1,1,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
-    u32 widthMuliplier  = 80;
-    u32 heightMuliplier = 155;
+    u32 widthMuliplier  = 50;
+    u32 heightMuliplier = 50;
     
     array *newFrame = arrayInit((widthMuliplier * gifData->canvasWidth) * (heightMuliplier * gifData->canvasHeight));
     expandFrame(newFrame, gifData, (u8*) &indexStreamFrameOne, widthMuliplier, heightMuliplier);
@@ -155,4 +155,6 @@ STATUS_CODE createErrorGif() {
     gifData->globalColorTable = globalColorTable;
 
     createGIF(gifData);
+
+    freeGifData(gifData);
 }

@@ -18,39 +18,53 @@
 
 static STATUS_CODE encodeLZWChunk(array *indexBuffer, codeTable *codeTable, u8 *currentCodeSize, array *indexStream, bitarray *imageData) {
     STATUS_CODE status;
+    
     queue *increaseCodeSize = queueInit(100);
 
-    for (size_t i = indexStream->currentIndex; i <= indexStream->size; i++) {
+    for (size_t i = indexStream->currentIndex; i < indexStream->size; i++) {
         // Get next index from index stream
         u32 k = arrayGetIncrement(indexStream);
 
+
+        // Add k to the index buffer temporarily to create a hashmap search string
         status = arrayAppend(indexBuffer, k);
         CHECKSTATUS(status);
         
         char *indexBufferPlusKKey = arrayConcat(indexBuffer, ',');
-        //printf("Index buffer plus k: %s\n", indexBufferPlusKKey);
         
         status = arrayPop(indexBuffer);
         CHECKSTATUS(status);
 
+
         if (hashmapSearch(codeTable->map, indexBufferPlusKKey) != NULL) {
-            status = arrayAppend(indexBuffer, k); CHECKSTATUS(status);
+            status = arrayAppend(indexBuffer, k);
+            CHECKSTATUS(status);
+            
             free(indexBufferPlusKKey);
         } else {
-            u32 codeTableIndex = codetableGetNextIndex(codeTable);
-            char *codeTableIndexString = intToString(codeTableIndex);
+            // Insert indexBufferPlusKKey in hashmap with value as the next code table index
+            u32 codeTableIndex          = codetableGetNextIndex(codeTable);
+            char *codeTableIndexString  = intToString(codeTableIndex);
             status = hashmapInsert(codeTable->map, indexBufferPlusKKey, codeTableIndexString);
             CHECKSTATUS(status);
             
+
+            // Get  the code value of the index buffer without K
             char *indexBufferKey = arrayConcat(indexBuffer, ',');
-            char *indexBufferValue = hashmapSearch(codeTable->map, indexBufferKey);
-            CHECK_NULL_RETURN(indexBufferValue);
-            u32 indexBufferIntegralValue = atoi(indexBufferValue);
+
+            u32 indexBufferValue;
+            status = hashmapSearchConvert(codeTable->map, indexBufferKey, &indexBufferValue);
+            CHECKSTATUS(status);
+            
             free(indexBufferKey);
             
+
+            // Reset the index buffer and add k to it
             arrayReset(indexBuffer);
             arrayAppend(indexBuffer, k);
 
+
+            // Check if should increase codeSize based on queue
             if (queueGetCurrentLength(increaseCodeSize) != 0) {
                 bool dequeueValue;
                 queueDequeue(increaseCodeSize, &dequeueValue);
@@ -59,9 +73,11 @@ static STATUS_CODE encodeLZWChunk(array *indexBuffer, codeTable *codeTable, u8 *
                 }
             }
 
-            status = bitarrayAppendPackedNormalizedRight(imageData, indexBufferIntegralValue, *currentCodeSize);
+            // Put the index buffer value in the code stream
+            status = bitarrayAppendPackedRight(imageData, indexBufferValue, *currentCodeSize);
             CHECKSTATUS(status);
 
+            // Check if a code size increase should happen
             if (pow(2, *currentCodeSize) - 1 == codeTableIndex) {
                 // only increase current code size after the current index buffer 
                 // (that currently has just k) is written to the codestream
@@ -69,6 +85,8 @@ static STATUS_CODE encodeLZWChunk(array *indexBuffer, codeTable *codeTable, u8 *
                 queueEnqueue(increaseCodeSize, true);
             }
 
+
+            // Check if the code table 4095 limit was reached
             if (codeTable->map->currentCount == 4095) {                
                 freeQueue(increaseCodeSize);
                 return OPERATION_SUCCESS;
@@ -103,7 +121,7 @@ static STATUS_CODE encodeFlexibleCodeSizeCodeStream(colorTable *clrTable, array 
 
     // Add clear code, intitalize code table, encode LZW up to code table 4095 limit
     while (indexStream->currentIndex < indexStream->size) {
-        status = bitarrayAppendPackedNormalizedRight(imageData, clearCodeValue, currentCodeSize);
+        status = bitarrayAppendPackedRight(imageData, clearCodeValue, currentCodeSize);
         CHECKSTATUS(status);
 
         if (codeTable != NULL)
@@ -124,7 +142,7 @@ static STATUS_CODE encodeFlexibleCodeSizeCodeStream(colorTable *clrTable, array 
     
     free(indexBufferKey);
 
-    status = bitarrayAppendPackedNormalizedRight(imageData, indexBufferValue, currentCodeSize);
+    status = bitarrayAppendPackedRight(imageData, indexBufferValue, currentCodeSize);
     CHECKSTATUS(status);
 
 
@@ -133,7 +151,7 @@ static STATUS_CODE encodeFlexibleCodeSizeCodeStream(colorTable *clrTable, array 
     status = hashmapSearchConvert(codeTable->map, "eoi", &endOfInformationCodeValue);
     CHECKSTATUS(status);
 
-    status = bitarrayAppendPackedNormalizedRight(imageData, endOfInformationCodeValue, currentCodeSize);
+    status = bitarrayAppendPackedRight(imageData, endOfInformationCodeValue, currentCodeSize);
     CHECKSTATUS(status);
 
 
@@ -144,7 +162,21 @@ static STATUS_CODE encodeFlexibleCodeSizeCodeStream(colorTable *clrTable, array 
     return OPERATION_SUCCESS;
 }
 
-
+/**
+ * @brief Compress an indexStream's data using the LZW algorithm
+ * and pack the generated codeStream using flexible code sizes
+ *
+ * @note The step of generating a "codeStream" is skipped in favour of
+ * directly creating the flexible code size packed stream that is written
+ * out to the gif file. This was done to avoid extra memory consumption
+ * and to avoid having to keep track of where the code size increases 
+ * occured.
+ *
+ * @param clrTable      - Color table to use
+ * @param indexStream   - A frame described in terms of color table
+ * @param imageData     - Output compressed data generated by this function
+ * @return OPERATION_SUCCESS or OPERATION_FAILED
+ */
 STATUS_CODE createLZWImageData(colorTable *clrTable, array *indexStream, bitarray *imageData) {
     STATUS_CODE status; 
 
@@ -169,14 +201,11 @@ STATUS_CODE createLZWImageData(colorTable *clrTable, array *indexStream, bitarra
 
 
 /**
- * @brief Compress an indexStream's data using the LZW algorithm
- * and pack the generated codeStream using flexible code sizes
- * @param clrTable      - Color table to use
- * @param indexStream   - A frame described in terms of color table
- * @param imageData     - Output compressed data generated by this function
- * @return OPERATION_SUCCESS or OPERATION_FAILED
+ * @brief This function is initial working draft of the LZW flexible code size algorithm.
+ * What is accomplished here is broken down and documented more clearly in the above 
+ * three functions. This function is kept for debugging purposes.
  */
-STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarray *imageData) {
+STATUS_CODE createLZWImageDataInitialDraft(colorTable *clrTable, array *indexStream, bitarray *imageData) {
     STATUS_CODE status;
     
     codeTable *codeTable    = codetableInit(clrTable);
@@ -239,7 +268,7 @@ STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarr
                 }
             }
 
-            status = bitarrayAppendPackedNormalizedRight(imageData, indexBufferIntegralValue, currentCodeSize);
+            status = bitarrayAppendPackedRight(imageData, indexBufferIntegralValue, currentCodeSize);
             CHECKSTATUS(status);
             if (pow(2, currentCodeSize) - 1 == codeTableIndex) {
                 // only increase current code size after the current index buffer 
@@ -254,7 +283,7 @@ STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarr
                 arrayPrint(indexBuffer);
                 
                 // Put the clear code in the code stream
-                bitarrayAppendPackedNormalizedRight(imageData, clearCodeValue, currentCodeSize);
+                bitarrayAppendPackedRight(imageData, clearCodeValue, currentCodeSize);
 
                 // reset code table
                 freeCodeTable(codeTable);
@@ -272,14 +301,14 @@ STATUS_CODE revisedLZWImageData(colorTable *clrTable, array *indexStream, bitarr
     
     free(indexBufferKey);
 
-    status = bitarrayAppendPackedNormalizedRight(imageData, indexBufferValue, currentCodeSize);
+    status = bitarrayAppendPackedRight(imageData, indexBufferValue, currentCodeSize);
     CHECKSTATUS(status);
 
     u32 endOfInformationCodeValue;
     status = hashmapSearchConvert(codeTable->map, "eoi", &endOfInformationCodeValue);
     CHECKSTATUS(status);
 
-    status = bitarrayAppendPackedNormalizedRight(imageData, endOfInformationCodeValue, currentCodeSize);
+    status = bitarrayAppendPackedRight(imageData, endOfInformationCodeValue, currentCodeSize);
     CHECKSTATUS(status);
 
     // imageData set the second byte to number of bytes
