@@ -8,6 +8,7 @@ log
 *.log
 *.txt
 local_files
+local_tests
 l_*.c
 *.bak
 
