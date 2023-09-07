@@ -1,5 +1,4 @@
 # add all c files
-SOURCE =  $(wildcard src/mpeg/*.c)
 SOURCE += $(wildcard src/gif/*.c)
 SOURCE += $(wildcard src/util/*.c)
 SOURCE += $(wildcard src/data_structures/*.c)

@@ -12,15 +12,12 @@
 
 #ifndef COMMON_TYPES
     #define COMMON_TYPES
-    #include "typesMPEG-4.h"
-    #include "typesAVC.h"
     #include "typesGIF.h"
     #include "typesUtility.h"
 #endif //COMMON_TYPES
 
 #ifndef DATA_STRUCTURES
     #define DATA_STRUCTURES
-    #include "linkedlist.h"
     #include "hashmap.h"
     #include "array.h"
     #include "typesStorage.h"
@@ -33,15 +30,6 @@
     #include "printUtility.h"
     #include "memoryManagement.h"
 #endif //COMMON_UTIL
-
-#ifndef MPEG_HEAD
-    #define MPEG_HEAD
-    #include "MPEG-4Parse.h"
-    #include "MPEG-4Decode.h"
-    #include "MPEG-4Process.h"
-    #include "AVCDecode.h"
-    #include "AVCMath.h"
-#endif //MPEG_HEAD
 
 #ifndef GIF_HEAD
     #define GIF_HEAD
@@ -67,25 +55,8 @@ int main(int argc, char **argv) {
     // Use parseMPEG-4 interface to get video frame information
     // "pipe" that information into a the gif interface functional style
 
-    
     createErrorGif();
-    /* MPEG_Data *videoData = getMpegData("local_files/op.mp4");
-    createDisplayTimeToSampleTable(videoData);
-    
-    float startTime = (float)clock()/CLOCKS_PER_SEC;
-    
-    getVideoDataRangeByMediaTime(15, 20, videoData);
-    
-    float endTime = (float)clock()/CLOCKS_PER_SEC;
-    float timeElapsed = endTime - startTime;
-    printf("DATA PROCESSING OPERATION elapsed: %f\n", timeElapsed); */
-    
-    
-    //sampleSearchByRealTime(15, videoData);
-    //keyFrameSearch(79, videoData);
 
-    // free every linked list created
-    //freeMpegData(videoData);
     printf("end of script\n");
     return 0;
 }
