@@ -3,15 +3,9 @@
 #define MAIN_H
 
 #include <stdint.h>
+#include <time.h>
 
 // Preprocessor constants
-#define BOX_HEADER_SIZE 8
-#define BOX_HEADER_HALF_SIZE 4 // unused
-#define BOX_SIZE_SIZE 4
-#define BOX_LONG_SIZE_SIZE 8 // verify
-#define BOX_TYPE_SIZE 4
-#define BOX_VERSION_SIZE 1
-#define BOX_FLAG_SIZE 3
 #define TRUE 1
 #define FALSE 0
 #define DEBUG_PRINT_ENABLE TRUE
@@ -34,6 +28,22 @@ typedef uint64_t u64;
 #ifndef min
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
+
+// benchmarking macros
+#define TIMER_INIT     \
+    float startTime;   \
+    float endTime;     \
+    float timeElapsed; \
+
+#define TIMER_START() { \
+    startTime = (float)clock()/CLOCKS_PER_SEC; \
+}
+
+#define TIMER_END() { \
+    endTime = (float)clock()/CLOCKS_PER_SEC; \
+    timeElapsed = endTime - startTime; \
+    printf("Elapsed: %f seconds\n", timeElapsed); \
+}
 
 // error handling
 typedef enum STATUS_CODE {

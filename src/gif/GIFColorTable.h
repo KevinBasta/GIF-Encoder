@@ -1,10 +1,9 @@
 
-#ifndef GIF_TYPES_H
-#define GIF_TYPES_H
+#ifndef RGB_H
+#define RGB_H
 
 #include <stdint.h>
 #include "main.h"
-#include "hashmap.h"
 
 typedef struct RGB {
     u8 red;
@@ -17,9 +16,4 @@ typedef struct colorTable {
     RGB *arr;
 } colorTable;
 
-typedef struct codeTable {
-    u32 index;
-    HashMap *map;
-} codeTable;
-
-#endif // GIF_TYPES_H
+#endif // RGB_H

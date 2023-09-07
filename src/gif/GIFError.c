@@ -5,12 +5,12 @@
 #include "main.h"
 
 #include "array.h"
-#include "typesGIF.h"
-#include "typesStorage.h"
+#include "GIFColorTable.h"
+#include "GIFInterface.h"
 #include "GIFEncode.h"
 #include "memoryManagement.h"
 
-static void expandFrame(array *newFrame, GIF_Data *gifData, 
+static void expandFrame(array *newFrame, GIFGlobalRecord *gifData, 
                         u8 *frameArray, u32 widthMuliplier,
                         u32 heightMuliplier) {
     u16 oldWidth  = gifData->canvasWidth;
@@ -59,7 +59,7 @@ static void expandFrame(array *newFrame, GIF_Data *gifData,
 }
 
 STATUS_CODE createTestGif() {
-    GIF_Data *gifData = calloc(1, sizeof(GIF_Data));
+    GIFGlobalRecord *gifData = calloc(1, sizeof(GIFGlobalRecord));
     
     gifData->canvasWidth            = 0x0A;
     gifData->canvasHeight           = 0x0A;
@@ -106,13 +106,13 @@ STATUS_CODE createTestGif() {
     globalColorTable->size = 4; globalColorTable->arr = colorsArray;
     gifData->globalColorTable = globalColorTable;
 
-    createGIF(gifData);
+    encodeGIF(gifData);
 
     freeGifData(gifData);
 }
 
 STATUS_CODE createErrorGif() {
-    GIF_Data *gifData = calloc(1, sizeof(GIF_Data));
+    GIFGlobalRecord *gifData = calloc(1, sizeof(GIFGlobalRecord));
 
     gifData->canvasWidth            = 24;
     gifData->canvasHeight           = 7;
@@ -154,7 +154,7 @@ STATUS_CODE createErrorGif() {
     globalColorTable->size = 4; globalColorTable->arr = colorsArray;
     gifData->globalColorTable = globalColorTable;
 
-    createGIF(gifData);
+    encodeGIF(gifData);
 
     freeGifData(gifData);
 }

@@ -1,16 +1,17 @@
 
-#ifndef STORAGE_TYPES_H
-#define STORAGE_TYPES_H
+#ifndef GIF_INTERFACE_H
+#define GIF_INTERFACE_H
 
 #include <stdint.h>
 #include "main.h"
 
 #include "array.h"
-#include "typesGIF.h"
+#include "GIFCodeTable.h"
+#include "GIFColorTable.h"
 
 // Main Storage Structs //
 
-typedef struct GIF_Data {
+typedef struct GIFGlobalRecord {
     // LogicalScreenDescriptor
     u16 canvasWidth; 
     u16 canvasHeight;
@@ -30,6 +31,20 @@ typedef struct GIF_Data {
     colorTable *localColorTable;
 
     array *indexStream;
-} GIF_Data;
+} GIFGlobalRecord;
 
-#endif // STORAGE_TYPES_H
+
+typedef struct GIFFrameRecord {
+    // ImageDescriptor
+    u16 imageLeftPosition;
+    u16 imageTopPosition;
+    u16 imageWidth;
+    u16 imageHeight;
+    u8 packedFieldImage;
+
+    colorTable *localColorTable;
+    array *indexStream;
+} GIFFrameRecord;
+
+
+#endif

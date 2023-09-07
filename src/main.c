@@ -1,42 +1,26 @@
-#ifndef COMMON_HEAD
-    #define COMMON_HEAD
-    #include <stdlib.h>
-    #include <stdint.h>
-    #include <string.h>
-    #include <stdbool.h>
-    #include <stdio.h>
-    #include <math.h>
-    #include <time.h>
-    #include "main.h"
-#endif //COMMON_HEAD
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <math.h>
+#include <time.h>
+#include "main.h"
 
-#ifndef COMMON_TYPES
-    #define COMMON_TYPES
-    #include "typesGIF.h"
-    #include "typesUtility.h"
-#endif //COMMON_TYPES
+#include "searchUtility.h"
 
-#ifndef DATA_STRUCTURES
-    #define DATA_STRUCTURES
-    #include "hashmap.h"
-    #include "array.h"
-    #include "typesStorage.h"
-#endif //DATA_STRUCTURES
+#include "hashmap.h"
+#include "array.h"
+#include "GIFInterface.h"
 
-#ifndef COMMON_UTIL
-    #define COMMON_UTIL
-    #include "bitUtility.h"
-    #include "endianUtility.h"
-    #include "printUtility.h"
-    #include "memoryManagement.h"
-#endif //COMMON_UTIL
+#include "bitUtility.h"
+#include "endianUtility.h"
+#include "printUtility.h"
+#include "memoryManagement.h"
 
-#ifndef GIF_HEAD
-    #define GIF_HEAD
-    #include "GIFEncode.h"
-    #include "GIFCodeTable.h"
-    #include "GIFError.h"
-#endif //GIF_HEAD
+#include "GIFEncode.h"
+#include "GIFCodeTable.h"
+#include "GIFError.h"
 
 STATUS_CODE gifErrorOutput() {
     // creates a gif that displays
@@ -50,13 +34,14 @@ STATUS_CODE gifErrorOutput() {
 
 
 int main(int argc, char **argv) { 
-    // get path and video name from user
 
-    // Use parseMPEG-4 interface to get video frame information
-    // "pipe" that information into a the gif interface functional style
-
+    TIMER_INIT;
+    TIMER_START();
+    
     createErrorGif();
-
+    
+    TIMER_END();
+    
     printf("end of script\n");
-    return 0;
+    exit(0);
 }

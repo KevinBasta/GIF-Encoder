@@ -1,37 +1,29 @@
 
 #include <stdlib.h>
 
-#include <stdint.h>
+#include <stdbool.h>
 #include "main.h"
 
-#include "typesGIF.h"
+#include "GIFColorTable.h"
 #include "GIFCodeTable.h"
 #include "array.h"
-#include "typesStorage.h"
+#include "GIFInterface.h"
 
-u8 isNULL(void *data) {
+bool isNULL(void *data) {
     if (data == NULL) { 
-        return TRUE;
+        return true;
     } else {
-        return FALSE;
+        return false;
     }
 }
 
-void safeFree(void *data) { 
+/**
+ * @note Ensure proper usage, can lead
+ * to memory leaks if misused (by calling
+ * with a type that needs nested frees)
+ */
+void freeIfNotNULL(void *data) { 
     if (data != NULL) {
         free(data);
     }
-}
-
-void freeGifData(GIF_Data *gifData) {
-
-    if (gifData->globalColorTable != NULL)
-        freeColorTable(gifData->globalColorTable);
-    
-    if (gifData->localColorTable != NULL)
-        freeColorTable(gifData->localColorTable);
-
-    freeArray(gifData->indexStream);
-
-    safeFree(gifData);
 }

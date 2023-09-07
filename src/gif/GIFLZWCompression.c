@@ -11,7 +11,7 @@
 #include "bitarray.h"
 #include "hashmap.h"
 #include "queue.h"
-#include "typesGIF.h"
+#include "GIFColorTable.h"
 #include "GIFCodeTable.h"
 #include "printUtility.h"
 #include "bitUtility.h"

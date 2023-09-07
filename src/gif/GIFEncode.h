@@ -5,10 +5,10 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "typesGIF.h"
-#include "typesStorage.h"
+#include "GIFColorTable.h"
+#include "GIFInterface.h"
 
-STATUS_CODE createGIF(GIF_Data *gifData);
+STATUS_CODE encodeGIF(GIFGlobalRecord *gifData);
 void addRGBArrayEntry(RGB *table, u32 index, u8 red, u8 green, u8 blue);
 
 #endif // GIF_ENCODE_H

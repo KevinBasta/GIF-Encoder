@@ -6,9 +6,9 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "typesGIF.h"
-#include "typesStorage.h"
+#include "GIFInterface.h"
 #include "GIFCodeTable.h"
+#include "GIFColorTable.h"
 #include "GIFLZWCompression.h"
 
 #include "array.h"
@@ -43,7 +43,7 @@ STATUS_CODE encodeHeader(FILE *gif) {
  * @param gifData   - Struct containing required fields
  * @return OPERATION_SUCCESS or OPERATION_FAILED
  */
-STATUS_CODE encodeLogicalScreenDescriptor(FILE *gif, GIF_Data *gifData) {
+STATUS_CODE encodeLogicalScreenDescriptor(FILE *gif, GIFGlobalRecord *gifData) {
     size_t status;
     u32 nmemb = 1;
 
@@ -88,7 +88,7 @@ STATUS_CODE encodeLogicalScreenDescriptor(FILE *gif, GIF_Data *gifData) {
  * @param gifData   - Struct containing required fields
  * @return OPERATION_SUCCESS or OPERATION_FAILED
  */
-STATUS_CODE encodeImageDescriptor(FILE *gif, GIF_Data *gifData) {
+STATUS_CODE encodeImageDescriptor(FILE *gif, GIFGlobalRecord *gifData) {
     size_t status;
     u32 nmemb = 1;
 
@@ -129,7 +129,7 @@ STATUS_CODE encodeImageDescriptor(FILE *gif, GIF_Data *gifData) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE encodeGraphicsControlExtension(FILE *gif, GIF_Data *gifData) {
+STATUS_CODE encodeGraphicsControlExtension(FILE *gif, GIFGlobalRecord *gifData) {
     size_t status;
     u32 nmemb = 1;
 
@@ -219,7 +219,7 @@ void addRGBArrayEntry(RGB *table, u32 index, u8 red, u8 green, u8 blue) {
     table[index].blue = blue;
 }
 
-STATUS_CODE createGIF(GIF_Data *gifData) {
+STATUS_CODE encodeGIF(GIFGlobalRecord *gifData) {
     size_t status;
     FILE *gif = fopen("test.gif","wb");
     

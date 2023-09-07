@@ -4,10 +4,10 @@
 
 #include <stdint.h>
 #include "main.h"
-#include "typesStorage.h"
+#include "GIFInterface.h"
 
-void freeGifData(GIF_Data *gifData);
-void safeFree(void *data);
+void freeGifData(GIFGlobalRecord *gifData);
+void freeIfNotNULL(void *data);
 u8 isNULL(void *data);
 
 #endif // MEMORY_MANAGE_H

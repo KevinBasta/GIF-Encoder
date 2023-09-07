@@ -7,10 +7,11 @@
 #include "main.h"
 
 #include "hashmap.h"
-#include "typesGIF.h"
+#include "GIFCodeTable.h"
+#include "GIFColorTable.h"
 #include "printUtility.h"
 
-u32 colorTableSizeToCodeTableEntry(char *request, u32 colorTableSize) {
+u16 colorTableSizeToCodeTableEntry(char *request, u32 colorTableSize) {
     // 0: LWZMinCodeSize 1: ClearCode 2: EOICode
     u16 LWZ_CC_EOI[3] = {0, 0, 0};
 

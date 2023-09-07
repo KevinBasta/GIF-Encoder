@@ -11,8 +11,8 @@
     #include "typesMPEG-4.h"
     #include "typesAVC.h"
     #include "linkedlist.h"
-    #include "typesStorage.h"
-    #include "typesUtility.h"
+    #include "GIFInterface.h"
+    #include "searchUtility.h"
 #endif //COMMON_TYPES
 
 #ifndef COMMON_UTIL

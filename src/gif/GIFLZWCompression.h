@@ -7,7 +7,7 @@
 
 #include "array.h"
 #include "bitarray.h"
-#include "typesGIF.h"
+#include "GIFColorTable.h"
 
 STATUS_CODE createLZWImageData(colorTable *clrTable, array *indexStream, bitarray *imageData);
 STATUS_CODE createLZWImageDataInitialDraft(colorTable *clrTable, array *indexStream, bitarray *imageData);

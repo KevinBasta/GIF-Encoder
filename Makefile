@@ -8,7 +8,7 @@ OBJECTS = $(SOURCE:src/%.c=bin/%.o)
 
 CC = gcc
 DIRS = $(sort $(dir $(wildcard src/*/)))
-CFLAGS += $(addprefix -I , $(DIRS))
+CFLAGS += $(addprefix -I , $(DIRS)) -I src
 
 # main program rule
 main: bin/main.o $(OBJECTS)
