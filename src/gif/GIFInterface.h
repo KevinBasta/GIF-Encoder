@@ -6,6 +6,7 @@
 #include "main.h"
 
 #include "array.h"
+#include "linkedlist.h"
 #include "GIFCodeTable.h"
 #include "GIFColorTable.h"
 
@@ -60,9 +61,7 @@ typedef struct GIFCanvas {
     //
     colorTable *globalColorTable;
 
-    // !TODO need linked list
-    u32 numberOfFrames;
-    GIFFrame **frames;
+    linkedlist *frames;
 
 } GIFCanvas;
 

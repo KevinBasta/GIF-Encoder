@@ -6,8 +6,8 @@
 #include "main.h"
 
 typedef struct node { 
-    void *currentItem;
-    void *nextNode;
+    void *item;
+    node *nextNode;
 } node;
 
 typedef struct linkedlist {
@@ -17,6 +17,11 @@ typedef struct linkedlist {
     node *currentIter;
 } linkedlist;
 
+linkedlist *linkedlistInit();
+STATUS_CODE linkedlistAppend(linkedlist *list, void *item);
+STATUS_CODE linkedlistYield(linkedlist *list, void *item);
+STATUS_CODE linkedlistResetIter(linkedlist *list);
+void freeFrameLinkedList(linkedlist *list);
 
 
 #endif // LINKED_LIST_H

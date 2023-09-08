@@ -197,35 +197,34 @@ STATUS_CODE encodeTrailer(FILE *gif) {
     return OPERATION_SUCCESS;
 }
 
-// TO BE MOVED TO DIFFERENT MODULE
-void addRGBArrayEntry(RGB *table, u32 index, u8 red, u8 green, u8 blue) {
-    table[index].red = red;
-    table[index].green = green;
-    table[index].blue = blue;
-}
 
-STATUS_CODE encodeGIF(GIFCanvas *gifData) {
+/**
+ * @brief 
+ * @param gifData 
+ * @return 
+ */
+STATUS_CODE encodeGIF(GIFCanvas *canvas) {
     size_t status;
     FILE *gif = fopen("test.gif","wb");
     
     status = encodeHeader(gif);
     CHECKSTATUS(status);
 
-    status = encodeLogicalScreenDescriptor(gif, gifData);
+    status = encodeLogicalScreenDescriptor(gif, canvas);
     CHECKSTATUS(status);
 
     // may need to pass in a gif struct that contains color resolution
     // (from packed field of image or canvas descriptors) for number of entries 
-    status = encodeColorTable(gif, gifData->globalColorTable);
+    status = encodeColorTable(gif, canvas->globalColorTable);
     CHECKSTATUS(status);
 
-    status = encodeGraphicsControlExtension(gif, gifData);
+    status = encodeGraphicsControlExtension(gif, canvas);
     CHECKSTATUS(status);
 
-    status = encodeImageDescriptor(gif, gifData);
+    status = encodeImageDescriptor(gif, canvas);
     CHECKSTATUS(status);
     
-    status = encodeImageData(gif, gifData->globalColorTable, gifData->indexStream);
+    status = encodeImageData(gif, canvas->globalColorTable, canvas->indexStream);
     CHECKSTATUS(status);
 
     status = encodeTrailer(gif);

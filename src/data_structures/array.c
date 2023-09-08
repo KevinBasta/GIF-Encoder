@@ -119,6 +119,16 @@ char* arrayConcat(array *arr, char entrySeparator) {
     return concat;
 }
 
+array *arrayInitFromStackArray(u8 *stackArr, size_t size) {
+    array *heapArr = arrayInit(size);
+    
+    for (size_t i = 0; i < size; i++) {
+        arrayAppend(heapArr, stackArr[i]);
+    }
+
+    return heapArr;
+}
+
 // Array util interface
 
 void arrayPrint(array *arr) {

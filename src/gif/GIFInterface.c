@@ -6,6 +6,7 @@
 #include "main.h"
 
 #include "array.h"
+#include "linkedlist.h"
 #include "GIFInterface.h"
 #include "GIFColorTable.h"
 #include "GIFCodeTable.h"
@@ -29,8 +30,7 @@ GIFCanvas *canvasCreate(u16 canvasWidth, u16 canvasHeight) {
 
     newCanvas->globalColorTable = NULL;
 
-    newCanvas->numberOfFrames   = 0;
-    newCanvas->frames           = NULL;
+    newCanvas->frames           = linkedlistInit();
 
     return newCanvas;
 }
@@ -53,6 +53,8 @@ STATUS_CODE canvasAddGlobalColorTable(GIFCanvas *canvas, colorTable *clrTable) {
 STATUS_CODE canvasSetBackgroundColorIndex(GIFCanvas *canvas, u8 globalColorTableIndex) {
     CANVAS_NULL_CHECK(canvas);
 
+    // !!TODO - ERROR CHECK IF GREATER THAN BIGGEST CLR TABLE ITEM
+    // ALSO IF GLOBAL CLR TABLE IS NULL AND THIS IS BEING SET TO NON ZERO
     canvas->backgroundColorIndex = globalColorTableIndex;
     
     return OPERATION_SUCCESS;
@@ -60,7 +62,13 @@ STATUS_CODE canvasSetBackgroundColorIndex(GIFCanvas *canvas, u8 globalColorTable
 
 STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame) {
     CANVAS_NULL_CHECK(canvas);
+    FRAME_NULL_CHECK(frame);
 
+    if (canvas->frames == NULL) {
+        canvas->frames = linkedlistInit();
+    }
+
+    linkedlistAppend(canvas->frames, frame);
 
     return OPERATION_SUCCESS;
 }
@@ -70,7 +78,7 @@ void freeCanvas(GIFCanvas *canvas) {
         if (canvas->globalColorTable != NULL)
             freeColorTable(canvas->globalColorTable);
         
-        // freeLinkedList(frames)
+        freeFrameLinkedList(canvas->frames);
 
         free(canvas);
     }

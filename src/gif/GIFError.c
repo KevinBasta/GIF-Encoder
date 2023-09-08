@@ -62,22 +62,7 @@ static void expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 heightMulipl
 }
 
 STATUS_CODE createTestGif() {
-    
-    GIFCanvas *canvas = canvasCreate(0x0A, 0x0A);
-    canvasAddGlobalColorTable();
-
-    GIFFrame *frame1 = frameCreate(0x0A, 0x0A, 0x00, 0x00);
-    gifData->packedFieldCanvas      = 0b10010001;
-    gifData->backgroundColorIndex   = 0x00;
-    gifData->pixelAspectRatio       = 0x00;
-
-    gifData->imageLeftPosition  = 0x0000;
-    gifData->imageTopPosition   = 0x0000;
-    gifData->imageWidth         = 0x0A;
-    gifData->imageHeight        = 0x0A;
-    gifData->packedFieldImage   = 0b00000000;
-
-    u8 indexStreamFrameOne[] =
+    u8 frameOneTempIndexStream[] =
     { 1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
       1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
       1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
@@ -88,18 +73,14 @@ STATUS_CODE createTestGif() {
       2, 2, 2, 2, 2, 1, 1, 1, 1, 1,
       2, 2, 2, 2, 2, 1, 1, 1, 1, 1,
       2, 2, 2, 2, 2, 1, 1, 1, 1, 1 };
-
-    // u32 widthMuliplier  = 6;
-    // u32 heightMuliplier = 8;
-    u32 widthMuliplier  = 192;
-    u32 heightMuliplier = 108;
-    // u32 widthMuliplier  = 150;
-    // u32 heightMuliplier = 150;
+    array *frameOneIndexStream = arrayInitFromStackArray(&frameOneTempIndexStream, sizeof(frameOneTempIndexStream));
     
-    array *newFrame = arrayInit((widthMuliplier * gifData->canvasWidth) * (heightMuliplier * gifData->canvasHeight));
-    expandFrame(newFrame, gifData, (u8*) &indexStreamFrameOne, widthMuliplier, heightMuliplier);
+    GIFFrame *frameOne = frameCreate(0x0A, 0x0A, 0, 0);
+    frameAddIndexStream(frameOne, frameOneIndexStream);
 
-    gifData->indexStream = newFrame;
+    u32 widthMuliplier  = 192; u32 heightMuliplier = 108;
+    expandFrame(frameOne, widthMuliplier, heightMuliplier);
+
 
     RGB *colorsArray = calloc(4, sizeof(RGB));
     addRGBArrayEntry(colorsArray, 0, 0xFF, 0xFF, 0xFF);
@@ -108,29 +89,19 @@ STATUS_CODE createTestGif() {
     addRGBArrayEntry(colorsArray, 3, 0x00, 0x00, 0x00);
     colorTable *globalColorTable = calloc(1, sizeof(colorTable));
     globalColorTable->size = 4; globalColorTable->arr = colorsArray;
-    gifData->globalColorTable = globalColorTable;
 
-    encodeGIF(gifData);
+    GIFCanvas *canvas = canvasCreate(0x0A, 0x0A);
+    canvasAddGlobalColorTable(canvas, globalColorTable);
+    canvasSetBackgroundColorIndex(canvas, 0x00);
+    canvasAddFrame(canvas, frameOne);
 
-    freeGifData(gifData);
+    encodeGIF(canvas);
+
+    freeCanvas(canvas);
 }
 
 STATUS_CODE createErrorGif() {
-    GIFCanvas *gifData = calloc(1, sizeof(GIFCanvas));
-
-    gifData->canvasWidth            = 24;
-    gifData->canvasHeight           = 7;
-    gifData->packedFieldCanvas      = 0b10010001;
-    gifData->backgroundColorIndex   = 0x00;
-    gifData->pixelAspectRatio       = 0x00;
-
-    gifData->imageLeftPosition  = 0x0000;
-    gifData->imageTopPosition   = 0x0000;
-    gifData->imageWidth         = 24;
-    gifData->imageHeight        = 7;
-    gifData->packedFieldImage   = 0b00000000;
-
-    u8 indexStreamFrameOne[] = 
+    u8 frameOneTempIndexStream[] = 
     { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
       0,1,1,1,0,1,1,0,0,1,1,0,0,0,1,1,0,0,1,1,0,0,1,0,
       0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,
@@ -138,15 +109,14 @@ STATUS_CODE createErrorGif() {
       0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,0,0,
       0,1,1,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+    array *frameOneIndexStream = arrayInitFromStackArray(&frameOneTempIndexStream, sizeof(frameOneTempIndexStream));
 
-    u32 widthMuliplier  = 50;
-    u32 heightMuliplier = 50;
+    GIFFrame *frameOne = frameCreate(24, 7, 0, 0);
+    frameAddIndexStream(frameOne, frameOneIndexStream);
+
+    u32 widthMuliplier  = 50; u32 heightMuliplier = 50;
+    expandFrame(frameOne, widthMuliplier, heightMuliplier);
     
-    array *newFrame = arrayInit((widthMuliplier * gifData->canvasWidth) * (heightMuliplier * gifData->canvasHeight));
-    expandFrame(newFrame, gifData, (u8*) &indexStreamFrameOne, widthMuliplier, heightMuliplier);
-
-    gifData->indexStream = newFrame;
-
     RGB *colorsArray = calloc(4, sizeof(RGB));
     addRGBArrayEntry(colorsArray, 0, 0, 0, 0);
     addRGBArrayEntry(colorsArray, 1, 255, 255, 255);
@@ -156,9 +126,13 @@ STATUS_CODE createErrorGif() {
     addRGBArrayEntry(colorsArray, 3, 255, 0, 255);
     colorTable *globalColorTable = calloc(1, sizeof(colorTable));
     globalColorTable->size = 4; globalColorTable->arr = colorsArray;
-    gifData->globalColorTable = globalColorTable;
 
-    encodeGIF(gifData);
+    GIFCanvas *canvas = canvasCreate(24, 7);
+    canvasAddGlobalColorTable(canvas, globalColorTable);
+    canvasSetBackgroundColorIndex(canvas, 0x00);
+    canvasAddFrame(canvas, frameOne);
 
-    freeGifData(gifData);
+    encodeGIF(canvas);
+
+    freeCanvas(canvas);
 }
