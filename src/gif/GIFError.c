@@ -10,21 +10,18 @@
 #include "GIFEncode.h"
 #include "memoryManagement.h"
 
-static void expandFrame(array *newFrame, GIFGlobalRecord *gifData, 
-                        u8 *frameArray, u32 widthMuliplier,
-                        u32 heightMuliplier) {
-    u16 oldWidth  = gifData->canvasWidth;
-    u16 oldHeight = gifData->canvasHeight;
+static void expandFrame(GIFFrame *frame, u32 widthMuliplier, u32 heightMuliplier) {
+    u16 oldWidth  = frame->imageWidth;
+    u16 oldHeight = frame->imageHeight;
 
-    u16 newWidth  = gifData->canvasWidth  * widthMuliplier;
-    u16 newHeight = gifData->canvasHeight * heightMuliplier;
+    u16 newWidth  = oldWidth  * widthMuliplier;
+    u16 newHeight = oldHeight * heightMuliplier;
   
-    gifData->canvasWidth  = newWidth;
-    gifData->canvasHeight = newHeight;
-    gifData->imageWidth   = newWidth;
-    gifData->imageHeight  = newHeight;
+    frame->imageWidth   = newWidth;
+    frame->imageHeight  = newHeight;
 
     u32 newArraySize = newWidth * newHeight;
+    array *newIndexStream = arrayInit(newArraySize);
 
     for (int i = 0; i < oldHeight; i++) {
         for (int j = 0; j < oldWidth; j++) {
@@ -43,26 +40,33 @@ static void expandFrame(array *newFrame, GIFGlobalRecord *gifData,
                     //         + l): repeat the pixel (factor multiper) times in the y axis
                     //         * newWidth): skip already written rows in new array
                     //
-                    newFrame->items[(((i * heightMuliplier) + l) * newWidth) + (j * widthMuliplier) + k] = frameArray[(i * oldWidth) + j];
+                    newIndexStream->items[(((i * heightMuliplier) + l) * newWidth) + (j * widthMuliplier) + k] = frame->indexStream->items[(i * oldWidth) + j];
                 }
             }
         }
     }
 
-    for (int i = 0; i < newArraySize; i++) {
-        printf("%d", newFrame->items[i]);
+    for (int i = 0; i < newArraySize && newWidth < 100; i++) {
+        printf("%d", newIndexStream->items[i]);
         if (i % newWidth == newWidth - 1) {
             printf("\n");
         }
     }
 
+    freeArray(frame->indexStream);
+    frame->indexStream = newIndexStream;
+}
+
+static void expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 heightMuliplier) {
+    
 }
 
 STATUS_CODE createTestGif() {
-    GIFGlobalRecord *gifData = calloc(1, sizeof(GIFGlobalRecord));
     
-    gifData->canvasWidth            = 0x0A;
-    gifData->canvasHeight           = 0x0A;
+    GIFCanvas *canvas = canvasCreate(0x0A, 0x0A);
+    canvasAddGlobalColorTable();
+
+    GIFFrame *frame1 = frameCreate(0x0A, 0x0A, 0x00, 0x00);
     gifData->packedFieldCanvas      = 0b10010001;
     gifData->backgroundColorIndex   = 0x00;
     gifData->pixelAspectRatio       = 0x00;
@@ -112,7 +116,7 @@ STATUS_CODE createTestGif() {
 }
 
 STATUS_CODE createErrorGif() {
-    GIFGlobalRecord *gifData = calloc(1, sizeof(GIFGlobalRecord));
+    GIFCanvas *gifData = calloc(1, sizeof(GIFCanvas));
 
     gifData->canvasWidth            = 24;
     gifData->canvasHeight           = 7;

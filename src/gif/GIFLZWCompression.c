@@ -19,6 +19,8 @@
 static STATUS_CODE encodeLZWChunk(array *indexBuffer, codeTable *codeTable, u8 *currentCodeSize, array *indexStream, bitarray *imageData) {
     STATUS_CODE status;
     
+    // Queue false and true when the code size should
+    // be increased to increase after the current item 
     queue *increaseCodeSize = queueInit(100);
 
     for (size_t i = indexStream->currentIndex; i < indexStream->size; i++) {
@@ -253,7 +255,7 @@ STATUS_CODE createLZWImageDataInitialDraft(colorTable *clrTable, array *indexStr
             
             char *indexBufferKey = arrayConcat(indexBuffer, ',');
             char *indexBufferValue = hashmapSearch(codeTable->map, indexBufferKey);
-            CHECK_NULL_RETURN(indexBufferValue);
+            CHECK_NULL(indexBufferValue);
             u32 indexBufferIntegralValue = atoi(indexBufferValue);
             free(indexBufferKey);
             
@@ -279,7 +281,7 @@ STATUS_CODE createLZWImageDataInitialDraft(colorTable *clrTable, array *indexStr
 
             // if maximum code table value reached, send clear code and reset code table
             if (codeTable->map->currentCount == 4095) {
-                printf("%d %d %d %d\n", i, currentCodeSize, getCurrentIndexCodeTable(codeTable), codeTable->map->currentCount);
+                // printf("%ld %d %d %ld\n", i, currentCodeSize, getCurrentIndexCodeTable(codeTable), codeTable->map->currentCount);
                 arrayPrint(indexBuffer);
                 
                 // Put the clear code in the code stream

@@ -12,7 +12,14 @@
 
 /////////// Placing values at markers /////////////
 
-void setMarkValueAndMarkNewLocation(bitarray *arr) {
+
+/**
+ * @brief Insert the intervalIntervalInsertItem at markIndex,
+ * append an entry for the next insert item, and update markIndex
+ * @param arr   - bitarray struct
+ */
+void setMarkValueAndMarkNewLocation(bitarray *arr) { 
+    // !!TODO - RETURN STATUS
     if (arr->intervalInsertFlag == true) {
         //
         // NOTE: (arr->currentIndex - 1) because this function is
@@ -27,15 +34,31 @@ void setMarkValueAndMarkNewLocation(bitarray *arr) {
     }
 }
 
+/**
+ * @brief Set the markIndex field of a bitarray to the 
+ * bitarray's current index plus the offset
+ * @param arr       - bitarray struct
+ * @param offset    - offset from current index
+ * @return OPERATION_SUCCESS or OPERATION_FAILED
+ */
 STATUS_CODE bitarrayBookMark(bitarray *arr, u32 offset) {
     if (arr == NULL)
         return OPERATION_FAILED;
 
+    if (arr->currentIndex + offset < 0 || arr->currentIndex + offset > arr->size)
+        return OPERATION_FAILED;
+    
     arr->markIndex = arr->currentIndex + offset;
 
     return OPERATION_SUCCESS;
 }
 
+/**
+ * @brief Set the value of the currently bookmarked item
+ * @param arr   - bitarray struct
+ * @param item  - item to put at current markIndex
+ * @return OPERATION_SUCCESS or OPERATION_FAILED
+ */
 STATUS_CODE bitarraySetBookMarkValue(bitarray *arr, u8 item) {
     if (arr == NULL)
         return OPERATION_FAILED;
@@ -48,6 +71,13 @@ STATUS_CODE bitarraySetBookMarkValue(bitarray *arr, u8 item) {
     return OPERATION_SUCCESS;
 }
 
+/**
+ * @brief Set a rule to insert an item at a set interval
+ * @param arr           - bitarray struct
+ * @param boundry       - interval to append the item
+ * @param insertItem    - item to append at interval
+ * @return OPERATION_SUCCESS or OPERATION_FAILED
+ */
 STATUS_CODE bitarraySetIntervalInsertRule(bitarray *arr, size_t boundry, u8 insertItem) {
     if (arr == NULL)
         return OPERATION_FAILED;
@@ -59,10 +89,15 @@ STATUS_CODE bitarraySetIntervalInsertRule(bitarray *arr, size_t boundry, u8 inse
     return OPERATION_SUCCESS;
 }
 
-
-
-
+/**
+ * @brief Set the remaining bits to 0 in the pointer
+ * @param item          - u8 integer to modify
+ * @param currentBit    - 0 == least significant
+ *                        1 == most significant
+ * @return TBD
+ */
 STATUS_CODE zeroRestOfByte(u8 *item, u8 currentBit) {
+    // !!TODO - RESOLVE RETURN TYPE
     for (u8 i = currentBit; i < 8; i++) {
         *item &= ~(1 << i);
     }

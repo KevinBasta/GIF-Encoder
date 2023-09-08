@@ -146,7 +146,7 @@ char *hashmapSearch(HashMap *map, char *key) {
  */
 STATUS_CODE hashmapSearchConvert(HashMap *map, char *key, u32 *value) {
     char *valueSearched = hashmapSearch(map, key);
-    CHECK_NULL_RETURN(valueSearched);
+    CHECK_NULL(valueSearched);
 
     *value = atoi(valueSearched);
 

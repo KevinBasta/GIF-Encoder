@@ -43,20 +43,13 @@ STATUS_CODE encodeHeader(FILE *gif) {
  * @param gifData   - Struct containing required fields
  * @return OPERATION_SUCCESS or OPERATION_FAILED
  */
-STATUS_CODE encodeLogicalScreenDescriptor(FILE *gif, GIFGlobalRecord *gifData) {
+STATUS_CODE encodeLogicalScreenDescriptor(FILE *gif, GIFCanvas *gifData) {
     size_t status;
     u32 nmemb = 1;
 
     u16 canvasWidth         = littleEndianU16(gifData->canvasWidth);
     u16 canvasHeight        = littleEndianU16(gifData->canvasHeight);
     
-    //
-    // Packed field:
-    // [7]    : global color table flag. (1) global color table will follow (0) no table
-    // [4-6]  : color resolution (2^(n+1) computes entries in global color table)
-    // [3]    : sort flag. (1) global color table sorted in decreasing importance (0) no sort
-    // [0-2]  : size of global color table
-    //
     u8 packedField          = gifData->packedFieldCanvas;
     
     // Represents which index in the global color table should be used 
@@ -88,7 +81,7 @@ STATUS_CODE encodeLogicalScreenDescriptor(FILE *gif, GIFGlobalRecord *gifData) {
  * @param gifData   - Struct containing required fields
  * @return OPERATION_SUCCESS or OPERATION_FAILED
  */
-STATUS_CODE encodeImageDescriptor(FILE *gif, GIFGlobalRecord *gifData) {
+STATUS_CODE encodeImageDescriptor(FILE *gif, GIFCanvas *gifData) {
     size_t status;
     u32 nmemb = 1;
 
@@ -98,14 +91,6 @@ STATUS_CODE encodeImageDescriptor(FILE *gif, GIFGlobalRecord *gifData) {
     u16 imageWidth          = littleEndianU16(gifData->imageWidth);
     u16 imageHeight         = littleEndianU16(gifData->imageHeight);
     
-    //
-    // Packed field:
-    // [7]   : local color table flag (1) use differnt color table than global (0) no table
-    // [6]   : interlace flag, changes the way images are rendered onto the screen to reduce flicker
-    // [5]   : sort flag (1) local color table sorted in decreasing importance (0) no sort
-    // [3-4] : Reserved
-    // [0-2] : size of local color table
-    //
     u8 packedField          = gifData->packedFieldImage;
 
     status = fwrite(&imageSeparator, sizeof(imageSeparator), nmemb, gif);
@@ -129,7 +114,7 @@ STATUS_CODE encodeImageDescriptor(FILE *gif, GIFGlobalRecord *gifData) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE encodeGraphicsControlExtension(FILE *gif, GIFGlobalRecord *gifData) {
+STATUS_CODE encodeGraphicsControlExtension(FILE *gif, GIFCanvas *gifData) {
     size_t status;
     u32 nmemb = 1;
 
@@ -219,7 +204,7 @@ void addRGBArrayEntry(RGB *table, u32 index, u8 red, u8 green, u8 blue) {
     table[index].blue = blue;
 }
 
-STATUS_CODE encodeGIF(GIFGlobalRecord *gifData) {
+STATUS_CODE encodeGIF(GIFCanvas *gifData) {
     size_t status;
     FILE *gif = fopen("test.gif","wb");
     

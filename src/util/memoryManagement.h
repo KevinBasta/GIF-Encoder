@@ -6,7 +6,7 @@
 #include "main.h"
 #include "GIFInterface.h"
 
-void freeGifData(GIFGlobalRecord *gifData);
+void freeGifData(GIFCanvas *gifData);
 void freeIfNotNULL(void *data);
 u8 isNULL(void *data);
 

@@ -47,12 +47,37 @@ typedef uint64_t u64;
 
 // error handling
 typedef enum STATUS_CODE {
-    OPERATION_SUCCESS = 1, 
-    OPERATION_FAILED  = 0
+    OPERATION_SUCCESS = 0, 
+    OPERATION_FAILED  = 1,
+
+    // Hashmap Errors
+
+
+    // Array Errors
+    ARRAY_NULL      = 20,
+
+    // Bit Array Errors
+
+
+    // File Errors
+
+
+    // Interface Errors
+    CANVAS_NULL     = 50,
+    FRAME_NULL      = 51,
+
+    // Color Table Errors
+    COLOR_TABLE_NULL = 60,
+
 } STATUS_CODE;
 
 #define CHECKSTATUS(status)                     if (status == OPERATION_FAILED) { return OPERATION_FAILED; }
 #define CHECK_FWRITE_STATUS(returned, expected) if (returned != expected)       { return OPERATION_FAILED; }
-#define CHECK_NULL_RETURN(status)               if (status == NULL) { return OPERATION_FAILED; }
+#define CHECK_NULL(status)                      if (status == NULL) { return OPERATION_FAILED; }
+#define CANVAS_NULL_CHECK(canvas)               if (canvas == NULL) { return CANVAS_NULL; }
+#define FRAME_NULL_CHECK(frame)                 if (frame == NULL) { return FRAME_NULL; }
+#define ARRAY_NULL_CHECK(arr)                   if (arr == NULL) { return ARRAY_NULL; }
+#define COLOR_TABLE_NULL_CHECK(clrTable)        if (clrTable == NULL) { return COLOR_TABLE_NULL; }
+
 
 #endif //MAIN_H
