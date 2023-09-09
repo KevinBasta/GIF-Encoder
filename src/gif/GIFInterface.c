@@ -80,7 +80,8 @@ void freeCanvas(GIFCanvas *canvas) {
         if (canvas->globalColorTable != NULL)
             freeColorTable(canvas->globalColorTable);
         
-        freeFrameLinkedList(canvas->frames);
+        if (canvas->frames != NULL)
+            freeFrameLinkedList(canvas->frames);
 
         free(canvas);
     }
@@ -122,7 +123,8 @@ STATUS_CODE frameAddLocalColorTable(GIFFrame *frame, colorTable *clrTable) {
     frame->packedField_LocalColorTableFlag   = 1;
 
     // Color table must be fully populated before this function call
-    frame->packedField_SizeOfLocalColorTable = clrTable->size;
+    u32 sizeLog = log2(clrTable->size - 1);
+    frame->packedField_SizeOfLocalColorTable = sizeLog;
     
     frame->localColorTable = clrTable; 
 
@@ -140,8 +142,11 @@ STATUS_CODE frameAddIndexStream(GIFFrame *frame, array *indexStream) {
 
 void freeFrame(GIFFrame *frame) {
     if (frame != NULL) {
-        freeColorTable(frame->localColorTable);
-        freeArray(frame->indexStream);
+        if (frame->localColorTable != NULL)
+            freeColorTable(frame->localColorTable);
+
+        if (frame->indexStream != NULL)
+            freeArray(frame->indexStream);
 
         free(frame);
     }

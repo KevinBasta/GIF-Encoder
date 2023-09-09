@@ -49,6 +49,7 @@ typedef uint64_t u64;
 typedef enum STATUS_CODE {
     OPERATION_SUCCESS = 0, 
     OPERATION_FAILED  = 1,
+    OPERATION_NULL    = 2,
 
     // Hashmap Errors
 
@@ -60,7 +61,7 @@ typedef enum STATUS_CODE {
 
 
     // File Errors
-
+    FWRITE_FAILED = 40,
 
     // Interface Errors
     CANVAS_NULL     = 50,
@@ -71,13 +72,14 @@ typedef enum STATUS_CODE {
 
 } STATUS_CODE;
 
-#define CHECKSTATUS(status)                     if (status == OPERATION_FAILED) { return OPERATION_FAILED; }
-#define CHECK_FWRITE_STATUS(returned, expected) if (returned != expected)       { return OPERATION_FAILED; }
-#define CHECK_NULL(status)                      if (status == NULL) { return OPERATION_FAILED; }
-#define CANVAS_NULL_CHECK(canvas)               if (canvas == NULL) { return CANVAS_NULL; }
-#define FRAME_NULL_CHECK(frame)                 if (frame == NULL) { return FRAME_NULL; }
-#define ARRAY_NULL_CHECK(arr)                   if (arr == NULL) { return ARRAY_NULL; }
-#define COLOR_TABLE_NULL_CHECK(clrTable)        if (clrTable == NULL) { return COLOR_TABLE_NULL; }
+#define CHECKSTATUS(status)                     if (status != OPERATION_SUCCESS) { return status; }
+#define CHECK_FWRITE_STATUS(returned, expected) if (returned != expected)       { return FWRITE_FAILED; }
+#define CHECK_NULL(status)                      if (status == NULL)             { return OPERATION_NULL; }
+
+#define CANVAS_NULL_CHECK(canvas)               if (canvas == NULL)             { return CANVAS_NULL; }
+#define FRAME_NULL_CHECK(frame)                 if (frame == NULL)              { return FRAME_NULL; }
+#define ARRAY_NULL_CHECK(arr)                   if (arr == NULL)                { return ARRAY_NULL; }
+#define COLOR_TABLE_NULL_CHECK(clrTable)        if (clrTable == NULL)           { return COLOR_TABLE_NULL; }
 
 
 #endif //MAIN_H

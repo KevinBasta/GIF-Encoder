@@ -59,12 +59,16 @@ STATUS_CODE linkedlistResetIter(linkedlist *list) {
 void freeFrameLinkedList(linkedlist *list) {
     linkedlistResetIter(list);
 
-    GIFFrame *item;
-    linkedlistYield(list, (void**) (&item));
-    
-    while (list->currentIter != NULL) {
+    node *currentHead = list->head;
+
+    while (currentHead != NULL) {
+        GIFFrame *item = currentHead->item;
         freeFrame(item);
-        linkedlistYield(list, (void**) (&item));
+    
+        node *nextHead = currentHead->nextNode;
+        free(currentHead);
+        
+        currentHead = nextHead;
     }
 
     free(list);

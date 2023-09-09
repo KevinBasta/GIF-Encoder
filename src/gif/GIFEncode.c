@@ -162,7 +162,8 @@ STATUS_CODE encodeColorTable(FILE *gif, colorTable *colorTable) {
     u32 nmemb = 1;
 
     for (int i = 0; i < colorTable->size; i++) {
-        RGB entry = colorTable->arr[i];
+        RGB entry = colorTable->items[i];
+        
         status = fwrite(&entry.red, sizeof(u8), nmemb, gif);
         CHECK_FWRITE_STATUS(status, nmemb);
         
@@ -232,7 +233,6 @@ STATUS_CODE encodeTrailer(FILE *gif) {
 STATUS_CODE encodeGIF(GIFCanvas *canvas) {
     size_t status;
     FILE *gif = fopen("test.gif","wb");
-    
 
     status = encodeHeader(gif);
     CHECKSTATUS(status);
@@ -245,10 +245,11 @@ STATUS_CODE encodeGIF(GIFCanvas *canvas) {
     status = encodeColorTable(gif, canvas->globalColorTable);
     CHECKSTATUS(status);
 
-    // status = encodeGraphicsControlExtension(gif, canvas);
-    // CHECKSTATUS(status);
+    status = encodeGraphicsControlExtension(gif, canvas);
+    CHECKSTATUS(status);
 
-    GIFFrame *frame = malloc(sizeof(GIFFrame*));
+    GIFFrame *frame;
+    linkedlistResetIter(canvas->frames);
     status = linkedlistYield(canvas->frames, (void**) (&frame));
     CHECKSTATUS(status);
 
