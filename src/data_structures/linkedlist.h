@@ -7,7 +7,7 @@
 
 typedef struct node { 
     void *item;
-    node *nextNode;
+    void *nextNode;
 } node;
 
 typedef struct linkedlist {
@@ -19,7 +19,7 @@ typedef struct linkedlist {
 
 linkedlist *linkedlistInit();
 STATUS_CODE linkedlistAppend(linkedlist *list, void *item);
-STATUS_CODE linkedlistYield(linkedlist *list, void *item);
+STATUS_CODE linkedlistYield(linkedlist *list, void **item);
 STATUS_CODE linkedlistResetIter(linkedlist *list);
 void freeFrameLinkedList(linkedlist *list);
 

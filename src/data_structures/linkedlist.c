@@ -39,12 +39,15 @@ STATUS_CODE linkedlistAppend(linkedlist *list, void *item) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE linkedlistYield(linkedlist *list, void *item) {
-    item = list->currentIter->item;
-
-    if (list->currentIter != NULL) {
+STATUS_CODE linkedlistYield(linkedlist *list, void **item) {
+    if (list->currentIter == NULL) {
+        *item = NULL;
+    } else if (list->currentIter != NULL) { 
+        *item = (void*) list->currentIter->item;
         list->currentIter = list->currentIter->nextNode;
     }
+
+    printf("item: %p\n", *item);
 
     return OPERATION_SUCCESS;
 }
@@ -57,10 +60,28 @@ void freeFrameLinkedList(linkedlist *list) {
     linkedlistResetIter(list);
 
     GIFFrame *item;
+    linkedlistYield(list, (void**) (&item));
+    
     while (list->currentIter != NULL) {
-        linkedlistYield(list, item);
         freeFrame(item);
+        linkedlistYield(list, (void**) (&item));
     }
 
     free(list);
 }
+
+/* void main() {
+    linkedlist *test = linkedlistInit();
+    u32 *testVal = malloc(sizeof(u32));
+    *testVal = 44;
+
+    printf("HI\n");
+    linkedlistAppend(test, testVal);
+
+    u32 *yeildReturn = malloc(sizeof(u32));
+
+    linkedlistYieldInt(test, &yeildReturn);
+    printf("hello %d\n", *yeildReturn);
+
+
+} */

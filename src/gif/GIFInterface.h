@@ -10,6 +10,18 @@
 #include "GIFCodeTable.h"
 #include "GIFColorTable.h"
 
+// In bits for both packed bytes
+#define CANVAS_GLOBAL_COLOR_TABLE_FLAG_OFFSET       7
+#define CANVAS_COLOR_RESOLUTION_OFFSET              4
+#define CANVAS_SORT_FLAG_OFFSET                     3 
+#define CANVAS_SIZE_OF_GLOBAL_COLOR_TABLE_OFFSET    0
+
+#define FRAME_LOCAL_COLOR_TABLE_FLAG_OFFSET         7
+#define FRAME_INTERLACE_FLAG_OFFSET                 6
+#define FRAME_SORT_FLAG_OFFSET                      5
+#define FRAME_RESERVED_OFFSET                       3
+#define FRAME_SIZE_OF_LOCAL_COLOR_TABLE_OFFSET      0
+
 // Main Storage Structs //
 
 typedef struct GIFCanvas {

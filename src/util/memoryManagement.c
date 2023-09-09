@@ -4,11 +4,6 @@
 #include <stdbool.h>
 #include "main.h"
 
-#include "GIFColorTable.h"
-#include "GIFCodeTable.h"
-#include "array.h"
-#include "GIFInterface.h"
-
 bool isNULL(void *data) {
     if (data == NULL) { 
         return true;

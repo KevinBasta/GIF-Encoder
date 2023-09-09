@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <math.h>
 #include <stdio.h>
 
 #include <stdint.h>
@@ -42,8 +43,9 @@ STATUS_CODE canvasAddGlobalColorTable(GIFCanvas *canvas, colorTable *clrTable) {
     canvas->packedField_GlobalColorTableFlag = 1;
     
     // Color table must be fully populated before this function call
-    canvas->packedField_ColorResolution         = clrTable->size;
-    canvas->packedField_SizeOfGlobalColorTable  = clrTable->size;
+    u32 sizeLog = log2(clrTable->size - 1);
+    canvas->packedField_ColorResolution         = sizeLog;
+    canvas->packedField_SizeOfGlobalColorTable  = sizeLog;
 
     canvas->globalColorTable = clrTable; 
 

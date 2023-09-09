@@ -19,7 +19,7 @@ u32 arrayGetItemAtCurrentIndex(array *arr);
 u32 arrayGetIncrement(array *arr);
 void arrayReset(array *arr);
 char* arrayConcat(array *arr, char entrySeparator);
-array *arrayInitFromStackArray(u8 *stackArr, size_t size);
+array *arrayInitFromStackArray(u8 stackArr[], size_t size);
 
 void arrayPrint(array *arr);
 void freeArray (array *arr);

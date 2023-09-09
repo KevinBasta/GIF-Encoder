@@ -37,25 +37,37 @@ STATUS_CODE encodeHeader(FILE *gif) {
     return OPERATION_SUCCESS;
 }
 
+static u8 packCanvasPackedField(GIFCanvas *canvas) {
+    u8 packedField = 0;
+
+    packedField |= canvas->packedField_GlobalColorTableFlag     << CANVAS_GLOBAL_COLOR_TABLE_FLAG_OFFSET;
+    packedField |= canvas->packedField_ColorResolution          << CANVAS_COLOR_RESOLUTION_OFFSET;
+    packedField |= canvas->packedField_SortFlag                 << CANVAS_SORT_FLAG_OFFSET;
+    packedField |= canvas->packedField_SizeOfGlobalColorTable   << CANVAS_SIZE_OF_GLOBAL_COLOR_TABLE_OFFSET;
+
+    return packedField;
+}
+
 /**
  * @brief Write general canvas information to file 
  * @param gif       - Gif file to write to
- * @param gifData   - Struct containing required fields
+ * @param canvas   - Struct containing required fields
  * @return OPERATION_SUCCESS or OPERATION_FAILED
  */
-STATUS_CODE encodeLogicalScreenDescriptor(FILE *gif, GIFCanvas *gifData) {
+STATUS_CODE encodeLogicalScreenDescriptor(FILE *gif, GIFCanvas *canvas) {
     size_t status;
     u32 nmemb = 1;
 
-    u16 canvasWidth         = littleEndianU16(gifData->canvasWidth);
-    u16 canvasHeight        = littleEndianU16(gifData->canvasHeight);
+    u16 canvasWidth         = littleEndianU16(canvas->canvasWidth);
+    u16 canvasHeight        = littleEndianU16(canvas->canvasHeight);
     
-    u8 packedField          = gifData->packedFieldCanvas;
-    
+    u8 packedField          = packCanvasPackedField(canvas);
+    printBits(&packedField, sizeof(u8));
+
     // Represents which index in the global color table should be used 
     // for pixels on the virtual canvas that aren't overlayed by an image
-    u8 backgroundColorIndex = gifData->backgroundColorIndex;
-    u8 pixelAspectRatio     = gifData->pixelAspectRatio;
+    u8 backgroundColorIndex = canvas->backgroundColorIndex;
+    u8 pixelAspectRatio     = canvas->pixelAspectRatio;
 
     status = fwrite(&canvasWidth, sizeof(canvasWidth), nmemb, gif);
     CHECK_FWRITE_STATUS(status, nmemb);
@@ -75,23 +87,37 @@ STATUS_CODE encodeLogicalScreenDescriptor(FILE *gif, GIFCanvas *gifData) {
     return OPERATION_SUCCESS;
 }
 
+static u8 packFramePackedField(GIFFrame *frame) {
+    u8 packedField = 0;
+
+    packedField |= frame->packedField_LocalColorTableFlag   << FRAME_LOCAL_COLOR_TABLE_FLAG_OFFSET;
+    packedField |= frame->packedField_InterlaceFlag         << FRAME_INTERLACE_FLAG_OFFSET;
+    packedField |= frame->packedField_SortFlag              << FRAME_SORT_FLAG_OFFSET;
+    packedField |= frame->packedField_Reserved              << FRAME_RESERVED_OFFSET;
+    packedField |= frame->packedField_SizeOfLocalColorTable << FRAME_SIZE_OF_LOCAL_COLOR_TABLE_OFFSET;
+
+    return packedField;
+}
+
+
 /**
  * @brief write individual frame/image information to file
  * @param gif       - Gif file to write to
- * @param gifData   - Struct containing required fields
+ * @param frame     - Struct containing required fields
  * @return OPERATION_SUCCESS or OPERATION_FAILED
  */
-STATUS_CODE encodeImageDescriptor(FILE *gif, GIFCanvas *gifData) {
+STATUS_CODE encodeImageDescriptor(FILE *gif, GIFFrame *frame) {
     size_t status;
     u32 nmemb = 1;
 
     u8 imageSeparator = 0x2C;
-    u16 imageLeftPosition   = littleEndianU16(gifData->imageLeftPosition);
-    u16 imageTopPosition    = littleEndianU16(gifData->imageTopPosition);
-    u16 imageWidth          = littleEndianU16(gifData->imageWidth);
-    u16 imageHeight         = littleEndianU16(gifData->imageHeight);
+    u16 imageLeftPosition   = littleEndianU16(frame->imageLeftPosition);
+    u16 imageTopPosition    = littleEndianU16(frame->imageTopPosition);
+    u16 imageWidth          = littleEndianU16(frame->imageWidth);
+    u16 imageHeight         = littleEndianU16(frame->imageHeight);
     
-    u8 packedField          = gifData->packedFieldImage;
+    u8 packedField          = packFramePackedField(frame);
+    printIntBits(&packedField, sizeof(u8));
 
     status = fwrite(&imageSeparator, sizeof(imageSeparator), nmemb, gif);
     CHECK_FWRITE_STATUS(status, nmemb);
@@ -114,7 +140,7 @@ STATUS_CODE encodeImageDescriptor(FILE *gif, GIFCanvas *gifData) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE encodeGraphicsControlExtension(FILE *gif, GIFCanvas *gifData) {
+STATUS_CODE encodeGraphicsControlExtension(FILE *gif, GIFCanvas *canvas) {
     size_t status;
     u32 nmemb = 1;
 
@@ -200,13 +226,14 @@ STATUS_CODE encodeTrailer(FILE *gif) {
 
 /**
  * @brief 
- * @param gifData 
+ * @param canvas 
  * @return 
  */
 STATUS_CODE encodeGIF(GIFCanvas *canvas) {
     size_t status;
     FILE *gif = fopen("test.gif","wb");
     
+
     status = encodeHeader(gif);
     CHECKSTATUS(status);
 
@@ -214,18 +241,27 @@ STATUS_CODE encodeGIF(GIFCanvas *canvas) {
     CHECKSTATUS(status);
 
     // may need to pass in a gif struct that contains color resolution
-    // (from packed field of image or canvas descriptors) for number of entries 
+    // (from packed field of image or canvas descriptors) for number of entries
     status = encodeColorTable(gif, canvas->globalColorTable);
     CHECKSTATUS(status);
 
-    status = encodeGraphicsControlExtension(gif, canvas);
+    // status = encodeGraphicsControlExtension(gif, canvas);
+    // CHECKSTATUS(status);
+
+    GIFFrame *frame = malloc(sizeof(GIFFrame*));
+    status = linkedlistYield(canvas->frames, (void**) (&frame));
     CHECKSTATUS(status);
 
-    status = encodeImageDescriptor(gif, canvas);
-    CHECKSTATUS(status);
-    
-    status = encodeImageData(gif, canvas->globalColorTable, canvas->indexStream);
-    CHECKSTATUS(status);
+    while (frame != NULL) {
+        status = encodeImageDescriptor(gif, frame);
+        CHECKSTATUS(status);
+
+        status = encodeImageData(gif, canvas->globalColorTable, frame->indexStream);
+        CHECKSTATUS(status);
+
+        status = linkedlistYield(canvas->frames, (void**) (&frame));
+        CHECKSTATUS(status);
+    }
 
     status = encodeTrailer(gif);
     CHECKSTATUS(status);

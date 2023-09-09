@@ -73,7 +73,7 @@ STATUS_CODE createTestGif() {
       2, 2, 2, 2, 2, 1, 1, 1, 1, 1,
       2, 2, 2, 2, 2, 1, 1, 1, 1, 1,
       2, 2, 2, 2, 2, 1, 1, 1, 1, 1 };
-    array *frameOneIndexStream = arrayInitFromStackArray(&frameOneTempIndexStream, sizeof(frameOneTempIndexStream));
+    array *frameOneIndexStream = arrayInitFromStackArray((u8*)&frameOneTempIndexStream, sizeof(frameOneTempIndexStream));
     
     GIFFrame *frameOne = frameCreate(0x0A, 0x0A, 0, 0);
     frameAddIndexStream(frameOne, frameOneIndexStream);
@@ -109,8 +109,7 @@ STATUS_CODE createErrorGif() {
       0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,0,0,
       0,1,1,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-    array *frameOneIndexStream = arrayInitFromStackArray(&frameOneTempIndexStream, sizeof(frameOneTempIndexStream));
-
+    array *frameOneIndexStream = arrayInitFromStackArray((u8*)&frameOneTempIndexStream, sizeof(frameOneTempIndexStream));
     GIFFrame *frameOne = frameCreate(24, 7, 0, 0);
     frameAddIndexStream(frameOne, frameOneIndexStream);
 

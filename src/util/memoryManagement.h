@@ -4,9 +4,7 @@
 
 #include <stdint.h>
 #include "main.h"
-#include "GIFInterface.h"
 
-void freeGifData(GIFCanvas *gifData);
 void freeIfNotNULL(void *data);
 u8 isNULL(void *data);
 
