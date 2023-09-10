@@ -1,6 +1,6 @@
 
-#ifndef COLOR_TABLE_H
-#define COLOR_TABLE_H
+#ifndef GIF_COLOR_TABLE_H
+#define GIF_COLOR_TABLE_H
 
 #include <stdint.h>
 #include "main.h"

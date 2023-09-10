@@ -71,7 +71,6 @@ STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame) {
     }
 
     linkedlistAppend(canvas->frames, frame);
-    printf("APPEND!");
 
     return OPERATION_SUCCESS;
 }
@@ -154,6 +153,15 @@ STATUS_CODE frameAddGraphicsControlInfo(GIFFrame *frame, u8 disposalMethod, u16 
 
     frame->packedField_GCE_DisposalMethod = disposalMethod;
     frame->delayTime                      = delayTime;
+
+    return OPERATION_SUCCESS;
+}
+
+STATUS_CODE frameSetTransparanetColorIndexInColorTable(GIFFrame *frame, u8 transparentColorIndex) {
+    FRAME_NULL_CHECK(frame);
+
+    frame->packedField_GCE_TransparentColorFlag = 1;
+    frame->transparentColorIndex                = transparentColorIndex;
 
     return OPERATION_SUCCESS;
 }

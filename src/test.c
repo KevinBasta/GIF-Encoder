@@ -8,8 +8,6 @@
 #ifndef COMMON_TYPES
     #define COMMON_TYPES
     #include "main.h"
-    #include "typesMPEG-4.h"
-    #include "typesAVC.h"
     #include "linkedlist.h"
     #include "GIFInterface.h"
     #include "searchUtility.h"

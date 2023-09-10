@@ -1,6 +1,6 @@
 
-#ifndef CODE_TABLE_H
-#define CODE_TABLE_H
+#ifndef GIF_CODE_TABLE_H
+#define GIF_CODE_TABLE_H
 
 #include <stdint.h>
 #include "main.h"
@@ -19,4 +19,4 @@ u32 codetableGetNextIndex(codeTable *table);
 u32 codetableGetCurrentIndex(codeTable *table);
 void freeCodeTable(codeTable *table);
 
-#endif // CODE_TABLE_H
+#endif // GIF_CODE_TABLE_H

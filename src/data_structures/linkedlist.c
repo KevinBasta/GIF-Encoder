@@ -40,6 +40,8 @@ STATUS_CODE linkedlistAppend(linkedlist *list, void *item) {
 }
 
 STATUS_CODE linkedlistYield(linkedlist *list, void **item) {
+    LINKED_LIST_NULL_CHECK(list);
+
     if (list->currentIter == NULL) {
         *item = NULL;
     } else if (list->currentIter != NULL) { 

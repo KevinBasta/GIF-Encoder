@@ -22,14 +22,16 @@
 #include "GIFCodeTable.h"
 #include "GIFError.h"
 
-STATUS_CODE gifErrorOutput() {
+STATUS_CODE gifErrorOutput(u32 errorCode) {
     // creates a gif that displays
     // the word "ERROR!" in case the main
     // program goes wrong somewhere
     // also serves as a good test
+    STATUS_CODE status;
 
+    status = createErrorGif(errorCode);
 
-    return OPERATION_SUCCESS;
+    return status;
 }
 
 
@@ -38,7 +40,7 @@ int main(int argc, char **argv) {
     TIMER_INIT;
     TIMER_START();
     
-    createErrorGif();
+    createErrorGif(1);
     
     TIMER_END();
     

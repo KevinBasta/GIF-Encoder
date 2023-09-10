@@ -185,6 +185,8 @@ void freeCanvas(GIFCanvas *canvas);
 GIFFrame *frameCreate(u16 frameWidth, u16 frameHeight, u16 imageLeftPosition, u16 imageTopPosition);
 STATUS_CODE frameAddLocalColorTable(GIFFrame *frame, colorTable *clrTable);
 STATUS_CODE frameAddIndexStream(GIFFrame *frame, array *indexStream);
+STATUS_CODE frameAddGraphicsControlInfo(GIFFrame *frame, u8 disposalMethod, u16 delayTime);
+STATUS_CODE frameSetTransparanetColorIndexInColorTable(GIFFrame *frame, u8 transparentColorIndex);
 void freeFrame(GIFFrame *frame);
 
 #endif
