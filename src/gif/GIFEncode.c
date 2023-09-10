@@ -1,7 +1,8 @@
 
 #include <stdlib.h>
-#include <stdio.h>
+#include <stdbool.h>
 #include <math.h>
+#include <stdio.h>
 
 #include <stdint.h>
 #include "main.h"
@@ -20,7 +21,7 @@
 /**
  * @brief Write common GIF header to file
  * @param gif - Gif file to write to
- * @return OPERATION_SUCCESS or OPERATION_FAILED
+ * @return OPERATION_SUCCESS or error code
  */
 STATUS_CODE encodeHeader(FILE *gif) {
     size_t status;
@@ -51,8 +52,8 @@ static u8 packCanvasPackedField(GIFCanvas *canvas) {
 /**
  * @brief Write general canvas information to file 
  * @param gif       - Gif file to write to
- * @param canvas   - Struct containing required fields
- * @return OPERATION_SUCCESS or OPERATION_FAILED
+ * @param canvas    - Struct containing required fields
+ * @return OPERATION_SUCCESS or error code
  */
 STATUS_CODE encodeLogicalScreenDescriptor(FILE *gif, GIFCanvas *canvas) {
     size_t status;
@@ -99,12 +100,11 @@ static u8 packFramePackedField(GIFFrame *frame) {
     return packedField;
 }
 
-
 /**
  * @brief write individual frame/image information to file
  * @param gif       - Gif file to write to
  * @param frame     - Struct containing required fields
- * @return OPERATION_SUCCESS or OPERATION_FAILED
+ * @return OPERATION_SUCCESS or error code
  */
 STATUS_CODE encodeImageDescriptor(FILE *gif, GIFFrame *frame) {
     size_t status;
@@ -140,13 +140,101 @@ STATUS_CODE encodeImageDescriptor(FILE *gif, GIFFrame *frame) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE encodeGraphicsControlExtension(FILE *gif, GIFCanvas *canvas) {
+/**
+ * @brief Write extention to spesify number of loops
+ * @param gif                   - Gif file to write to
+ * @param numberOfTimesToLoop   - Zero (0) for infinite loop
+ * @return OPERATION_SUCCESS or error code
+ */
+STATUS_CODE encodeNetscapeLoopExtention(FILE *gif, u16 numberOfTimesToLoop) {
     size_t status;
     u32 nmemb = 1;
 
-    // temporariy
-    u8 buffer[] = {0x21, 0xF9, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00};
-    fwrite(&buffer, sizeof(u8) * 8, nmemb, gif);
+    u8 extensionIntroducer       = 0x21;
+    u8 applicationExtensionLabel = 0xFF;
+
+    // eleven bytes of data follow
+    u8 lengthOfApplicationBlock = 0x0B; 
+    char NETSCAPE[11]           = "NETSCAPE2.0";
+
+    // three bytes of data follow
+    u8 lengthOfDataSubblock     = 0x03;
+    u8 subblockIntroducer       = 0x01;
+    numberOfTimesToLoop         = littleEndianU16(numberOfTimesToLoop);
+    u8 blockTerminator          = 0x00;
+
+    status = fwrite(&extensionIntroducer, sizeof(extensionIntroducer), nmemb, gif);
+    CHECK_FWRITE_STATUS(status, nmemb);
+
+    status = fwrite(&applicationExtensionLabel, sizeof(applicationExtensionLabel), nmemb, gif);
+    CHECK_FWRITE_STATUS(status, nmemb);
+
+    status = fwrite(&lengthOfApplicationBlock, sizeof(lengthOfApplicationBlock), nmemb, gif);
+    CHECK_FWRITE_STATUS(status, nmemb);
+
+    status = fwrite(NETSCAPE, sizeof(NETSCAPE), nmemb, gif);
+    CHECK_FWRITE_STATUS(status, nmemb);
+
+    status = fwrite(&lengthOfDataSubblock, sizeof(lengthOfDataSubblock), nmemb, gif);
+    CHECK_FWRITE_STATUS(status, nmemb);
+
+    status = fwrite(&subblockIntroducer, sizeof(subblockIntroducer), nmemb, gif);
+    CHECK_FWRITE_STATUS(status, nmemb);
+
+    status = fwrite(&numberOfTimesToLoop, sizeof(numberOfTimesToLoop), nmemb, gif);
+    CHECK_FWRITE_STATUS(status, nmemb);
+
+    status = fwrite(&blockTerminator, sizeof(blockTerminator), nmemb, gif);
+    CHECK_FWRITE_STATUS(status, nmemb);
+
+    return OPERATION_SUCCESS;
+}
+
+static u8 packGraphcisControlExtentionPackedField(GIFFrame *frame) {
+    u8 packedField = 0;
+
+    packedField |= frame->packedField_GCE_Reserved              << GRAPHICS_CONTROL_RESERVED_OFFSET;
+    packedField |= frame->packedField_GCE_DisposalMethod        << GRAPHICS_CONTROL_DISPOSAL_METHOD_OFFSET;
+    packedField |= frame->packedField_GCE_UserInputFlag         << GRAPHICS_CONTROL_USER_INPUT_FLAG_OFFSET;
+    packedField |= frame->packedField_GCE_TransparentColorFlag  << GRAPHICS_CONTROL_TRANSPARENT_COLOR_FLAG_OFFSET;
+
+    return packedField;
+}
+
+STATUS_CODE encodeGraphicsControlExtension(FILE *gif, GIFFrame *frame) {
+    size_t status;
+    u32 nmemb = 1;
+
+    u8 extensionIntroducer  = 0x21;
+    u8 graphicsControlLabel = 0xF9;
+    u8 byteSize             = 0x04;
+
+    u8 packedField           = packGraphcisControlExtentionPackedField(frame);
+    u16 delayTime            = littleEndianU16(frame->delayTime);
+    u8 transparentColorIndex = frame->transparentColorIndex;
+
+    u8 blockTerminator      = 0x00;
+
+    status = fwrite(&extensionIntroducer, sizeof(extensionIntroducer), nmemb, gif);
+    CHECK_FWRITE_STATUS(status, nmemb);
+
+    status = fwrite(&graphicsControlLabel, sizeof(graphicsControlLabel), nmemb, gif);
+    CHECK_FWRITE_STATUS(status, nmemb);
+
+    status = fwrite(&byteSize, sizeof(byteSize), nmemb, gif);
+    CHECK_FWRITE_STATUS(status, nmemb);
+
+    status = fwrite(&packedField, sizeof(packedField), nmemb, gif);
+    CHECK_FWRITE_STATUS(status, nmemb);
+
+    status = fwrite(&delayTime, sizeof(delayTime), nmemb, gif);
+    CHECK_FWRITE_STATUS(status, nmemb);
+
+    status = fwrite(&transparentColorIndex, sizeof(transparentColorIndex), nmemb, gif);
+    CHECK_FWRITE_STATUS(status, nmemb);
+
+    status = fwrite(&blockTerminator, sizeof(blockTerminator), nmemb, gif);
+    CHECK_FWRITE_STATUS(status, nmemb);
 
     return OPERATION_SUCCESS;
 }
@@ -155,7 +243,7 @@ STATUS_CODE encodeGraphicsControlExtension(FILE *gif, GIFCanvas *canvas) {
  * @brief Write every color in the color table to file
  * @param gif        - Gif file to write to
  * @param colorTable - Table to write to file
- * @return OPERATION_SUCCESS or OPERATION_FAILED
+ * @return OPERATION_SUCCESS or error code
  */
 STATUS_CODE encodeColorTable(FILE *gif, colorTable *colorTable) {
     size_t status;
@@ -183,7 +271,7 @@ STATUS_CODE encodeColorTable(FILE *gif, colorTable *colorTable) {
  * @param gif         - Gif file to write to
  * @param clrTable    - Color table to use
  * @param indexStream - A frame described in terms of the color table
- * @return OPERATION_SUCCESS or OPERATION_FAILED
+ * @return OPERATION_SUCCESS or error code
  */
 STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream) {
     size_t status;
@@ -211,7 +299,7 @@ STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream)
 /**
  * @brief Write common GIF footer to file
  * @param gif - Gif file to write to
- * @return OPERATION_SUCCESS or OPERATION_FAILED
+ * @return OPERATION_SUCCESS or error code
  */
 STATUS_CODE encodeTrailer(FILE *gif) {
     size_t status;
@@ -225,47 +313,102 @@ STATUS_CODE encodeTrailer(FILE *gif) {
 }
 
 
+static bool validGlobalColorTable(GIFCanvas *canvas) {
+    if (canvas->packedField_GlobalColorTableFlag == 1) {
+        if (canvas->globalColorTable != NULL) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static bool validLocalColorTable(GIFFrame *frame) {
+    if (frame->packedField_LocalColorTableFlag = 1) {
+        if (frame->localColorTable != NULL) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
 /**
- * @brief 
- * @param canvas 
- * @return 
+ * @brief Encode a gif file given all the information required
+ * @param canvas - Struct containing required information
+ * @return OPERATION_SUCCESS or error code
  */
 STATUS_CODE encodeGIF(GIFCanvas *canvas) {
     size_t status;
+   
+    // Error checking data inputted
+    CANVAS_NULL_CHECK(canvas);
+    LINKED_LIST_NULL_CHECK(canvas->frames);
+    if (canvas->frames->size <= 0)
+        return FRAMES_TO_WRITE_ZERO;
+    
     FILE *gif = fopen("test.gif","wb");
 
+    // Encode git header and canvas description
     status = encodeHeader(gif);
-    CHECKSTATUS(status);
-
+    CHECKSTATUS_CLOSE_FILE(status, gif);
     status = encodeLogicalScreenDescriptor(gif, canvas);
-    CHECKSTATUS(status);
+    CHECKSTATUS_CLOSE_FILE(status, gif);
 
-    // may need to pass in a gif struct that contains color resolution
-    // (from packed field of image or canvas descriptors) for number of entries
-    status = encodeColorTable(gif, canvas->globalColorTable);
-    CHECKSTATUS(status);
+    // Only encode global color table if flag is set
+    bool globalColorTableIsValid = validGlobalColorTable(canvas);
+    if (globalColorTableIsValid == true) {
+        status = encodeColorTable(gif, canvas->globalColorTable);
+        CHECKSTATUS_CLOSE_FILE(status, gif);
+    }
 
-    status = encodeGraphicsControlExtension(gif, canvas);
-    CHECKSTATUS(status);
+    // Only add loop extention if there is more than one frame
+    if (canvas->frames->size > 1) {
+        status = encodeNetscapeLoopExtention(gif, 0);
+        CHECKSTATUS_CLOSE_FILE(status, gif);
+    }
 
     GIFFrame *frame;
     linkedlistResetIter(canvas->frames);
     status = linkedlistYield(canvas->frames, (void**) (&frame));
-    CHECKSTATUS(status);
+    CHECKSTATUS_CLOSE_FILE(status, gif);
 
     while (frame != NULL) {
+        // Encode graphics control extention
+        status = encodeGraphicsControlExtension(gif, frame);
+        CHECKSTATUS_CLOSE_FILE(status, gif);
+
+        // Encode image description
         status = encodeImageDescriptor(gif, frame);
-        CHECKSTATUS(status);
+        CHECKSTATUS_CLOSE_FILE(status, gif);
 
-        status = encodeImageData(gif, canvas->globalColorTable, frame->indexStream);
-        CHECKSTATUS(status);
+        // Only encode local color table if flag is set
+        bool localColorTableIsValid = validLocalColorTable(frame);
+        if (localColorTableIsValid == true) {
+            status = encodeColorTable(gif, frame->localColorTable);
+            CHECKSTATUS_CLOSE_FILE(status, gif);
+        }
 
+        // Encode the frame's LZW compressed indexStream
+        if (localColorTableIsValid == true) {
+            status = encodeImageData(gif, frame->localColorTable, frame->indexStream);
+        } else if (globalColorTableIsValid == true) {
+            status = encodeImageData(gif, canvas->globalColorTable, frame->indexStream);
+        } else {
+            fclose(gif);
+            return COLOR_TABLE_MISSING;
+        }
+        CHECKSTATUS_CLOSE_FILE(status, gif);
+        
+        // Get the next frame in the linked list
         status = linkedlistYield(canvas->frames, (void**) (&frame));
-        CHECKSTATUS(status);
+        CHECKSTATUS_CLOSE_FILE(status, gif);
     }
 
+    // Encode the file terminator
     status = encodeTrailer(gif);
-    CHECKSTATUS(status);
+    CHECKSTATUS_CLOSE_FILE(status, gif);
 
     fclose(gif);
 

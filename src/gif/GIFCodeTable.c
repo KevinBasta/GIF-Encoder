@@ -43,7 +43,7 @@ u32 codetableGetNextIndex(codeTable *table) {
     return table->index;
 }
 
-u32 getCurrentIndexCodeTable(codeTable *table) {
+u32 codetableGetCurrentIndex(codeTable *table) {
     return table->index;
 }
 

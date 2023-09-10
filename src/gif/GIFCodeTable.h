@@ -16,6 +16,7 @@ typedef struct codeTable {
 
 codeTable* codetableInit(colorTable *clrTable);
 u32 codetableGetNextIndex(codeTable *table);
+u32 codetableGetCurrentIndex(codeTable *table);
 void freeCodeTable(codeTable *table);
 
 #endif // CODE_TABLE_H

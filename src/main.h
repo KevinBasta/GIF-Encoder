@@ -57,6 +57,9 @@ typedef enum STATUS_CODE {
     // Array Errors
     ARRAY_NULL      = 20,
 
+    // Linked List Errors
+    LINKED_LIST_NULL = 31,
+
     // Bit Array Errors
 
 
@@ -64,21 +67,26 @@ typedef enum STATUS_CODE {
     FWRITE_FAILED = 40,
 
     // Interface Errors
-    CANVAS_NULL     = 50,
-    FRAME_NULL      = 51,
+    CANVAS_NULL             = 50,
+    FRAME_NULL              = 51,
+    FRAMES_TO_WRITE_ZERO    = 52,
 
     // Color Table Errors
     COLOR_TABLE_NULL = 60,
+    COLOR_TABLE_MISSING = 61,
 
 } STATUS_CODE;
 
 #define CHECKSTATUS(status)                     if (status != OPERATION_SUCCESS) { return status; }
+#define CHECKSTATUS_CLOSE_FILE(status, gif)     if (status != OPERATION_SUCCESS) { fclose(gif); return status; }
 #define CHECK_FWRITE_STATUS(returned, expected) if (returned != expected)       { return FWRITE_FAILED; }
 #define CHECK_NULL(status)                      if (status == NULL)             { return OPERATION_NULL; }
 
+#define ARRAY_NULL_CHECK(arr)                   if (arr == NULL)                { return ARRAY_NULL; }
+#define LINKED_LIST_NULL_CHECK(list)            if (list == NULL)               { return LINKED_LIST_NULL; }
+
 #define CANVAS_NULL_CHECK(canvas)               if (canvas == NULL)             { return CANVAS_NULL; }
 #define FRAME_NULL_CHECK(frame)                 if (frame == NULL)              { return FRAME_NULL; }
-#define ARRAY_NULL_CHECK(arr)                   if (arr == NULL)                { return ARRAY_NULL; }
 #define COLOR_TABLE_NULL_CHECK(clrTable)        if (clrTable == NULL)           { return COLOR_TABLE_NULL; }
 
 

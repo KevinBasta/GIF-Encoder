@@ -71,6 +71,7 @@ STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame) {
     }
 
     linkedlistAppend(canvas->frames, frame);
+    printf("APPEND!");
 
     return OPERATION_SUCCESS;
 }
@@ -109,6 +110,14 @@ GIFFrame *frameCreate(u16 frameWidth, u16 frameHeight, u16 imageLeftPosition, u1
     newFrame->packedField_Reserved                  = 0;
     newFrame->packedField_SizeOfLocalColorTable     = 0;
 
+    newFrame->packedField_GCE_Reserved              = 0;
+    newFrame->packedField_GCE_DisposalMethod        = 2;
+    newFrame->packedField_GCE_UserInputFlag         = 0;
+    newFrame->packedField_GCE_TransparentColorFlag  = 0;
+
+    newFrame->delayTime             = 0;
+    newFrame->transparentColorIndex = 0;
+
     newFrame->localColorTable = NULL;
 
     newFrame->indexStream = NULL;
@@ -136,6 +145,15 @@ STATUS_CODE frameAddIndexStream(GIFFrame *frame, array *indexStream) {
     ARRAY_NULL_CHECK(indexStream);
 
     frame->indexStream = indexStream;
+
+    return OPERATION_SUCCESS;
+}
+
+STATUS_CODE frameAddGraphicsControlInfo(GIFFrame *frame, u8 disposalMethod, u16 delayTime) {
+    FRAME_NULL_CHECK(frame);
+
+    frame->packedField_GCE_DisposalMethod = disposalMethod;
+    frame->delayTime                      = delayTime;
 
     return OPERATION_SUCCESS;
 }

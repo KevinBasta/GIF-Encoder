@@ -26,11 +26,11 @@ STATUS_CODE linkedlistAppend(linkedlist *list, void *item) {
 
     if (list->size == 0) {
         list->head        = newNode;
-        list->tail        = newNode->nextNode;
+        list->tail        = list->head;
 
         list->currentIter = list->head;
     } else {
-        list->tail = newNode;
+        list->tail->nextNode = newNode;
         list->tail = list->tail->nextNode; 
     }
 
@@ -52,7 +52,7 @@ STATUS_CODE linkedlistYield(linkedlist *list, void **item) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE linkedlistResetIter(linkedlist *list) {
+void linkedlistResetIter(linkedlist *list) {
     list->currentIter = list->head;
 }
 

@@ -22,6 +22,11 @@
 #define FRAME_RESERVED_OFFSET                       3
 #define FRAME_SIZE_OF_LOCAL_COLOR_TABLE_OFFSET      0
 
+#define GRAPHICS_CONTROL_RESERVED_OFFSET                5
+#define GRAPHICS_CONTROL_DISPOSAL_METHOD_OFFSET         2
+#define GRAPHICS_CONTROL_USER_INPUT_FLAG_OFFSET         1
+#define GRAPHICS_CONTROL_TRANSPARENT_COLOR_FLAG_OFFSET  0
+
 // Main Storage Structs //
 
 typedef struct GIFCanvas {
@@ -119,6 +124,42 @@ typedef struct GIFFrame {
     //
     // ImageDescriptor Fields End
     //
+
+
+    //
+    // Graphic Control Extention Fields Start
+    //
+
+    //
+    // Packed Field:
+    // [5-7] : reserved for future use
+    //
+    // [2-4] : disposal method
+    //       : [1] leave the image in place and draw the next image on top of it
+    //       : [2] canvas should be restored to the background color
+    //       : [3] restore the canvas to it's previous state before the current image was drawn
+    //
+    // [1]   : user input flag
+    //       : [1] wait for some input from viewer beofre moving to next scene
+    //       : [0] don't wait for input
+    //
+    // [0]   : transparent color flag
+    //       : [1] transparancy used
+    //       : [0] transparancy not used
+    //
+    u8 packedField_GCE_Reserved:             3;
+    u8 packedField_GCE_DisposalMethod:       3;
+    u8 packedField_GCE_UserInputFlag:        1;
+    u8 packedField_GCE_TransparentColorFlag: 1;
+
+    // number of hundredths of a second to wait before moving on to the next scene
+    u16 delayTime;
+    u8 transparentColorIndex;
+
+    //
+    // Graphic Control Extention Fields End
+    //
+
 
     //
     // Local color table only used if
