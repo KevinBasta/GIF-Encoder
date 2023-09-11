@@ -84,12 +84,12 @@ void printBits(void const * const ptr, size_t const size) {
     puts("");
 }
 
-char* intToString(size_t i) {
-    //u32 intStrLen = snprintf(NULL, 0, "%ld", i);
+char* intToString(size_t i, u32 maxStringLength) {
     char *str     = calloc(6, sizeof(u8));
-    //snprintf(str, intStrLen, "%ld", i);
+    if (str == NULL)
+        return NULL;
+
     sprintf(str, "%ld", i);
-    //printf("%s\n", str);
     
     return str;
 }

@@ -33,6 +33,7 @@ static STATUS_CODE encodeLZWChunk(array *indexBuffer, codeTable *codeTable, u8 *
         CHECKSTATUS(status);
         
         char *indexBufferPlusKKey = arrayConcat(indexBuffer, ',');
+        CHECK_NULL(indexBufferPlusKKey);
         
         status = arrayPop(indexBuffer);
         CHECKSTATUS(status);
@@ -46,13 +47,14 @@ static STATUS_CODE encodeLZWChunk(array *indexBuffer, codeTable *codeTable, u8 *
         } else {
             // Insert indexBufferPlusKKey in hashmap with value as the next code table index
             u32 codeTableIndex          = codetableGetNextIndex(codeTable);
-            char *codeTableIndexString  = intToString(codeTableIndex);
+            char *codeTableIndexString  = intToString(codeTableIndex, 6);
             status = hashmapInsert(codeTable->map, indexBufferPlusKKey, codeTableIndexString);
             CHECKSTATUS(status);
             
 
             // Get  the code value of the index buffer without K
             char *indexBufferKey = arrayConcat(indexBuffer, ',');
+            CHECK_NULL(indexBufferKey);
 
             u32 indexBufferValue;
             status = hashmapSearchConvert(codeTable->map, indexBufferKey, &indexBufferValue);
@@ -62,8 +64,10 @@ static STATUS_CODE encodeLZWChunk(array *indexBuffer, codeTable *codeTable, u8 *
             
 
             // Reset the index buffer and add k to it
-            arrayReset(indexBuffer);
-            arrayAppend(indexBuffer, k);
+            status = arrayReset(indexBuffer);
+            CHECKSTATUS(status);
+            status = arrayAppend(indexBuffer, k);
+            CHECKSTATUS(status);
 
 
             // Check if should increase codeSize based on queue
@@ -137,6 +141,7 @@ static STATUS_CODE encodeFlexibleCodeSizeCodeStream(colorTable *clrTable, array 
 
     // Put the code value of the last index buffer state into the image data
     char *indexBufferKey = arrayConcat(indexBuffer, ',');
+    CHECK_NULL(indexBufferKey);
     
     u32 indexBufferValue;
     status = hashmapSearchConvert(codeTable->map, indexBufferKey, &indexBufferValue);
@@ -249,7 +254,7 @@ STATUS_CODE createLZWImageDataInitialDraft(colorTable *clrTable, array *indexStr
             free(indexBufferPlusKKey);
         } else {
             u32 codeTableIndex = codetableGetNextIndex(codeTable);
-            char *codeTableIndexString = intToString(codeTableIndex);
+            char *codeTableIndexString = intToString(codeTableIndex, 6);
             status = hashmapInsert(codeTable->map, indexBufferPlusKKey, codeTableIndexString);
             CHECKSTATUS(status);
             

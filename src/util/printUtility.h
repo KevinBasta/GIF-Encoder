@@ -10,6 +10,6 @@ void printHexNBytes(u8 *string, u32 bytesToPrint);
 void printCharArrayBits(u8 *bitPattern);
 void printBits(void const * const ptr, size_t const size);
 void printIntBits(void const * const ptr, size_t const size);
-char* intToString(size_t i);
+char* intToString(size_t i, u32 maxStringLength);
 
 #endif // PRINT_UTIL_H

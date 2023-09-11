@@ -55,7 +55,11 @@ typedef enum STATUS_CODE {
 
 
     // Array Errors
-    ARRAY_NULL      = 20,
+    ARRAY_NULL              = 20,
+    ARRAY_REALLOC_FAILED    = 21,
+    ARRAY_UNDERFLOW         = 22,
+    ARRAY_INDEX_UNDEFINED   = 23,
+
 
     // Linked List Errors
     LINKED_LIST_NULL = 31,

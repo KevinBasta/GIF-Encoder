@@ -10,9 +10,6 @@
 #include "bitUtility.h"
 #include "printUtility.h"
 
-/////////// Placing values at markers /////////////
-
-
 /**
  * @brief Insert the intervalIntervalInsertItem at markIndex,
  * append an entry for the next insert item, and update markIndex

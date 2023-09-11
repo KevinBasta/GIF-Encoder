@@ -21,15 +21,15 @@ codeTable* codetableInit(colorTable *clrTable) {
     table->map = map;
 
     for (size_t i = 0; i < clrTable->size; i++) {
-        char *str1 = intToString(i);
-        char *str2 = intToString(i);
+        char *str1 = intToString(i, 6);
+        char *str2 = intToString(i, 6);
         hashmapInsert(map, str1, str2);
 
         table->index = i;
     }
 
-    hashmapInsert(map, hashmapCreateKey("cc", 2), intToString(getClearCodeValue(clrTable->size)));
-    hashmapInsert(map, hashmapCreateKey("eoi", 3), intToString(getEOICodeValue(clrTable->size)));
+    hashmapInsert(map, hashmapCreateKey("cc", 2), intToString(getClearCodeValue(clrTable->size), 6));
+    hashmapInsert(map, hashmapCreateKey("eoi", 3), intToString(getEOICodeValue(clrTable->size), 6));
     hashmapPrint(map);
     table->index += 2;
 
