@@ -13,38 +13,46 @@
 /**
  * @brief Insert the intervalIntervalInsertItem at markIndex,
  * append an entry for the next insert item, and update markIndex
- * @param arr   - bitarray struct
+ * @param arr   Bitarray struct
+ * @return OPERATION_SUCCESS or error code
  */
-void setMarkValueAndMarkNewLocation(bitarray *arr) { 
-    // !!TODO - RETURN STATUS
+STATUS_CODE setMarkValueAndMarkNewLocation(bitarray *arr) { 
+    STATUS_CODE status;
+
+    BIT_ARRAY_NULL_CHECK(arr);
+
     if (arr->intervalInsertFlag == true) {
         //
         // NOTE: (arr->currentIndex - 1) because this function is
         // expected to be called after every current index increment
         //
         if ((arr->currentIndex - 1) % arr->intervalInsertBoundry == 0) {
-            bitarraySetBookMarkValue(arr, arr->intervalInsertItem);
+            status = bitarraySetBookMarkValue(arr, arr->intervalInsertItem);
+            CHECKSTATUS(status);
             
-            bitarrayBookMark(arr, 0);
-            bitarrayAppend(arr, 0);
+            status = bitarrayBookMark(arr, 0);
+            CHECKSTATUS(status);
+            status = bitarrayAppend(arr, 0);
+            CHECKSTATUS(status);
         }
     }
+
+    return OPERATION_SUCCESS;
 }
 
 /**
  * @brief Set the markIndex field of a bitarray to the 
  * bitarray's current index plus the offset
- * @param arr       - bitarray struct
- * @param offset    - offset from current index
- * @return OPERATION_SUCCESS or OPERATION_FAILED
+ * @param arr       Bitarray struct
+ * @param offset    Offset from current index
+ * @return OPERATION_SUCCESS or error code
  */
 STATUS_CODE bitarrayBookMark(bitarray *arr, u32 offset) {
-    if (arr == NULL)
-        return OPERATION_FAILED;
+    BIT_ARRAY_NULL_CHECK(arr);
 
     if (arr->currentIndex + offset < 0 || arr->currentIndex + offset > arr->size)
-        return OPERATION_FAILED;
-    
+        return BIT_ARRAY_BOOKMARK_FAILED;
+
     arr->markIndex = arr->currentIndex + offset;
 
     return OPERATION_SUCCESS;
@@ -52,13 +60,12 @@ STATUS_CODE bitarrayBookMark(bitarray *arr, u32 offset) {
 
 /**
  * @brief Set the value of the currently bookmarked item
- * @param arr   - bitarray struct
- * @param item  - item to put at current markIndex
- * @return OPERATION_SUCCESS or OPERATION_FAILED
+ * @param arr   Bitarray struct
+ * @param item  Item to put at current markIndex
+ * @return OPERATION_SUCCESS or error code
  */
 STATUS_CODE bitarraySetBookMarkValue(bitarray *arr, u8 item) {
-    if (arr == NULL)
-        return OPERATION_FAILED;
+    BIT_ARRAY_NULL_CHECK(arr);
 
     if (arr->markIndex != -1) {
         arr->items[arr->markIndex] = item;
@@ -70,14 +77,13 @@ STATUS_CODE bitarraySetBookMarkValue(bitarray *arr, u8 item) {
 
 /**
  * @brief Set a rule to insert an item at a set interval
- * @param arr           - bitarray struct
- * @param boundry       - interval to append the item
- * @param insertItem    - item to append at interval
- * @return OPERATION_SUCCESS or OPERATION_FAILED
+ * @param arr           Bitarray struct
+ * @param boundry       Interval to append the item
+ * @param insertItem    Item to append at interval
+ * @return OPERATION_SUCCESS or error code
  */
 STATUS_CODE bitarraySetIntervalInsertRule(bitarray *arr, size_t boundry, u8 insertItem) {
-    if (arr == NULL)
-        return OPERATION_FAILED;
+    BIT_ARRAY_NULL_CHECK(arr);
     
     arr->intervalInsertFlag    = true;
     arr->intervalInsertBoundry = boundry;
@@ -86,28 +92,84 @@ STATUS_CODE bitarraySetIntervalInsertRule(bitarray *arr, size_t boundry, u8 inse
     return OPERATION_SUCCESS;
 }
 
+
+
 /**
  * @brief Set the remaining bits to 0 in the pointer
- * @param item          - u8 integer to modify
- * @param currentBit    - 0 == least significant
- *                        1 == most significant
- * @return TBD
+ * @param item          u8 integer to modify
+ * @param currentBit    Bit to start zeroing from 
  */
-STATUS_CODE zeroRestOfByte(u8 *item, u8 currentBit) {
-    // !!TODO - RESOLVE RETURN TYPE
+static void zeroRestOfByte(u8 *item, u8 currentBit) {
     for (u8 i = currentBit; i < 8; i++) {
         *item &= ~(1 << i);
     }
 }
 
+/**
+ * @brief Decide a new size for an array in the context of realloc 
+ * @param arr Bitarray to return new size for
+ * @return New size (number of entries) for the array
+ */
+static size_t bitarrayNewSize(bitarray *arr) {
+    return arr->size + (arr->size / 2);
+}
+
+/**
+ * @brief Expand a bitarray by using the realloc stdlib function
+ * @param arr       Bitarray to expand
+ * @param newSize   The new size (number of entries) to expand to
+ * @return OPERATION_SUCCESS or error code
+ */
+static STATUS_CODE bitarrayRealloc(bitarray *arr, size_t newTotalEntries) {
+    u8 *status = realloc(arr->items, newTotalEntries * sizeof(u8));
+    
+    if (status == NULL) {
+        freeBitArray(arr);
+        return BIT_ARRAY_REALLOC_FAILED;
+    }
+    
+    arr->items = status;
+    arr->size  = newTotalEntries;
+
+    return OPERATION_SUCCESS;
+}
+
+/**
+ * @brief Increment CurrentIndex, set currentBit to 0, set update bookmark if needed
+ * @param arr The bitarray to perform on
+ * @return OPERATION_SUCCESS or error code
+ */
+static STATUS_CODE incrementCurrentIndex(bitarray *arr) {
+    STATUS_CODE status;
+
+    if (arr->currentIndex + 1 >= arr->size) {
+        status = bitarrayRealloc(arr, bitarrayNewSize(arr));
+        CHECKSTATUS(status);
+    }
+    
+    arr->currentIndex++;
+    arr->currentBit = 0;
+    status = setMarkValueAndMarkNewLocation(arr);
+
+    return status;
+}
 
 
-/////////// Main Interface ///////////
 
+/**
+ * @brief Init a bit array struct
+ * @param size Total entries to initally allocate space for
+ * @return Bitarray pointer or NULL
+ */
 bitarray *bitarrayInit(size_t size) {
     bitarray *arr = calloc(1, sizeof(bitarray));
+    if (arr == NULL)
+        return NULL;
 
     arr->items = calloc(size, sizeof(u8));
+    if (arr->items == NULL)
+        return NULL;
+
     arr->size = size;
     arr->currentIndex = 0;
     arr->currentBit   = 0;
@@ -120,101 +182,46 @@ bitarray *bitarrayInit(size_t size) {
     return arr;
 }
 
+/**
+ * @brief Append a u8 item to a bitarray
+ * @param arr   Array in question
+ * @param item  Item to append
+ * @return OPERATION_SUCCESS or error code
+ */
 STATUS_CODE bitarrayAppend(bitarray *arr, u8 item) {
-    if (arr == NULL)
-        return OPERATION_FAILED;
-
-    if (arr->currentIndex + 1 >= arr->size) {
-        // realloc
-    }
+    STATUS_CODE status;
+    
+    BIT_ARRAY_NULL_CHECK(arr);
     
     if (arr->currentBit != 0) {
         zeroRestOfByte(&(arr->items[arr->currentIndex]), arr->currentBit);
-        arr->currentBit = 0;
-        (arr->currentIndex)++;
-        setMarkValueAndMarkNewLocation(arr);
+        status = incrementCurrentIndex(arr);
+        CHECKSTATUS(status);
     }
 
     arr->items[arr->currentIndex] = item;
-    (arr->currentIndex)++;
-    setMarkValueAndMarkNewLocation(arr);
+    status = incrementCurrentIndex(arr);
+    CHECKSTATUS(status);
     
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE bitarrayAppendPacked(bitarray *arr, u32 item) {
-    if (arr == NULL)
-        return OPERATION_FAILED;
+/**
+ * @brief Append the least amount of bits needed to express item or minNumberOfBits
+ * packing to the left (least significant bit) of each byte
+ * @param arr               Bitarray to append to
+ * @param item              Item to append
+ * @param minNumberOfBits   The minimum number of bits this item should take up
+ * @return OPERATION_SUCCESS or error code
+ */
+STATUS_CODE bitarrayAppendPackedLeft(bitarray *arr, u32 item, u32 minNumberOfBits) {
+    STATUS_CODE status;
+    BIT_ARRAY_NULL_CHECK(arr);
 
-    if (arr->currentIndex + 1 >= arr->size) {
-        // realloc
+    u32 occupiedBits = getOccupiedBits(item);
+    if (minNumberOfBits < occupiedBits) {
+        return BIT_ARRAY_PACK_OCCUPIED_GREATER_THAN_MIN;
     }
-
-    u32 itemBitLength = getOccupiedBits(item);
-    u32 remainingBitsInCurrentArrayByte = 8 - arr->currentBit;
-
-
-    if (remainingBitsInCurrentArrayByte >= itemBitLength) {
-        u8 currentItem = arr->items[arr->currentIndex];
-
-        arr->items[arr->currentIndex] = currentItem | (item << (remainingBitsInCurrentArrayByte - itemBitLength));
-        arr->currentBit += itemBitLength;
-        
-        if (arr->currentBit == 8) {
-            (arr->currentIndex)++;
-            arr->currentBit = 0;
-            setMarkValueAndMarkNewLocation(arr);
-        }
-    } else {
-        u32 remainingBitsToBeWritten = itemBitLength;
-        while (remainingBitsToBeWritten > 0) {
-            u8 currentItem = arr->items[arr->currentIndex];
-
-            if (remainingBitsToBeWritten > remainingBitsInCurrentArrayByte) {
-                u32 leftOverBits = (remainingBitsToBeWritten - remainingBitsInCurrentArrayByte);
-                
-                arr->items[arr->currentIndex] = currentItem | (item >> leftOverBits);
-                arr->currentBit += remainingBitsToBeWritten - leftOverBits;
-                
-                remainingBitsToBeWritten -= remainingBitsInCurrentArrayByte;
-            } else { 
-                arr->items[arr->currentIndex] = currentItem | (item << (remainingBitsInCurrentArrayByte - remainingBitsToBeWritten));
-                arr->currentBit += remainingBitsToBeWritten;
-                
-                remainingBitsToBeWritten -= min(8, remainingBitsToBeWritten); // min not required
-            }
-
-            if (arr->currentBit == 8) {
-                (arr->currentIndex)++;
-                arr->currentBit = 0;
-                setMarkValueAndMarkNewLocation(arr);
-            }
-
-            remainingBitsInCurrentArrayByte = 8 - arr->currentBit;
-        }
-    }
-
-    /* printf("current bit: %ld current index: %ld\n", arr->currentBit, arr->currentIndex);
-    printIntBits(&(arr->items[0]), sizeof(u8));
-    printIntBits(&(arr->items[1]), sizeof(u8));
-    printIntBits(&(arr->items[2]), sizeof(u8)); */
-
-    return OPERATION_SUCCESS;
-}
-
-STATUS_CODE bitarrayAppendPackedLeft(bitarray *arr, u32 item, u32 occupiedBits, u32 minNumberOfBits) {
-    if (arr == NULL)
-        return OPERATION_FAILED;
-
-    if (minNumberOfBits + 1 < occupiedBits) {
-        printf("LESS THAN\n");
-        return OPERATION_FAILED;
-    }
-
-    if (arr->currentIndex + 1 >= arr->size) {
-        // realloc
-    }
-
 
     u32 remainingBitsInCurrentArrayByte = 8 - arr->currentBit;
 
@@ -225,9 +232,8 @@ STATUS_CODE bitarrayAppendPackedLeft(bitarray *arr, u32 item, u32 occupiedBits, 
         arr->currentBit += minNumberOfBits;
         
         if (arr->currentBit == 8) {
-            (arr->currentIndex)++;
-            arr->currentBit = 0;
-            setMarkValueAndMarkNewLocation(arr);
+            status = incrementCurrentIndex(arr);
+            CHECKSTATUS(status);
         }
     } else {
         u32 remainingBitsToBeWritten = minNumberOfBits;
@@ -249,39 +255,34 @@ STATUS_CODE bitarrayAppendPackedLeft(bitarray *arr, u32 item, u32 occupiedBits, 
             }
 
             if (arr->currentBit == 8) {
-                (arr->currentIndex)++;
-                arr->currentBit = 0;
-                setMarkValueAndMarkNewLocation(arr);
+                status = incrementCurrentIndex(arr);
+                CHECKSTATUS(status);
             }
 
             remainingBitsInCurrentArrayByte = 8 - arr->currentBit;
         }
     }
 
-   /*  printf("current bit: %ld current index: %ld\n", arr->currentBit, arr->currentIndex);
-    printIntBits(&(arr->items[0]), sizeof(u8));
-    printIntBits(&(arr->items[1]), sizeof(u8));
-    printIntBits(&(arr->items[2]), sizeof(u8));
-    printIntBits(&(arr->items[3]), sizeof(u8));
-    printIntBits(&(arr->items[4]), sizeof(u8)); */
-
     return OPERATION_SUCCESS;
 }
 
+/**
+ * @brief Append the least amount of bits needed to express item or minNumberOfBits
+ * packing to the right (most significant bit) of each byte
+ * @param arr               Bitarray to append to
+ * @param item              Item to append
+ * @param minNumberOfBits   The minimum number of bits this item should take up
+ * @return OPERATION_SUCCESS or error code
+ */
 STATUS_CODE bitarrayAppendPackedRight(bitarray *arr, u32 item, u32 minNumberOfBits) {
-    if (arr == NULL)
-        return OPERATION_FAILED;
+    STATUS_CODE status;
+    
+    BIT_ARRAY_NULL_CHECK(arr);
 
     u32 occupiedBits = getOccupiedBits(item);
     if (minNumberOfBits < occupiedBits) {
-        printf("LESS THAN\n");
-        //return OPERATION_FAILED;
+        return BIT_ARRAY_PACK_OCCUPIED_GREATER_THAN_MIN;
     }
-
-    if (arr->currentIndex + 1 >= arr->size) {
-        // realloc
-    }
-
 
     u32 remainingBitsInCurrentArrayByte = 8 - arr->currentBit;
 
@@ -292,9 +293,8 @@ STATUS_CODE bitarrayAppendPackedRight(bitarray *arr, u32 item, u32 minNumberOfBi
         arr->currentBit += minNumberOfBits;
         
         if (arr->currentBit == 8) {
-            (arr->currentIndex)++;
-            arr->currentBit = 0;
-            setMarkValueAndMarkNewLocation(arr);
+            status = incrementCurrentIndex(arr);
+            CHECKSTATUS(status);
         }
     } else {
         u32 remainingBitsToBeWritten = minNumberOfBits;
@@ -322,26 +322,18 @@ STATUS_CODE bitarrayAppendPackedRight(bitarray *arr, u32 item, u32 minNumberOfBi
             }
 
             if (arr->currentBit == 8) {
-                (arr->currentIndex)++;
-                arr->currentBit = 0;
-                setMarkValueAndMarkNewLocation(arr);
+                status = incrementCurrentIndex(arr);
+                CHECKSTATUS(status);
             }
 
             remainingBitsInCurrentArrayByte = 8 - arr->currentBit;
         }
     }
 
-    /* printf("current bit: %ld current index: %ld\n", arr->currentBit, arr->currentIndex);
-    printIntBits(&(arr->items[0]), sizeof(u8));
-    printIntBits(&(arr->items[1]), sizeof(u8));
-    printIntBits(&(arr->items[2]), sizeof(u8));
-    printIntBits(&(arr->items[3]), sizeof(u8));
-    printIntBits(&(arr->items[4]), sizeof(u8)); */
-
     return OPERATION_SUCCESS;
 }
 
-
+// Print bitarray up to last occupied byte
 void bitarrayPrint(bitarray *arr) {
     size_t index = 0;
 
@@ -356,6 +348,7 @@ void bitarrayPrint(bitarray *arr) {
     printf("\n");
 }
 
+// Free the struct and its pointer fields
 void freeBitArray(bitarray *arr) {
     free(arr->items);
     free(arr);

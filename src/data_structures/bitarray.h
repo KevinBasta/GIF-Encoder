@@ -21,8 +21,7 @@ typedef struct bitarray {
 
 bitarray *bitarrayInit(size_t size);
 STATUS_CODE bitarrayAppend(bitarray *arr, u8 item);
-STATUS_CODE bitarrayAppendPacked(bitarray *arr, u32 item); // !!TODO - REFACTOR
-STATUS_CODE bitarrayAppendPackedLeft(bitarray *arr, u32 item, u32 occupiedBits, u32 minNumberOfBits); // !!TODO - REFACTOR
+STATUS_CODE bitarrayAppendPackedLeft(bitarray *arr, u32 item, u32 minNumberOfBits);
 STATUS_CODE bitarrayAppendPackedRight(bitarray *arr, u32 item, u32 minNumberOfBits);
 
 STATUS_CODE bitarrayBookMark(bitarray *arr, u32 offset);

@@ -88,6 +88,4 @@ void freeFrameLinkedList(linkedlist *list) {
 
     linkedlistYieldInt(test, &yeildReturn);
     printf("hello %d\n", *yeildReturn);
-
-
 } */

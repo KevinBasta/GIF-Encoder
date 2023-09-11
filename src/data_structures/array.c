@@ -20,12 +20,12 @@ static size_t arrayNewSize(array *arr) {
 
 /**
  * @brief Expand an array by using the realloc stdlib function
- * @param arr       Array to expand
- * @param newSize   The new size (number of entries) to expand to
+ * @param arr               Array to expand
+ * @param newTotalEntries   The new size (number of entries) to expand to
  * @return OPERATION_SUCCESS or error code
  */
-static STATUS_CODE arrayRealloc(array *arr, size_t newSize) {
-    u32 *status = realloc(arr->items, newSize * sizeof(u32));
+static STATUS_CODE arrayRealloc(array *arr, size_t newTotalEntries) {
+    u32 *status = realloc(arr->items, newTotalEntries * sizeof(u32));
     
     if (status == NULL) {
         freeArray(arr);
@@ -33,7 +33,7 @@ static STATUS_CODE arrayRealloc(array *arr, size_t newSize) {
     }
     
     arr->items = status;
-    arr->size  = newSize;
+    arr->size  = newTotalEntries;
 
     return OPERATION_SUCCESS;
 }
@@ -186,10 +186,7 @@ array *arrayInitFromStackArray(u8 stackArr[], size_t size) {
     return heapArr;
 }
 
-/**
- * @brief Print an array's items up to the last populated entry
- * @param arr Array to print
- */
+// Print an array's items up to the last populated entry
 void arrayPrint(array *arr) {
     size_t index = 0;
 
@@ -204,10 +201,7 @@ void arrayPrint(array *arr) {
     printf("\n");
 }
 
-/**
- * @brief Free all of an array's entries
- * @param arr Array to free
- */
+// Free all of an array's entries
 void freeArray(array *arr) {
     free(arr->items);
     free(arr);
