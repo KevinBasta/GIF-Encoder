@@ -63,13 +63,21 @@ typedef enum STATUS_CODE {
     BIT_ARRAY_REALLOC_FAILED                 = 22,
     BIT_ARRAY_PACK_OCCUPIED_GREATER_THAN_MIN = 23,
 
-
+    // Hash Map Errors
+    HASH_MAP_NULL           = 30,
+    HASH_MAP_KEY_VAL_NULL   = 31,
+    HASH_MAP_FULL           = 32,
+    HASH_MAP_INSERT_TIMEOUT = 33,
 
     // Linked List Errors
-    LINKED_LIST_NULL = 40,
+    LINKED_LIST_NULL        = 40,
+    LINKED_LIST_NODE_NULL   = 41,
 
-
-    // Hash Map Errors
+    // Queue Errors
+    QUEUE_NULL  = 50,
+    QUEUE_FULL  = 51,
+    QUEUE_UNDERFLOW = 52,
+    
 
     // File Errors
     FWRITE_FAILED = 40,
@@ -92,7 +100,9 @@ typedef enum STATUS_CODE {
 
 #define ARRAY_NULL_CHECK(arr)                   if (arr == NULL)                { return ARRAY_NULL; }
 #define BIT_ARRAY_NULL_CHECK(arr)               if (arr == NULL)                { return BIT_ARRAY_NULL; }
+#define HASH_MAP_NULL_CHECK(map)                if (map == NULL)                { return HASH_MAP_NULL; }
 #define LINKED_LIST_NULL_CHECK(list)            if (list == NULL)               { return LINKED_LIST_NULL; }
+#define QUEUE_NULL_CHECK(queue)                 if (queue == NULL)              { return QUEUE_NULL; }
 
 #define CANVAS_NULL_CHECK(canvas)               if (canvas == NULL)             { return CANVAS_NULL; }
 #define FRAME_NULL_CHECK(frame)                 if (frame == NULL)              { return FRAME_NULL; }

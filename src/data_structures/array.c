@@ -49,8 +49,10 @@ array *arrayInit(size_t size) {
         return NULL;
 
     arr->items = calloc(size, sizeof(u32));
-    if (arr->items == NULL)
+    if (arr->items == NULL) {
+        free(arr);
         return NULL;
+    }
 
     arr->size = size;
     arr->currentIndex = 0;
@@ -203,6 +205,10 @@ void arrayPrint(array *arr) {
 
 // Free all of an array's entries
 void freeArray(array *arr) {
-    free(arr->items);
-    free(arr);
+    if (arr != NULL) {
+        if (arr->items != NULL)
+            free(arr->items);
+
+        free(arr);
+    }
 }

@@ -8,22 +8,40 @@
 
 #include "queue.h"
 
+/**
+ * @brief Create a new queue
+ * @param size Fixed total amount of elements allowed
+ * in the queue at one time
+ * @return queue pointer or NULL
+ */
 queue *queueInit(size_t size) {
     queue *newQueue = calloc(1, sizeof(queue));
+    if (newQueue == NULL)
+        return NULL;
+
     newQueue->head = -1;
     newQueue->tail = -1;
     newQueue->size = size;
     newQueue->items = calloc(size, sizeof(bool));
+    if (newQueue->items == NULL) {
+        free(newQueue);
+        return NULL;
+    }
 
     return newQueue;
 }
 
+/**
+ * @brief Add an element to the back of the queue
+ * @param queue     queue to add to
+ * @param newItem   item to add to queue
+ * @return OPERATION_SUCCESS
+ */
 STATUS_CODE queueEnqueue(queue *queue, bool newItem) {
-    if (queue == NULL)
-        return OPERATION_FAILED;
+    QUEUE_NULL_CHECK(queue);
 
     if (queue->count == queue->size)
-        return OPERATION_FAILED;
+        return QUEUE_FULL;
 
     size_t newTail = (queue->tail + 1) % (queue->size);
 
@@ -37,12 +55,17 @@ STATUS_CODE queueEnqueue(queue *queue, bool newItem) {
     return OPERATION_SUCCESS;
 }
 
+/**
+ * @brief Remove and return an element from the front of the queue
+ * @param queue         queue to remove from
+ * @param returnedItem  item being dequeued (returned)
+ * @return 
+ */
 STATUS_CODE queueDequeue(queue *queue, bool *returnedItem) {
-    if (queue == NULL)
-        return OPERATION_FAILED;
+    QUEUE_NULL_CHECK(queue);
     
     if (queue->count == 0)
-        return OPERATION_FAILED;
+        return QUEUE_UNDERFLOW;
 
     size_t newHead = (queue->head + 1) % (queue->size);
 
@@ -52,25 +75,31 @@ STATUS_CODE queueDequeue(queue *queue, bool *returnedItem) {
     queue->count--;
 
     *returnedItem = item;
+
+    return OPERATION_SUCCESS;
 }
 
+// Return current items in the queue
 size_t queueGetCurrentLength(queue *queue) {
     return queue->count;
 }
 
+// Print every queue entry
 void queuePrint(queue *queue) {
     for (size_t i = 0; i < queue->size; i++) {
         printf("%d ", queue->items[i]);
     }
     
-    //printf("\t");
-    //printf("count: %d head: %d tail: %d size: %d\n", queue->count, queue->head, queue->tail, queue->size);
     printf("\n");
 }
 
 void freeQueue(queue *queue) {
-    free(queue->items);
-    free(queue);
+    if (queue != NULL) {
+        if (queue->items != NULL)
+            free(queue->items);
+        
+        free(queue);
+    }
 }
 
 /* int main() {

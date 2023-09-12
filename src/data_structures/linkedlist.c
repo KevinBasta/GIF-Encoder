@@ -8,8 +8,14 @@
 #include "linkedlist.h"
 #include "GIFInterface.h"
 
+/**
+ * @brief Create a linkedlist
+ * @return linklist pointer
+ */
 linkedlist *linkedlistInit() {
     linkedlist *list = calloc(1, sizeof(linkedlist));
+    if (list == NULL)
+        return NULL;
 
     list->size         = 0;
     list->head         = NULL;
@@ -19,8 +25,19 @@ linkedlist *linkedlistInit() {
     return list;
 }
 
+/**
+ * @brief Append item to the tail of a linkedlist
+ * @param list  list to append to
+ * @param item  item to append
+ * @return OPERATION_SUCCESS or error code
+ */
 STATUS_CODE linkedlistAppend(linkedlist *list, void *item) {
+    LINKED_LIST_NULL_CHECK(list);
+
     node *newNode       = calloc(1, sizeof(node));
+    if (newNode == NULL)
+        return LINKED_LIST_NODE_NULL;
+    
     newNode->item       = item;
     newNode->nextNode   = NULL;
 
@@ -39,6 +56,12 @@ STATUS_CODE linkedlistAppend(linkedlist *list, void *item) {
     return OPERATION_SUCCESS;
 }
 
+/**
+ * @brief Yield the next item currentIter points to
+ * @param list  list to yield from
+ * @param item  item returned (being yielded)
+ * @return OPERATION_SUCCESS or error code
+ */
 STATUS_CODE linkedlistYield(linkedlist *list, void **item) {
     LINKED_LIST_NULL_CHECK(list);
 
@@ -54,26 +77,29 @@ STATUS_CODE linkedlistYield(linkedlist *list, void **item) {
     return OPERATION_SUCCESS;
 }
 
+// Reset list's currentIter field
 void linkedlistResetIter(linkedlist *list) {
     list->currentIter = list->head;
 }
 
 void freeFrameLinkedList(linkedlist *list) {
-    linkedlistResetIter(list);
+    if (list != NULL) {
+        linkedlistResetIter(list);
 
-    node *currentHead = list->head;
+        node *currentHead = list->head;
 
-    while (currentHead != NULL) {
-        GIFFrame *item = currentHead->item;
-        freeFrame(item);
-    
-        node *nextHead = currentHead->nextNode;
-        free(currentHead);
+        while (currentHead != NULL) {
+            GIFFrame *item = currentHead->item;
+            freeFrame(item);
         
-        currentHead = nextHead;
-    }
+            node *nextHead = currentHead->nextNode;
+            free(currentHead);
+            
+            currentHead = nextHead;
+        }
 
-    free(list);
+        free(list);
+    }
 }
 
 /* void main() {

@@ -167,8 +167,10 @@ bitarray *bitarrayInit(size_t size) {
         return NULL;
 
     arr->items = calloc(size, sizeof(u8));
-    if (arr->items == NULL)
+    if (arr->items == NULL) {
+        free(arr);
         return NULL;
+    }
 
     arr->size = size;
     arr->currentIndex = 0;
@@ -350,8 +352,12 @@ void bitarrayPrint(bitarray *arr) {
 
 // Free the struct and its pointer fields
 void freeBitArray(bitarray *arr) {
-    free(arr->items);
-    free(arr);
+    if (arr != NULL) {
+        if (arr->items != NULL)
+            free(arr->items);
+
+        free(arr);
+    }
 }
 
 
