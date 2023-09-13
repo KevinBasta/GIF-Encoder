@@ -19,15 +19,6 @@ STATUS_CODE createErrorGif(u32 errorCode) {
     status = colortableAppendRGB(globalColorTable, 0, 0, 0);       
     CHECKSTATUS(status);
     status = colortableAppendRGB(globalColorTable, 255, 255, 255); 
-    CHECKSTATUS(status);
-    status = colortableAppendRGB(globalColorTable, 255, 0, 0); 
-    CHECKSTATUS(status);
-    status = colortableAppendRGB(globalColorTable, 255, 0, 0); 
-    CHECKSTATUS(status);
-    status = colortableAppendRGB(globalColorTable, 255, 0, 0); 
-    CHECKSTATUS(status);
-    status = colortableAppendRGB(globalColorTable, 255, 0, 0); 
-    CHECKSTATUS(status);
 
     // create canvas
     GIFCanvas *canvas = canvasCreate(24, 7);

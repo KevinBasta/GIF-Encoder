@@ -59,6 +59,7 @@ static void expandFrame(GIFFrame *frame, u32 widthMuliplier, u32 heightMuliplier
     frame->indexStream = newIndexStream;
 }
 
+// Expand the canvas frame index streams in the x and y axis
 STATUS_CODE expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 heightMuliplier) {
     STATUS_CODE status;
 

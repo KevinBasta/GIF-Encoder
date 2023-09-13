@@ -13,7 +13,7 @@ STATUS_CODE createTestGif() {
     STATUS_CODE status;
 
     // create color table
-    colorTable *globalColorTable = colortableInit(3);
+    colorTable *globalColorTable = colortableInit();
     status = colortableAppendRGB(globalColorTable, 0xFF, 0xFF, 0xFF);       
     CHECKSTATUS(status);
     status = colortableAppendRGB(globalColorTable, 0xFF, 0x00, 0x00); 

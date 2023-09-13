@@ -16,7 +16,6 @@
 #include "bitUtility.h"
 #include "endianUtility.h"
 #include "printUtility.h"
-#include "memoryManagement.h"
 
 #include "GIFEncode.h"
 #include "GIFCodeTable.h"

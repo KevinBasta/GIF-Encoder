@@ -88,8 +88,9 @@ typedef enum STATUS_CODE {
     FRAMES_TO_WRITE_ZERO    = 52,
 
     // Color Table Errors
-    COLOR_TABLE_NULL = 60,
-    COLOR_TABLE_MISSING = 61,
+    COLOR_TABLE_NULL        = 60,
+    COLOR_TABLE_MISSING     = 61,
+    COLOR_TABLE_OVERFLOW    = 62,
 
 } STATUS_CODE;
 

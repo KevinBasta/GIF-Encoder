@@ -15,8 +15,16 @@
 /////////// GIF Canvas Interface ///////////
 
 
+/**
+ * @brief Create GIF canvas record
+ * @param canvasWidth  Width in pixels
+ * @param canvasHeight Height in pixels
+ * @return GIFCanvas or NULL
+ */
 GIFCanvas *canvasCreate(u16 canvasWidth, u16 canvasHeight) {
     GIFCanvas *newCanvas = calloc(1, sizeof(GIFCanvas));
+    if (newCanvas == NULL)
+        return NULL;
 
     newCanvas->canvasWidth = canvasWidth;
     newCanvas->canvasHeight = canvasHeight;
@@ -32,11 +40,17 @@ GIFCanvas *canvasCreate(u16 canvasWidth, u16 canvasHeight) {
     newCanvas->globalColorTable = NULL;
 
     newCanvas->frames           = linkedlistInit();
+    if (newCanvas->frames == NULL) {
+        free(newCanvas);
+        return NULL;
+    }
 
     return newCanvas;
 }
 
+// Add a canvas global colorTable
 STATUS_CODE canvasAddGlobalColorTable(GIFCanvas *canvas, colorTable *clrTable) {
+    // Color table must be fully populated before this function call
     CANVAS_NULL_CHECK(canvas);
     COLOR_TABLE_NULL_CHECK(clrTable);
 
@@ -48,6 +62,36 @@ STATUS_CODE canvasAddGlobalColorTable(GIFCanvas *canvas, colorTable *clrTable) {
     canvas->packedField_SizeOfGlobalColorTable  = sizeLog;
 
     canvas->globalColorTable = clrTable; 
+
+    return OPERATION_SUCCESS;
+}
+
+STATUS_CODE canvasCreateGlobalColorTable(GIFCanvas *canvas) { 
+    CANVAS_NULL_CHECK(canvas);
+
+    colorTable *clrTable = colortableInit();
+    if (clrTable == NULL)
+        return COLOR_TABLE_NULL;
+
+    canvas->packedField_GlobalColorTableFlag = 1;
+
+    u32 sizeLog = log2(clrTable->lastIndex);
+    canvas->packedField_ColorResolution         = sizeLog;
+    canvas->packedField_SizeOfGlobalColorTable  = sizeLog;
+    
+    canvas->globalColorTable = clrTable;
+
+    return OPERATION_SUCCESS;
+}
+
+STATUS_CODE canvasAddColorToColorTable(GIFCanvas *canvas, u8 red, u8 green, u8 blue) {
+    STATUS_CODE status;
+    
+    CANVAS_NULL_CHECK(canvas);
+    COLOR_TABLE_NULL_CHECK(canvas->globalColorTable);
+
+    status = colortableAppendRGB(canvas->globalColorTable, red, green, blue);       
+    CHECKSTATUS(status);
 
     return OPERATION_SUCCESS;
 }
@@ -135,6 +179,35 @@ STATUS_CODE frameAddLocalColorTable(GIFFrame *frame, colorTable *clrTable) {
     frame->packedField_SizeOfLocalColorTable = sizeLog;
     
     frame->localColorTable = clrTable; 
+
+    return OPERATION_SUCCESS;
+}
+
+STATUS_CODE frameCreateLocalColorTable(GIFFrame *frame) { 
+    FRAME_NULL_CHECK(frame);
+
+    colorTable *clrTable = colortableInit();
+    if (clrTable == NULL)
+        return COLOR_TABLE_NULL;
+
+    frame->packedField_LocalColorTableFlag   = 1;
+    
+    u32 sizeLog = log2(clrTable->lastIndex);
+    frame->packedField_SizeOfLocalColorTable   = sizeLog;
+    
+    frame->localColorTable = clrTable; 
+
+    return OPERATION_SUCCESS;
+}
+
+STATUS_CODE frameAddColorToColorTable(GIFFrame *frame, u8 red, u8 green, u8 blue) {
+    STATUS_CODE status;
+    
+    FRAME_NULL_CHECK(frame);
+    COLOR_TABLE_NULL_CHECK(frame->localColorTable);
+
+    status = colortableAppendRGB(frame->localColorTable, red, green, blue);       
+    CHECKSTATUS(status);
 
     return OPERATION_SUCCESS;
 }

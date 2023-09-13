@@ -7,12 +7,23 @@
 
 #include "GIFColorTable.h"
 
+/**
+ * @brief Create a color table
+ * @param size number of RGB entries
+ * @return colorTable pointer or NULL
+ */
 colorTable *colortableInit() {
     colorTable *table = calloc(1, sizeof(colorTable));
+    if (table == NULL)
+        return NULL;
 
     table->lastIndex = getLastColorIndex(3);
     table->currentIndex = 0;
     table->items = calloc(MAX_COLOR_TABLE_ENTRIES, sizeof(RGB));
+    if (table->items == NULL) {
+        free(table);
+        return NULL;
+    }
 
     for (u32 i = 0; i < MAX_COLOR_TABLE_ENTRIES; i++) {
         // When colors occupy less than the total size
@@ -25,8 +36,12 @@ colorTable *colortableInit() {
     return table;
 }
 
+// Append an RGB color to a color table
 STATUS_CODE colortableAppendRGB(colorTable *table, u8 red, u8 green, u8 blue) {
     COLOR_TABLE_NULL_CHECK(table);
+
+    if (table->currentIndex > 255)
+        return COLOR_TABLE_OVERFLOW;
 
     table->items[table->currentIndex].red   = red;
     table->items[table->currentIndex].green = green;
@@ -39,10 +54,15 @@ STATUS_CODE colortableAppendRGB(colorTable *table, u8 red, u8 green, u8 blue) {
 }
 
 void freeColorTable(colorTable *table) {
-    free(table->items);
-    free(table);
+    if (table != NULL) {
+        if (table->items != NULL)
+            free(table->items);
+
+        free(table);
+    }
 }
 
+// Returning color table value information based on last index
 static u16 colortableSizeToCodeTableEntry(char *request, i32 colorTableLastIndex) {
     //
     // 0: LWZMinCodeSize 
