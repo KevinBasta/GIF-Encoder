@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include "main.h"
 
+#define MAX_COLOR_TABLE_ENTRIES 256
+
 typedef struct RGB {
     u8 red;
     u8 green;
@@ -12,18 +14,18 @@ typedef struct RGB {
 } RGB;
 
 typedef struct colorTable {
-    u32 size;
+    u32 lastIndex;
     u32 currentIndex;
     RGB *items;
 } colorTable;
 
-colorTable *colortableInit(u32 size);
+colorTable *colortableInit();
 STATUS_CODE colortableAppendRGB(colorTable *table, u8 red, u8 green, u8 blue);
 void freeColorTable(colorTable *table);
 
-u16 getLastColorIndex(u32 colorTableInputSize);
-u8 getLWZMinCodeSize(u32 colorTableSize);
-u16 getClearCodeValue(u32 colorTableSize);
-u16 getEOICodeValue(u32 colorTableSize);
+u16 getLastColorIndex(i32 colorTableInputSize);
+u8 getLWZMinCodeSize(i32 colorTableSize);
+u16 getClearCodeValue(i32 colorTableSize);
+u16 getEOICodeValue(i32 colorTableSize);
 
 #endif // COLOR_TABLE_H

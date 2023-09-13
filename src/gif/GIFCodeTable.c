@@ -20,7 +20,7 @@ codeTable* codetableInit(colorTable *clrTable) {
     HashMap *map = hashmapInit(8191);
     table->map = map;
 
-    for (size_t i = 0; i < clrTable->size; i++) {
+    for (size_t i = 0; i <= clrTable->lastIndex; i++) {
         char *str1 = intToString(i, 6);
         char *str2 = intToString(i, 6);
         hashmapInsert(map, str1, str2);
@@ -28,8 +28,8 @@ codeTable* codetableInit(colorTable *clrTable) {
         table->index = i;
     }
 
-    hashmapInsert(map, hashmapCreateKey("cc", 2), intToString(getClearCodeValue(clrTable->size), 6));
-    hashmapInsert(map, hashmapCreateKey("eoi", 3), intToString(getEOICodeValue(clrTable->size), 6));
+    hashmapInsert(map, hashmapCreateKey("cc", 2), intToString(getClearCodeValue(clrTable->lastIndex), 6));
+    hashmapInsert(map, hashmapCreateKey("eoi", 3), intToString(getEOICodeValue(clrTable->lastIndex), 6));
     hashmapPrint(map);
     table->index += 2;
 

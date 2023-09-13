@@ -113,12 +113,12 @@ static STATUS_CODE encodeFlexibleCodeSizeCodeStream(colorTable *clrTable, array 
     array     *indexBuffer  = arrayInit(indexStream->size);
 
     // Put the LZW color table min code size in the image data
-    u8 currentCodeSize = getLWZMinCodeSize(clrTable->size - 1);
+    u8 currentCodeSize = getLWZMinCodeSize(clrTable->lastIndex);
     status = bitarrayAppend(imageData, currentCodeSize);
     u8 startingCodeSize = ++currentCodeSize;
 
     // Save the clear code value for use throughout the algorithm
-    u16 clearCodeValue = getClearCodeValue(clrTable->size - 1);
+    u16 clearCodeValue = getClearCodeValue(clrTable->lastIndex);
     CHECKSTATUS(status);
     
     // Put the first index stream item in the image data
@@ -220,7 +220,7 @@ STATUS_CODE createLZWImageDataInitialDraft(colorTable *clrTable, array *indexStr
 
     // Setting up imageData for flexible code sizes
     bitarraySetIntervalInsertRule(imageData, 0xFF + 1, 0xFF);
-    u8 currentCodeSize = getLWZMinCodeSize(clrTable->size - 1);
+    u8 currentCodeSize = getLWZMinCodeSize(clrTable->lastIndex);
     bitarrayAppend(imageData, currentCodeSize);
 
     u8 startingCodeSize = ++currentCodeSize;

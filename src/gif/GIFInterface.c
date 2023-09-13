@@ -43,7 +43,7 @@ STATUS_CODE canvasAddGlobalColorTable(GIFCanvas *canvas, colorTable *clrTable) {
     canvas->packedField_GlobalColorTableFlag = 1;
     
     // Color table must be fully populated before this function call
-    u32 sizeLog = log2(clrTable->size - 1);
+    u32 sizeLog = log2(clrTable->lastIndex);
     canvas->packedField_ColorResolution         = sizeLog;
     canvas->packedField_SizeOfGlobalColorTable  = sizeLog;
 
@@ -131,7 +131,7 @@ STATUS_CODE frameAddLocalColorTable(GIFFrame *frame, colorTable *clrTable) {
     frame->packedField_LocalColorTableFlag   = 1;
 
     // Color table must be fully populated before this function call
-    u32 sizeLog = log2(clrTable->size - 1);
+    u32 sizeLog = log2(clrTable->lastIndex);
     frame->packedField_SizeOfLocalColorTable = sizeLog;
     
     frame->localColorTable = clrTable; 

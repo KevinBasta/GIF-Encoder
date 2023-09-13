@@ -249,7 +249,7 @@ STATUS_CODE encodeColorTable(FILE *gif, colorTable *colorTable) {
     size_t status;
     u32 nmemb = 1;
 
-    for (int i = 0; i < colorTable->size; i++) {
+    for (int i = 0; i <= colorTable->lastIndex; i++) {
         RGB entry = colorTable->items[i];
         
         status = fwrite(&entry.red, sizeof(u8), nmemb, gif);

@@ -15,10 +15,16 @@ STATUS_CODE createErrorGif(u32 errorCode) {
     STATUS_CODE status;
 
     // create color table
-    colorTable *globalColorTable = colortableInit(2);
+    colorTable *globalColorTable = colortableInit();
     status = colortableAppendRGB(globalColorTable, 0, 0, 0);       
     CHECKSTATUS(status);
     status = colortableAppendRGB(globalColorTable, 255, 255, 255); 
+    CHECKSTATUS(status);
+    status = colortableAppendRGB(globalColorTable, 255, 0, 0); 
+    CHECKSTATUS(status);
+    status = colortableAppendRGB(globalColorTable, 255, 0, 0); 
+    CHECKSTATUS(status);
+    status = colortableAppendRGB(globalColorTable, 255, 0, 0); 
     CHECKSTATUS(status);
     status = colortableAppendRGB(globalColorTable, 255, 0, 0); 
     CHECKSTATUS(status);

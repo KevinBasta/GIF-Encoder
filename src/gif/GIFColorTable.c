@@ -7,14 +7,14 @@
 
 #include "GIFColorTable.h"
 
-colorTable *colortableInit(u32 size) {
+colorTable *colortableInit() {
     colorTable *table = calloc(1, sizeof(colorTable));
-    
-    table->size = getLastColorIndex(size) + 1;
-    table->currentIndex = 0;
-    table->items = calloc(table->size, sizeof(RGB));
 
-    for (u32 i = 0; i < table->size; i++) {
+    table->lastIndex = getLastColorIndex(3);
+    table->currentIndex = 0;
+    table->items = calloc(MAX_COLOR_TABLE_ENTRIES, sizeof(RGB));
+
+    for (u32 i = 0; i < MAX_COLOR_TABLE_ENTRIES; i++) {
         // When colors occupy less than the total size
         // they need to be filled with fake (or 0) values
         table->items[i].red     = 0;
@@ -32,6 +32,7 @@ STATUS_CODE colortableAppendRGB(colorTable *table, u8 red, u8 green, u8 blue) {
     table->items[table->currentIndex].green = green;
     table->items[table->currentIndex].blue  = blue;
 
+    table->lastIndex = getLastColorIndex(table->currentIndex);
     table->currentIndex++;
 
     return OPERATION_SUCCESS;
@@ -42,7 +43,7 @@ void freeColorTable(colorTable *table) {
     free(table);
 }
 
-static u16 colortableSizeToCodeTableEntry(char *request, u32 colorTableLastIndex) {
+static u16 colortableSizeToCodeTableEntry(char *request, i32 colorTableLastIndex) {
     //
     // 0: LWZMinCodeSize 
     // 1: ClearCode
@@ -50,7 +51,9 @@ static u16 colortableSizeToCodeTableEntry(char *request, u32 colorTableLastIndex
     //
     u16 LWZ_CC_EOI[3] = {0, 0, 0};
 
-    if (colorTableLastIndex <= 3) {
+    if (colorTableLastIndex < 0 || colorTableLastIndex > 255) {
+        return 0;
+    } else if (colorTableLastIndex <= 3) {
         LWZ_CC_EOI[0] = 2; LWZ_CC_EOI[1] = 4; LWZ_CC_EOI[2] = 5;
     } else if (colorTableLastIndex <= 7) {
         LWZ_CC_EOI[0] = 3; LWZ_CC_EOI[1] = 8; LWZ_CC_EOI[2] = 9;
@@ -65,6 +68,7 @@ static u16 colortableSizeToCodeTableEntry(char *request, u32 colorTableLastIndex
     } else if (colorTableLastIndex <= 255) {
         LWZ_CC_EOI[0] = 8; LWZ_CC_EOI[1] = 256; LWZ_CC_EOI[2] = 257;
     } else {
+        // This case should never run
         return 0;
     }
 
@@ -77,26 +81,21 @@ static u16 colortableSizeToCodeTableEntry(char *request, u32 colorTableLastIndex
     }
 }
 
-/**
- * @brief Get the last index number in the code table
- * @param colorTableInputSize the size given by interface to create a color table
- * @return The last index number of the color table
- */
-u16 getLastColorIndex(u32 colorTableInputSize) {
+// Get the last index number in the code table
+u16 getLastColorIndex(i32 colorTableLastIndex) {
     // Subtracting one from the clear code to get the last index
-    return colortableSizeToCodeTableEntry("CC", colorTableInputSize - 1) - 1;
+    return colortableSizeToCodeTableEntry("CC", colorTableLastIndex) - 1;
 }
 
 // The following functions take in the size, and use -1 for the index
-u8 getLWZMinCodeSize(u32 colorTableSize) {
-    return colortableSizeToCodeTableEntry("LWZ", colorTableSize - 1);
+u8 getLWZMinCodeSize(i32 colorTableLastIndex) {
+    return colortableSizeToCodeTableEntry("LWZ", colorTableLastIndex);
 }
 
-
-u16 getClearCodeValue(u32 colorTableSize) {
-    return colortableSizeToCodeTableEntry("CC", colorTableSize - 1);
+u16 getClearCodeValue(i32 colorTableLastIndex) {
+    return colortableSizeToCodeTableEntry("CC", colorTableLastIndex);
 }
 
-u16 getEOICodeValue(u32 colorTableSize) {
-    return colortableSizeToCodeTableEntry("EOI", colorTableSize - 1);
+u16 getEOICodeValue(i32 colorTableLastIndex) {
+    return colortableSizeToCodeTableEntry("EOI", colorTableLastIndex);
 }
