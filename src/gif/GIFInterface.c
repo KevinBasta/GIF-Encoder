@@ -48,15 +48,24 @@ GIFCanvas *canvasCreate(u16 canvasWidth, u16 canvasHeight) {
     return newCanvas;
 }
 
-// Add a canvas global colorTable
+/**
+ * @brief There are two ways to add a global color table to a canvas.
+ * 1: Call to give colorTable struct pointer
+ * 2: Call to create one and call for each entry insert
+ */
+
+// METHOD #1
+// Give a colorTable struct pointer directly to the canvas
 STATUS_CODE canvasAddGlobalColorTable(GIFCanvas *canvas, colorTable *clrTable) {
-    // Color table must be fully populated before this function call
     CANVAS_NULL_CHECK(canvas);
     COLOR_TABLE_NULL_CHECK(clrTable);
 
+    if (canvas->globalColorTable != NULL) {
+        freeColorTable(canvas->globalColorTable);
+    }
+
     canvas->packedField_GlobalColorTableFlag = 1;
     
-    // Color table must be fully populated before this function call
     u32 sizeLog = log2(clrTable->lastIndex);
     canvas->packedField_ColorResolution         = sizeLog;
     canvas->packedField_SizeOfGlobalColorTable  = sizeLog;
@@ -66,12 +75,18 @@ STATUS_CODE canvasAddGlobalColorTable(GIFCanvas *canvas, colorTable *clrTable) {
     return OPERATION_SUCCESS;
 }
 
+
+// METHOD #2
+// Create color table (colorTable struct) and append individual entries
 STATUS_CODE canvasCreateGlobalColorTable(GIFCanvas *canvas) { 
     CANVAS_NULL_CHECK(canvas);
 
+    if (canvas->globalColorTable != NULL) {
+        freeColorTable(canvas->globalColorTable);
+    }
+
     colorTable *clrTable = colortableInit();
-    if (clrTable == NULL)
-        return COLOR_TABLE_NULL;
+    COLOR_TABLE_NULL_CHECK(clrTable);
 
     canvas->packedField_GlobalColorTableFlag = 1;
 
@@ -96,11 +111,16 @@ STATUS_CODE canvasAddColorToColorTable(GIFCanvas *canvas, u8 red, u8 green, u8 b
     return OPERATION_SUCCESS;
 }
 
+
 STATUS_CODE canvasSetBackgroundColorIndex(GIFCanvas *canvas, u8 globalColorTableIndex) {
     CANVAS_NULL_CHECK(canvas);
 
-    // !!TODO - ERROR CHECK IF GREATER THAN BIGGEST CLR TABLE ITEM
-    // ALSO IF GLOBAL CLR TABLE IS NULL AND THIS IS BEING SET TO NON ZERO
+    if (canvas->globalColorTable == NULL)
+        return CANVAS_BACKGROUND_WITHOUT_GLOBAL_CLR_TABLE;
+
+    if (globalColorTableIndex > canvas->globalColorTable->lastIndex)
+        return CANVAS_BACKGROUND_INDEX_OUT_OF_BOUNDS;
+
     canvas->backgroundColorIndex = globalColorTableIndex;
     
     return OPERATION_SUCCESS;
@@ -168,9 +188,21 @@ GIFFrame *frameCreate(u16 frameWidth, u16 frameHeight, u16 imageLeftPosition, u1
     return newFrame;
 }
 
+/**
+ * @brief There are two ways to add a color table to a frame.
+ * 1: Call to give colorTable struct pointer
+ * 2: Call to create one and call for each entry insert
+ */
+
+// METHOD #1
+// Give a colorTable struct pointer directly to the frame
 STATUS_CODE frameAddLocalColorTable(GIFFrame *frame, colorTable *clrTable) {
     FRAME_NULL_CHECK(frame);
     COLOR_TABLE_NULL_CHECK(clrTable);
+
+    if (frame->localColorTable != NULL) {
+        freeColorTable(frame->localColorTable);
+    }
 
     frame->packedField_LocalColorTableFlag   = 1;
 
@@ -183,12 +215,18 @@ STATUS_CODE frameAddLocalColorTable(GIFFrame *frame, colorTable *clrTable) {
     return OPERATION_SUCCESS;
 }
 
+
+// METHOD #2
+// Create color table (colorTable struct) and append individual entries
 STATUS_CODE frameCreateLocalColorTable(GIFFrame *frame) { 
     FRAME_NULL_CHECK(frame);
 
+    if (frame->localColorTable != NULL) {
+        freeColorTable(frame->localColorTable);
+    }
+
     colorTable *clrTable = colortableInit();
-    if (clrTable == NULL)
-        return COLOR_TABLE_NULL;
+    COLOR_TABLE_NULL_CHECK(clrTable);
 
     frame->packedField_LocalColorTableFlag   = 1;
     
@@ -212,14 +250,71 @@ STATUS_CODE frameAddColorToColorTable(GIFFrame *frame, u8 red, u8 green, u8 blue
     return OPERATION_SUCCESS;
 }
 
+/**
+ * @brief There are three ways to add an index stream
+ * to a frame.
+ * 1: Call to give an array struct pointer
+ * 2: Call to give a stack array and it's size
+ * 3: Call to create one and call for each entry insert
+ */
+
+// METHOD #1
+// Give the array struct pointer directly to the frame
 STATUS_CODE frameAddIndexStream(GIFFrame *frame, array *indexStream) {
     FRAME_NULL_CHECK(frame);
     ARRAY_NULL_CHECK(indexStream);
+
+    if (frame->indexStream != NULL) {
+        freeArray(frame->indexStream);
+    }
 
     frame->indexStream = indexStream;
 
     return OPERATION_SUCCESS;
 }
+
+// METHOD #2
+// Give an array pointer and its size to the frame 
+STATUS_CODE frameCreateIndexStreamFromArray(GIFFrame *frame, u8 stackArr[], size_t size) {
+    FRAME_NULL_CHECK(frame);
+
+    if (frame->indexStream != NULL) {
+        freeArray(frame->indexStream);
+    }
+
+    frame->indexStream = arrayInitFromStackArray((u8*)&stackArr, size);
+    ARRAY_NULL_CHECK(frame->indexStream);
+
+    return OPERATION_SUCCESS;
+}
+
+// METHOD #3
+// Create index stream (array struct) and append individual entries
+STATUS_CODE frameCreateIndexStream(GIFFrame *frame, size_t indexStreamSize) {
+    FRAME_NULL_CHECK(frame);
+
+    if (frame->indexStream != NULL) {
+        freeArray(frame->indexStream);
+    }
+
+    frame->indexStream = arrayInit(indexStreamSize);
+    ARRAY_NULL_CHECK(frame->indexStream);
+
+    return OPERATION_SUCCESS;
+}
+
+STATUS_CODE frameAppendToIndexStream(GIFFrame *frame, u32 item) {
+    STATUS_CODE status;
+    
+    FRAME_NULL_CHECK(frame);
+    ARRAY_NULL_CHECK(frame->indexStream);
+
+    status = arrayAppend(frame->indexStream, item);
+    CHECKSTATUS(status);
+
+    return OPERATION_SUCCESS;
+}
+
 
 STATUS_CODE frameAddGraphicsControlInfo(GIFFrame *frame, u8 disposalMethod, u16 delayTime) {
     FRAME_NULL_CHECK(frame);

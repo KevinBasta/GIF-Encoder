@@ -41,7 +41,7 @@ static STATUS_CODE arrayRealloc(array *arr, size_t newTotalEntries) {
 /**
  * @brief Initialize a u32 array
  * @param size  Max number of elements to allow
- * @return Pointer to new array
+ * @return Pointer to new array or NULL
  */
 array *arrayInit(size_t size) {
     array *arr = calloc(1, sizeof(array));

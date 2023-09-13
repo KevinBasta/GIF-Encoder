@@ -83,9 +83,11 @@ typedef enum STATUS_CODE {
     FWRITE_FAILED = 40,
 
     // Interface Errors
-    CANVAS_NULL             = 50,
-    FRAME_NULL              = 51,
-    FRAMES_TO_WRITE_ZERO    = 52,
+    CANVAS_NULL                                = 50,
+    CANVAS_BACKGROUND_WITHOUT_GLOBAL_CLR_TABLE = 51,
+    CANVAS_BACKGROUND_INDEX_OUT_OF_BOUNDS      = 52,
+    FRAME_NULL                                 = 53,
+    FRAMES_TO_WRITE_ZERO                       = 54,
 
     // Color Table Errors
     COLOR_TABLE_NULL        = 60,

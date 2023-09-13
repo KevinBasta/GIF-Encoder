@@ -6,6 +6,7 @@
 #include "main.h"
 
 #define MAX_COLOR_TABLE_ENTRIES 256
+#define MAX_COLOR_TABLE_INDEX   (MAX_COLOR_TABLE_ENTRIES - 1)
 
 typedef struct RGB {
     u8 red;
