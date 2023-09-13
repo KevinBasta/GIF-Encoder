@@ -11,21 +11,21 @@
 #include "GIFTransformations.h"
 
 
+STATUS_CODE addPatternToIndexStream() {
+
+}
+
+
 STATUS_CODE createErrorGif(u32 errorCode) {
     STATUS_CODE status;
 
-    // create color table
-    colorTable *globalColorTable = colortableInit();
-    status = colortableAppendRGB(globalColorTable, 0, 0, 0);       
-    CHECKSTATUS(status);
-    status = colortableAppendRGB(globalColorTable, 255, 255, 255); 
-
     // create canvas
     GIFCanvas *canvas = canvasCreate(24, 7);
-    status = canvasAddGlobalColorTable(canvas, globalColorTable);   
-    CHECKSTATUS(status);
-    status = canvasSetBackgroundColorIndex(canvas, 0x00);           
-    CHECKSTATUS(status);
+    status = canvasCreateGlobalColorTable(canvas);              CHECKSTATUS(status);
+    status = canvasAddColorToColorTable(canvas, 0, 0, 0);       CHECKSTATUS(status);
+    status = canvasAddColorToColorTable(canvas, 255, 255, 255); CHECKSTATUS(status);
+    status = canvasSetBackgroundColorIndex(canvas, 0);          CHECKSTATUS(status);
+
 
     // Frame one
     u8 frameOneTempIndexStream[] = 
@@ -37,16 +37,12 @@ STATUS_CODE createErrorGif(u32 errorCode) {
       0,1,1,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
-    array *frameOneIndexStream = arrayInitFromStackArray((u8*)&frameOneTempIndexStream, sizeof(frameOneTempIndexStream));
     GIFFrame *frameOne = frameCreate(24, 7, 0, 0);
-    status = frameAddIndexStream(frameOne, frameOneIndexStream);
-    CHECKSTATUS(status);
-    status = frameAddGraphicsControlInfo(frameOne, 1, 100);
-    CHECKSTATUS(status);
-    // status = frameSetTransparanetColorIndexInColorTable(frameOne, 0);
-    // CHECKSTATUS(status);
+    status = frameCreateIndexStreamFromArray(frameOne, frameOneTempIndexStream, sizeof(frameOneTempIndexStream)); CHECKSTATUS(status);
+    status = frameAddGraphicsControlInfo(frameOne, 1, 100); CHECKSTATUS(status);
+    // status = frameSetTransparanetColorIndexInColorTable(frameOne, 0); CHECKSTATUS(status);
+    status = canvasAddFrame(canvas, frameOne); CHECKSTATUS(status);
 
-    canvasAddFrame(canvas, frameOne);
 
     // Frame two
     u8 frameTwoTempIndexStream[] = 
@@ -58,14 +54,11 @@ STATUS_CODE createErrorGif(u32 errorCode) {
       0,0,0,
       0,0,0 };
 
-    array *frameTwoIndexStream = arrayInitFromStackArray((u8*)&frameTwoTempIndexStream, sizeof(frameTwoTempIndexStream));
     GIFFrame *frameTwo = frameCreate(3, 7, 21, 0);
-    status = frameAddIndexStream(frameTwo, frameTwoIndexStream);
-    CHECKSTATUS(status);
-    status = frameAddGraphicsControlInfo(frameTwo, 1, 100);
-    CHECKSTATUS(status);
+    status = frameCreateIndexStreamFromArray(frameTwo, frameTwoTempIndexStream, sizeof(frameTwoTempIndexStream)); CHECKSTATUS(status);
+    status = frameAddGraphicsControlInfo(frameTwo, 1, 100); CHECKSTATUS(status);
+    status = canvasAddFrame(canvas, frameTwo); CHECKSTATUS(status);
 
-    canvasAddFrame(canvas, frameTwo);
 
     // Expand the gif
     u32 widthMuliplier  = 50; u32 heightMuliplier = 50;

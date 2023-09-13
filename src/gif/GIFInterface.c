@@ -66,6 +66,8 @@ STATUS_CODE canvasAddGlobalColorTable(GIFCanvas *canvas, colorTable *clrTable) {
 
     canvas->packedField_GlobalColorTableFlag = 1;
     
+    // Color table must be fully populated before this function call
+    // or the size of color table packed value may be incorrect
     u32 sizeLog = log2(clrTable->lastIndex);
     canvas->packedField_ColorResolution         = sizeLog;
     canvas->packedField_SizeOfGlobalColorTable  = sizeLog;
@@ -107,6 +109,10 @@ STATUS_CODE canvasAddColorToColorTable(GIFCanvas *canvas, u8 red, u8 green, u8 b
 
     status = colortableAppendRGB(canvas->globalColorTable, red, green, blue);       
     CHECKSTATUS(status);
+
+    u32 sizeLog = log2(canvas->globalColorTable->lastIndex);
+    canvas->packedField_ColorResolution         = sizeLog;
+    canvas->packedField_SizeOfGlobalColorTable  = sizeLog;
 
     return OPERATION_SUCCESS;
 }
@@ -207,6 +213,7 @@ STATUS_CODE frameAddLocalColorTable(GIFFrame *frame, colorTable *clrTable) {
     frame->packedField_LocalColorTableFlag   = 1;
 
     // Color table must be fully populated before this function call
+    // or the size of color table packed value may be incorrect
     u32 sizeLog = log2(clrTable->lastIndex);
     frame->packedField_SizeOfLocalColorTable = sizeLog;
     
@@ -247,6 +254,9 @@ STATUS_CODE frameAddColorToColorTable(GIFFrame *frame, u8 red, u8 green, u8 blue
     status = colortableAppendRGB(frame->localColorTable, red, green, blue);       
     CHECKSTATUS(status);
 
+    u32 sizeLog = log2(frame->localColorTable->lastIndex);
+    frame->packedField_SizeOfLocalColorTable = sizeLog;
+
     return OPERATION_SUCCESS;
 }
 
@@ -282,7 +292,7 @@ STATUS_CODE frameCreateIndexStreamFromArray(GIFFrame *frame, u8 stackArr[], size
         freeArray(frame->indexStream);
     }
 
-    frame->indexStream = arrayInitFromStackArray((u8*)&stackArr, size);
+    frame->indexStream = arrayInitFromStackArray((u8*)stackArr, size);
     ARRAY_NULL_CHECK(frame->indexStream);
 
     return OPERATION_SUCCESS;
