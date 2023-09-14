@@ -35,6 +35,8 @@ static STATUS_CODE arrayRealloc(array *arr, size_t newTotalEntries) {
     arr->items = status;
     arr->size  = newTotalEntries;
 
+    printf("ARRAY REALLOC!\n");
+
     return OPERATION_SUCCESS;
 }
 
@@ -184,6 +186,8 @@ array *arrayInitFromStackArray(u8 stackArr[], size_t size) {
             return NULL;
         }
     }
+
+    heapArr->currentIndex = 0;
 
     return heapArr;
 }

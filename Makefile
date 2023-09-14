@@ -2,6 +2,7 @@
 SOURCE += $(wildcard src/gif/*.c)
 SOURCE += $(wildcard src/util/*.c)
 SOURCE += $(wildcard src/data_structures/*.c)
+SOURCE += $(wildcard src/test/*.c)
 
 # replace .c suffix with .o
 OBJECTS = $(SOURCE:src/%.c=bin/%.o)

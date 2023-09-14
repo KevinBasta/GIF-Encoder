@@ -176,6 +176,13 @@ typedef struct GIFFrame {
     
 } GIFFrame;
 
+
+// Encode the canvas record
+STATUS_CODE createGIF(GIFCanvas *canvas);
+STATUS_CODE createGIFAndFreeCanvas(GIFCanvas *canvas);
+
+
+// Create a canvas record
 GIFCanvas *canvasCreate(u16 canvasWidth, u16 canvasHeight);
 
 STATUS_CODE canvasAddGlobalColorTable(GIFCanvas *canvas, colorTable *clrTable);
@@ -184,9 +191,13 @@ STATUS_CODE canvasAddColorToColorTable(GIFCanvas *canvas, u8 red, u8 green, u8 b
 
 STATUS_CODE canvasSetBackgroundColorIndex(GIFCanvas *canvas, u8 globalColorTableIndex);
 STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame);
+
+STATUS_CODE canvasUpdateWidthAndHeight(GIFCanvas *canvas, u16 newWidth, u16 newHeight);
+
 void freeCanvas(GIFCanvas *canvas);
 
 
+// Create a frame record
 GIFFrame *frameCreate(u16 frameWidth, u16 frameHeight, u16 imageLeftPosition, u16 imageTopPosition);
 
 STATUS_CODE frameAddLocalColorTable(GIFFrame *frame, colorTable *clrTable);
@@ -202,4 +213,4 @@ STATUS_CODE frameAddGraphicsControlInfo(GIFFrame *frame, u8 disposalMethod, u16 
 STATUS_CODE frameSetTransparanetColorIndexInColorTable(GIFFrame *frame, u8 transparentColorIndex);
 void freeFrame(GIFFrame *frame);
 
-#endif
+#endif // GIF_INTERFACE_H

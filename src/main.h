@@ -77,23 +77,21 @@ typedef enum STATUS_CODE {
     QUEUE_NULL  = 50,
     QUEUE_FULL  = 51,
     QUEUE_UNDERFLOW = 52,
-    
 
     // File Errors
-    FWRITE_FAILED = 40,
+    FWRITE_FAILED = 60,
 
     // Interface Errors
-    CANVAS_NULL                                = 50,
-    CANVAS_BACKGROUND_WITHOUT_GLOBAL_CLR_TABLE = 51,
-    CANVAS_BACKGROUND_INDEX_OUT_OF_BOUNDS      = 52,
-    FRAME_NULL                                 = 53,
-    FRAMES_TO_WRITE_ZERO                       = 54,
+    CANVAS_NULL                                = 70,
+    CANVAS_BACKGROUND_WITHOUT_GLOBAL_CLR_TABLE = 71,
+    CANVAS_BACKGROUND_INDEX_OUT_OF_BOUNDS      = 72,
+    FRAME_NULL                                 = 73,
+    FRAMES_TO_WRITE_ZERO                       = 74,
 
     // Color Table Errors
-    COLOR_TABLE_NULL        = 60,
-    COLOR_TABLE_MISSING     = 61,
-    COLOR_TABLE_OVERFLOW    = 62,
-
+    COLOR_TABLE_NULL        = 80,
+    COLOR_TABLE_MISSING     = 81,
+    COLOR_TABLE_OVERFLOW    = 82,
 } STATUS_CODE;
 
 #define CHECKSTATUS(status)                     if (status != OPERATION_SUCCESS) { return status; }
@@ -110,6 +108,6 @@ typedef enum STATUS_CODE {
 #define CANVAS_NULL_CHECK(canvas)               if (canvas == NULL)             { return CANVAS_NULL; }
 #define FRAME_NULL_CHECK(frame)                 if (frame == NULL)              { return FRAME_NULL; }
 #define COLOR_TABLE_NULL_CHECK(clrTable)        if (clrTable == NULL)           { return COLOR_TABLE_NULL; }
-
+// #define CODE_TABLE_NULL_CHECK(cdTable)
 
 #endif //MAIN_H

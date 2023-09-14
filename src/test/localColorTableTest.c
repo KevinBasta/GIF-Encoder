@@ -8,6 +8,7 @@
 #include "GIFColorTable.h"
 #include "GIFInterface.h"
 #include "GIFEncode.h"
+#include "GIFTransformations.h"
 
 STATUS_CODE createTestGif() {
     STATUS_CODE status;

@@ -11,6 +11,29 @@
 #include "GIFInterface.h"
 #include "GIFColorTable.h"
 #include "GIFCodeTable.h"
+#include "GIFEncode.h"
+
+
+STATUS_CODE createGIF(GIFCanvas *canvas) {
+    STATUS_CODE status;
+
+    CANVAS_NULL_CHECK(canvas);
+
+    status = encodeGIF(canvas);
+
+    return status;
+}
+
+STATUS_CODE createGIFAndFreeCanvas(GIFCanvas *canvas) {
+    STATUS_CODE status = createGIF(canvas);
+
+    if (status != OPERATION_SUCCESS)
+        return status;
+
+    freeCanvas(canvas);
+
+    return OPERATION_SUCCESS;
+}
 
 /////////// GIF Canvas Interface ///////////
 
@@ -19,7 +42,7 @@
  * @brief Create GIF canvas record
  * @param canvasWidth  Width in pixels
  * @param canvasHeight Height in pixels
- * @return GIFCanvas or NULL
+ * @return GIFCanvas pointer or NULL
  */
 GIFCanvas *canvasCreate(u16 canvasWidth, u16 canvasHeight) {
     GIFCanvas *newCanvas = calloc(1, sizeof(GIFCanvas));
@@ -145,6 +168,15 @@ STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame) {
     return OPERATION_SUCCESS;
 }
 
+STATUS_CODE canvasUpdateWidthAndHeight(GIFCanvas *canvas, u16 newWidth, u16 newHeight) {
+    CANVAS_NULL_CHECK(canvas);
+
+    canvas->canvasWidth  = newWidth;
+    canvas->canvasHeight = newHeight;
+
+    return OPERATION_SUCCESS;
+}
+
 void freeCanvas(GIFCanvas *canvas) {
     if (canvas != NULL) {
         if (canvas->globalColorTable != NULL)
@@ -164,8 +196,18 @@ void freeCanvas(GIFCanvas *canvas) {
 /////////// GIF Frame Interface ///////////
 
 
+/**
+ * @brief Create a GIF frame record
+ * @param frameWidth        In pixels
+ * @param frameHeight       In pixels
+ * @param imageLeftPosition Pixels from the left before image start
+ * @param imageTopPosition  Pixels from the top before image start
+ * @return GIFFrame pointer or NULL
+ */
 GIFFrame *frameCreate(u16 frameWidth, u16 frameHeight, u16 imageLeftPosition, u16 imageTopPosition) {
     GIFFrame *newFrame = calloc(1, sizeof(GIFFrame));
+    if (newFrame == NULL)
+        return NULL;
 
     newFrame->imageLeftPosition = imageLeftPosition;
     newFrame->imageTopPosition  = imageTopPosition;
@@ -319,6 +361,7 @@ STATUS_CODE frameAppendToIndexStream(GIFFrame *frame, u32 item) {
     FRAME_NULL_CHECK(frame);
     ARRAY_NULL_CHECK(frame->indexStream);
 
+    // TODO! On encode zero the rest of the array if it is not full
     status = arrayAppend(frame->indexStream, item);
     CHECKSTATUS(status);
 
