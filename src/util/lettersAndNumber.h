@@ -10,9 +10,10 @@
 
 typedef struct letterPattern {
     size_t width;
+    size_t height;
     u8 *pattern;
 } letterPattern;
 
-u8 *getLetterOrNumber(char letterOrNumber);
+letterPattern *getLetterOrNumber(char letterOrNumber);
 
 #endif // LETTERS_AND_NUMBERS_H

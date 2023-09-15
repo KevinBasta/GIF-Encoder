@@ -14,13 +14,15 @@
 #include "lettersAndNumber.h"
 
 #define LETTERS_PER_ROW             10
+#define ROW_HEIGHT                  12
+
 
 STATUS_CODE createTypingGIF(char *sentence) {
 
     size_t numberOfLetters = strlen(sentence);
 
     u16 canvasWidth  = LETTERS_PER_ROW * LETTER_PIXEL_WIDTH;
-    u16 canvasHeight = (u16) ceil((double) numberOfLetters / (double) LETTERS_PER_ROW) * LETTER_PIXEL_HEIGHT;
+    u16 canvasHeight = (u16) ceil((double) numberOfLetters / (double) LETTERS_PER_ROW) * ROW_HEIGHT;
     u32 numberOfRows = 1;
 
     // Create canvas and set colors
@@ -41,23 +43,26 @@ STATUS_CODE createTypingGIF(char *sentence) {
     char *token = strtok(string, " ");
     while (token != NULL) {
         u32 wordLength = strlen(token);
-        u32 wordWithSpaceLength = wordLength + 1;
+        u32 wordWithSpaceLength = wordLength;
 
         if (imageLeftPosition + (wordWithSpaceLength * LETTER_PIXEL_WIDTH) > canvasWidth && wordWithSpaceLength <= LETTERS_PER_ROW) {
-            imageTopPosition += LETTER_PIXEL_HEIGHT;
+            imageTopPosition += ROW_HEIGHT;
             imageLeftPosition = 0;
             numberOfRows++;
         }
 
         for (int i = 0; i <= wordWithSpaceLength; i++) {
-            char letter = token[i];
-            if (letter == '\0')
+            char letter;
+            if (i == wordWithSpaceLength) {
                 letter = ' ';
+            } else {
+                letter = token[i];
+            }
 
-            u8 *pattern = getLetterOrNumber(letter);
+            letterPattern *pattern = getLetterOrNumber(letter);
 
-            GIFFrame *frame = frameCreate(LETTER_PIXEL_WIDTH, LETTER_PIXEL_HEIGHT, imageLeftPosition, imageTopPosition);
-            frameCreateIndexStreamFromArray(frame, pattern, LETTER_PIXEL_WIDTH * LETTER_PIXEL_HEIGHT);
+            GIFFrame *frame = frameCreate(pattern->width, pattern->height, imageLeftPosition, imageTopPosition + (ROW_HEIGHT - pattern->height));
+            frameCreateIndexStreamFromArray(frame, pattern->pattern, pattern->width * pattern->height);
             if (letter == ' ') {
                 // Write spaces instantly
                 frameAddGraphicsControlInfo(frame, 1, 0);
@@ -66,13 +71,18 @@ STATUS_CODE createTypingGIF(char *sentence) {
             }
             
             canvasAddFrame(canvas, frame);
-            imageLeftPosition += LETTER_PIXEL_WIDTH;
+            imageLeftPosition += pattern->width;
+            if (imageLeftPosition + pattern->width > canvasWidth) {
+                imageTopPosition += ROW_HEIGHT;
+                imageLeftPosition = 0;
+                numberOfRows++;
+            }
         }
 
         token = strtok(NULL, " ");
     }
 
-    canvasUpdateWidthAndHeight(canvas, canvasWidth, numberOfRows * LETTER_PIXEL_HEIGHT);
+    canvasUpdateWidthAndHeight(canvas, canvasWidth, numberOfRows * ROW_HEIGHT);
     expandCanvas(canvas, 20, 20);
 
     createGIFAndFreeCanvas(canvas);
