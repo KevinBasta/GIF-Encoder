@@ -116,6 +116,9 @@ STATUS_CODE hashmapInsert(HashMap *map, char *key, char *value) {
  * @return the value or null
  */
 char *hashmapSearch(HashMap *map, char *key) {
+    if (map == NULL || key == NULL)
+        return NULL;
+
     size_t index        = hashFunction(key, map->size);
     HashMapEntry *entry = map->entries[index];
     char *value         = NULL;
@@ -138,6 +141,25 @@ char *hashmapSearch(HashMap *map, char *key) {
         entry = map->entries[index];
     }
 
+    return value;
+}
+
+/**
+ * @brief Given an integer key, convert it to a string
+ * search the hashmap, then free the string
+ * @param map hashmap to search in
+ * @param key int key to search for
+ * @return the value or NULL
+ */
+char *hashmapSearchWithIntKey(HashMap *map, size_t key) {
+    if (map == NULL)
+        return NULL;
+
+    char *strKey = intToString(key, 100);
+
+    char *value = hashmapSearch(map, strKey);
+
+    free(strKey);
     return value;
 }
 
