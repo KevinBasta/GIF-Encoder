@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include <stdint.h>
 #include "main.h"
@@ -12,36 +13,46 @@
 #include "GIFColorTable.h"
 #include "GIFCodeTable.h"
 #include "GIFEncode.h"
+#include "GIFError.h"
 
-
-STATUS_CODE createGIF(GIFCanvas *canvas) {
+/**
+ * @brief Encode a canvas and all it's frames
+ * @param canvas            Canvas record to encode
+ * @param createGIFOnError  If true and there was an
+ * error while encoding the canvas record, encode a 
+ * gif that says "ERROR" + the error that happened  
+ * @param freeCanvasRecord  If true free the canvas
+ * record passed in as the first argument
+ * 
+ * @return OPERATION_SUCCESS or error code
+ */
+STATUS_CODE createGIF(GIFCanvas *canvas, bool createGIFOnError, bool freeCanvasRecord) {
     STATUS_CODE status;
 
     CANVAS_NULL_CHECK(canvas);
 
     status = encodeGIF(canvas);
 
+    if (status != OPERATION_SUCCESS && createGIFOnError) {
+        // Ignoring potential error code
+        createErrorGif(status);
+    }
+
+    if (freeCanvasRecord) {
+        freeCanvas(canvas);
+    }
+
     return status;
 }
 
-STATUS_CODE createGIFAndFreeCanvas(GIFCanvas *canvas) {
-    STATUS_CODE status = createGIF(canvas);
-
-    if (status != OPERATION_SUCCESS)
-        return status;
-
-    freeCanvas(canvas);
-
-    return OPERATION_SUCCESS;
-}
 
 /////////// GIF Canvas Interface ///////////
-
 
 /**
  * @brief Create GIF canvas record
  * @param canvasWidth  Width in pixels
  * @param canvasHeight Height in pixels
+ *
  * @return GIFCanvas pointer or NULL
  */
 GIFCanvas *canvasCreate(u16 canvasWidth, u16 canvasHeight) {
@@ -73,8 +84,8 @@ GIFCanvas *canvasCreate(u16 canvasWidth, u16 canvasHeight) {
 
 /**
  * @brief There are two ways to add a global color table to a canvas.
- * 1: Call to give colorTable struct pointer
- * 2: Call to create one and call for each entry insert
+ * [1]: Call to give colorTable struct pointer
+ * [2]: Call to create one and call for each entry insert
  */
 
 // METHOD #1
@@ -140,7 +151,14 @@ STATUS_CODE canvasAddColorToColorTable(GIFCanvas *canvas, u8 red, u8 green, u8 b
     return OPERATION_SUCCESS;
 }
 
-
+/**
+ * @brief Only for use if there is a global color table. Specify
+ * which global color table index to use as the background
+ * @param canvas                    Canvas  to specify background color of
+ * @param globalColorTableIndex     Index in global color table to use
+ *
+ * @return OPERATION_SUCCESS or error code
+ */
 STATUS_CODE canvasSetBackgroundColorIndex(GIFCanvas *canvas, u8 globalColorTableIndex) {
     CANVAS_NULL_CHECK(canvas);
 
@@ -155,6 +173,13 @@ STATUS_CODE canvasSetBackgroundColorIndex(GIFCanvas *canvas, u8 globalColorTable
     return OPERATION_SUCCESS;
 }
 
+/**
+ * @brief Add a frame to the canvas frames linked list
+ * @param canvas    Canvas to add to
+ * @param frame     Frame to add
+ * 
+ * @return OPERATION_SUCCESS or error code
+ */
 STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame) {
     CANVAS_NULL_CHECK(canvas);
     FRAME_NULL_CHECK(frame);
@@ -168,6 +193,14 @@ STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame) {
     return OPERATION_SUCCESS;
 }
 
+/**
+ * @brief Update the width and height of a canvas record
+ * @param canvas        Canvas record to update
+ * @param newWidth      New width in pixels to set
+ * @param newHeight     New height in pixels to set
+ * 
+ * @return OPERATION_SUCCESS or error code
+ */
 STATUS_CODE canvasUpdateWidthAndHeight(GIFCanvas *canvas, u16 newWidth, u16 newHeight) {
     CANVAS_NULL_CHECK(canvas);
 
@@ -177,6 +210,7 @@ STATUS_CODE canvasUpdateWidthAndHeight(GIFCanvas *canvas, u16 newWidth, u16 newH
     return OPERATION_SUCCESS;
 }
 
+// Free the canvas record and all it's frames
 void freeCanvas(GIFCanvas *canvas) {
     if (canvas != NULL) {
         if (canvas->globalColorTable != NULL)
@@ -238,8 +272,8 @@ GIFFrame *frameCreate(u16 frameWidth, u16 frameHeight, u16 imageLeftPosition, u1
 
 /**
  * @brief There are two ways to add a color table to a frame.
- * 1: Call to give colorTable struct pointer
- * 2: Call to create one and call for each entry insert
+ * [1]: Call to give colorTable struct pointer
+ * [2]: Call to create one and call for each entry insert
  */
 
 // METHOD #1
@@ -305,9 +339,9 @@ STATUS_CODE frameAddColorToColorTable(GIFFrame *frame, u8 red, u8 green, u8 blue
 /**
  * @brief There are three ways to add an index stream
  * to a frame.
- * 1: Call to give an array struct pointer
- * 2: Call to give a stack array and it's size
- * 3: Call to create one and call for each entry insert
+ * [1]: Call to give an array struct pointer
+ * [2]: Call to give a stack array and it's size
+ * [3]: Call to create one and call for each entry insert
  */
 
 // METHOD #1
@@ -327,7 +361,8 @@ STATUS_CODE frameAddIndexStream(GIFFrame *frame, array *indexStream) {
 
 // METHOD #2
 // Give an array pointer and its size to the frame 
-STATUS_CODE frameCreateIndexStreamFromArray(GIFFrame *frame, u8 stackArr[], size_t size) {
+// NOTE: size MUST BE EXACT!
+STATUS_CODE frameAddIndexStreamFromArray(GIFFrame *frame, u8 stackArr[], size_t size) {
     FRAME_NULL_CHECK(frame);
 
     if (frame->indexStream != NULL) {
@@ -342,6 +377,7 @@ STATUS_CODE frameCreateIndexStreamFromArray(GIFFrame *frame, u8 stackArr[], size
 
 // METHOD #3
 // Create index stream (array struct) and append individual entries
+// NOTE: indexStreamSize MUST BE EXACT!
 STATUS_CODE frameCreateIndexStream(GIFFrame *frame, size_t indexStreamSize) {
     FRAME_NULL_CHECK(frame);
 
@@ -368,7 +404,18 @@ STATUS_CODE frameAppendToIndexStream(GIFFrame *frame, u32 item) {
     return OPERATION_SUCCESS;
 }
 
-
+/**
+ * @brief Add animation information to the frame record
+ * @param frame             The frame to add to
+ * @param disposalMethod    What to do with the frame
+ * when the next frame comes up. There are three options:
+ * [1] leave the image in place and draw the next image on top of it
+ * [2] canvas should be restored to the background color
+ * [3] restore the canvas to it's previous state before the current image was drawn
+ * @param delayTime The number of hundredths of a second to wait before next frame
+ * 
+ * @return OPERATION_SUCCESS or error code
+ */
 STATUS_CODE frameAddGraphicsControlInfo(GIFFrame *frame, u8 disposalMethod, u16 delayTime) {
     FRAME_NULL_CHECK(frame);
 
@@ -378,6 +425,14 @@ STATUS_CODE frameAddGraphicsControlInfo(GIFFrame *frame, u8 disposalMethod, u16 
     return OPERATION_SUCCESS;
 }
 
+/**
+ * @brief Set a color in the color table to be a transparent color.
+ * Applys to whichever color table is currently active (global or local).
+ * @param frame                     Frame to specify the transparent color for
+ * @param transparentColorIndex     Index of the color table to use as the color
+ * 
+ * @return OPERATION_SUCCESS or error code
+ */
 STATUS_CODE frameSetTransparanetColorIndexInColorTable(GIFFrame *frame, u8 transparentColorIndex) {
     FRAME_NULL_CHECK(frame);
 
@@ -387,6 +442,7 @@ STATUS_CODE frameSetTransparanetColorIndexInColorTable(GIFFrame *frame, u8 trans
     return OPERATION_SUCCESS;
 }
 
+// Free a frame record
 void freeFrame(GIFFrame *frame) {
     if (frame != NULL) {
         if (frame->localColorTable != NULL)

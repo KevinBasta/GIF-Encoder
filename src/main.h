@@ -29,6 +29,10 @@ typedef uint64_t u64;
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
 
+#ifndef max
+#define max(x, y) (((x) > (y)) ? (x) : (y))
+#endif
+
 // benchmarking macros
 #define TIMER_INIT     \
     float startTime;   \
@@ -44,6 +48,11 @@ typedef uint64_t u64;
     timeElapsed = endTime - startTime; \
     printf("Elapsed: %f seconds\n", timeElapsed); \
 }
+
+// debug macros
+#ifndef HERE
+    #define HERE {printf("HERE %d\n", g_here); g_here++;}
+#endif // HERE
 
 // error handling
 typedef enum STATUS_CODE {

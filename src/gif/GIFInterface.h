@@ -2,6 +2,7 @@
 #ifndef GIF_INTERFACE_H
 #define GIF_INTERFACE_H
 
+#include <stdbool.h>
 #include <stdint.h>
 #include "main.h"
 
@@ -178,8 +179,7 @@ typedef struct GIFFrame {
 
 
 // Encode the canvas record
-STATUS_CODE createGIF(GIFCanvas *canvas);
-STATUS_CODE createGIFAndFreeCanvas(GIFCanvas *canvas);
+STATUS_CODE createGIF(GIFCanvas *canvas, bool createGIFOnError, bool freeCanvasRecord);
 
 
 // Create a canvas record
@@ -205,7 +205,7 @@ STATUS_CODE frameCreateLocalColorTable(GIFFrame *frame);
 STATUS_CODE frameAddColorToColorTable(GIFFrame *frame, u8 red, u8 green, u8 blue);
 
 STATUS_CODE frameAddIndexStream(GIFFrame *frame, array *indexStream);
-STATUS_CODE frameCreateIndexStreamFromArray(GIFFrame *frame, u8 stackArr[], size_t size);
+STATUS_CODE frameAddIndexStreamFromArray(GIFFrame *frame, u8 stackArr[], size_t size);
 STATUS_CODE frameCreateIndexStream(GIFFrame *frame, size_t indexStreamSize);
 STATUS_CODE frameAppendToIndexStream(GIFFrame *frame, u32 item);
 

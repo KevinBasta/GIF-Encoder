@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include "main.h"
 
-STATUS_CODE createTypingGIF(char *sentence);
+#include "GIFInterface.h"
+
+STATUS_CODE createTypingGIF(char *sentence, bool addCursor);
 
 #endif // TYPE_TEXT_H

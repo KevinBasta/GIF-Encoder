@@ -1,8 +1,10 @@
 
 #include <stdint.h>
 #include "main.h"
-#include "lettersAndNumber.h"
 
+#include "lettersAndNumbers.h"
+
+// Grand9K Pixel Font
 u8 zero[] =
  {0,0,0,0,0,0,0,
   0,0,1,1,1,0,0,
@@ -984,8 +986,12 @@ letterPattern zPattern = {7, 7, 1, z};
 u8 empty[] = {0};
 letterPattern emptyPattern = {1, 1, 0, empty};
 
-letterPattern *getLetterOrNumber(char letterOrNumber) {
 
+/**
+ * @brief Get the appropriate struct belonging
+ * to inputted letter
+ */
+letterPattern *getLetterOrNumber(char letterOrNumber) {
     switch (letterOrNumber)
     {
         case '0':
@@ -1140,6 +1146,12 @@ letterPattern *getLetterOrNumber(char letterOrNumber) {
             return &dotPattern;
         case ',':
             return &commaPattern;
+        case '%':
+            return &percentPattern;
+        case '#':
+            return &sharpPattern;
+        case '$':
+            return &dollarPattern;
         case '_':
             return &underscorePattern;
         case '~':
@@ -1151,5 +1163,23 @@ letterPattern *getLetterOrNumber(char letterOrNumber) {
         default:
             return &spacePattern;
     }
+}
 
+/**
+ * @brief Given a string, get the pixel pattern of each letter
+ * and return the sum of the width of the patterns
+ * @param word        the string to get the width of
+ * @param wordLength  strlen or hardcoded length of word
+ * @return the total number of pixels
+ */
+u32 calculateWordPixelWidth(char *word, u32 wordLength) {
+    u32 total = 0;
+    
+    for (u32 i = 0; i < wordLength; i++) {
+        total += getLetterOrNumber(word[i])->width;
+    }
+
+    total += getLetterOrNumber(' ')->width;
+
+    return total;
 }

@@ -1,6 +1,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include <stdint.h>
 #include "main.h"
@@ -62,6 +63,7 @@ static void expandFrame(GIFFrame *frame, u32 widthMuliplier, u32 heightMuliplier
 // Expand the canvas frame index streams in the x and y axis
 STATUS_CODE expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 heightMuliplier) {
     STATUS_CODE status;
+    CANVAS_NULL_CHECK(canvas);
 
     canvas->canvasWidth     = canvas->canvasWidth * widthMuliplier;
     canvas->canvasHeight    = canvas->canvasHeight * heightMuliplier;
@@ -76,6 +78,70 @@ STATUS_CODE expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 heightMulipl
         status = linkedlistYield(canvas->frames, (void**) (&frame));
         CHECKSTATUS(status);
     }
+
+    return OPERATION_SUCCESS;
+}
+
+
+STATUS_CODE appendToFrame(GIFFrame *frame,
+                          u8 *arrayToAppend, 
+                          u32 widthOfAppendingArray, 
+                          u32 heightOfAppendingArray, 
+                          u32 trailingRows, 
+                          u8 valueToUseForOverflow) {
+    STATUS_CODE status;
+    FRAME_NULL_CHECK(frame);
+
+    array *oldIndexStream       = frame->indexStream;
+    oldIndexStream->currentIndex = 0;
+
+    u32 oldIndexStreamWidth     = frame->imageWidth;
+    u32 oldIndexStreamHeight    = frame->imageHeight;
+
+    u32 heightDifference = max((heightOfAppendingArray + trailingRows), oldIndexStreamHeight) - 
+                           min((heightOfAppendingArray + trailingRows), oldIndexStreamHeight);
+    printf("HEIGHT DIFF %d\n", heightDifference);
+
+    u32 newIndexStreamWidth  = frame->imageWidth + widthOfAppendingArray;
+    u32 newIndexStreamHeight = frame->imageHeight + heightDifference;
+    u32 newIndexStreamLength = newIndexStreamWidth * newIndexStreamHeight;
+
+    array *newIndexStream     = arrayInit(newIndexStreamLength);
+
+    // u32 oldIndexStreamCounter = 0;
+    u32 appendingArrayCounter = 0;
+    for (u32 row = 0; row < newIndexStreamHeight; row++) {
+        for (u32 column = 0; column < newIndexStreamWidth; column++) {
+            printf("%d %d\n", row, column);
+            if (column < oldIndexStreamWidth) {
+                if (row > oldIndexStreamHeight - 1) {
+                    arrayAppend(newIndexStream, valueToUseForOverflow);
+                } else {
+                    arrayAppend(newIndexStream, arrayGetIncrement(oldIndexStream));
+                }
+            } else {
+                if (row > heightOfAppendingArray - 1) {
+                    arrayAppend(newIndexStream, valueToUseForOverflow);
+                } else {
+                    arrayAppend(newIndexStream, arrayToAppend[appendingArrayCounter]);
+                }
+                appendingArrayCounter++;
+            }
+        }
+    }
+
+    for (int i = 0; i < newIndexStreamLength; i++) {
+        printf("%d", newIndexStream->items[i]);
+        if (i % newIndexStreamWidth == newIndexStreamWidth - 1) {
+            printf("\n");
+        }
+    }
+
+
+    freeArray(oldIndexStream);
+    frame->indexStream  = newIndexStream;
+    frame->imageWidth   = newIndexStreamWidth;
+    frame->imageHeight  = newIndexStreamHeight;
 
     return OPERATION_SUCCESS;
 }

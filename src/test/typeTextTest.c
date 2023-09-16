@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
@@ -11,7 +12,7 @@
 #include "GIFInterface.h"
 #include "GIFEncode.h"
 #include "GIFTransformations.h"
-#include "lettersAndNumber.h"
+#include "lettersAndNumbers.h"
 
 #define ROW_HEIGHT_IN_PIXELS        11
 #define LETTERS_PER_ROW             15
@@ -21,76 +22,22 @@
 #define EMPTY_ROWS_BEFORE_TEXT      1
 #define EMPTY_ROWS_AFTER_TEXT       1
 
-static u32 calculateWordPixelWidth(char *word, u32 wordLength) {
-    u32 total = 0;
-    
-    for (u32 i = 0; i < wordLength; i++) {
-        total += getLetterOrNumber(word[i])->width;
-    }
-
-    total += getLetterOrNumber(' ')->width;
-
-    return total;
-}
-
-/**
- * @brief !IMPORTANT! Just a proof of concept. cursor and clear cursor frames should be globals 
- * and need to ensure safe handling of freeing the frames because once the frame is freed once
- * then it will make the next instance of it in the frames linked list NULL and end
- * freeing early resulting in the rest of the frames not being freed. Also expanding frames
- * would need to keep track of the addresses of the frames already expanded.
- */
-static void addBlinkingCursor(GIFCanvas *canvas, u16 imageLeftPosition, u16 imageTopPosition, u32 numberOfBlinks, u32 lengthOfBlinks) {
-    letterPattern *cursor       = getLetterOrNumber('_');
-    GIFFrame *cursorFrame = frameCreate(cursor->width, 
-                                        cursor->height, 
-                                        imageLeftPosition, 
-                                        imageTopPosition + (ROW_HEIGHT_IN_PIXELS - cursor->height - cursor->baseline));
-    frameCreateIndexStreamFromArray(cursorFrame, cursor->pattern, cursor->width * cursor->height);
-    frameAddGraphicsControlInfo(cursorFrame, 1, lengthOfBlinks);
-
-    letterPattern *clearCursor  = getLetterOrNumber('~');
-    GIFFrame *clearCursorFrame = frameCreate(clearCursor->width, 
-                                            clearCursor->height, 
-                                            imageLeftPosition, 
-                                            imageTopPosition + (ROW_HEIGHT_IN_PIXELS - clearCursor->height - clearCursor->baseline));
-    frameCreateIndexStreamFromArray(clearCursorFrame, clearCursor->pattern, clearCursor->width * clearCursor->height);
-    frameAddGraphicsControlInfo(clearCursorFrame, 1, 1);
-
-    for (int i = 0; i < numberOfBlinks; i++) {
-        canvasAddFrame(canvas, cursorFrame);
-        canvasAddFrame(canvas, clearCursorFrame);
-    }
-}
-
+// create a frame from a letter pattern
 static GIFFrame *createLetterFrame(letterPattern *pattern, u16 imageLeftPosition, u16 imageTopPosition, u16 delayTime) {
     GIFFrame *frame = frameCreate(pattern->width, 
                                   pattern->height, 
                                   imageLeftPosition, 
                                   imageTopPosition + (ROW_HEIGHT_IN_PIXELS - pattern->height - pattern->baseline));
-    frameCreateIndexStreamFromArray(frame, pattern->pattern, pattern->width * pattern->height);
+    frameAddIndexStreamFromArray(frame, pattern->pattern, pattern->width * pattern->height);
     frameAddGraphicsControlInfo(frame, 1, delayTime);
 
     return frame;
 }
 
-/* static void newLine(u16 *imageLeftPosition,
-                    u16 *imageTopPosition, 
-                    u32 *numberOfRows, 
-                    letterPattern *space,
-                    u32 wordLength,
-                    u32 wordPixelWidth,
-                    u16 canvasWidth) {
-    if (*imageLeftPosition + wordPixelWidth > canvasWidth - (SPACES_AT_END_OF_LINE * space->width) && 
-        wordLength <= LETTERS_PER_ROW) 
-    {
-        *imageLeftPosition = (SPACES_AT_START_OF_LINE * space->width);
-        *imageTopPosition += ROW_HEIGHT_IN_PIXELS;
-        (*numberOfRows)++;
-    }
-} */
+// Needs support for reusing frames when encoding for this to work efficiently. 
+static void addBlinkingCursor(GIFCanvas *canvas, u16 imageLeftPosition, u16 imageTopPosition, u32 numberOfBlinks, u32 lengthOfBlink, u32 lengthOfClearBlink);
 
-STATUS_CODE createTypingGIF(char *sentence) {
+STATUS_CODE createTypingGIF(char *sentence, bool addCursor) {
 
     size_t numberOfLetters = strlen(sentence);
 
@@ -132,8 +79,7 @@ STATUS_CODE createTypingGIF(char *sentence) {
         for (int i = 0; i <= wordLength; i++) {
             // Add a space at the start of each line
         
-            // Pick the letter
-            // Get array pattern of the letter
+            // Pick the letter and get array pattern of the letter
             char letter;
             letterPattern *pattern;
             if (i == wordLength) {
@@ -146,14 +92,17 @@ STATUS_CODE createTypingGIF(char *sentence) {
 
             // determine the speed the letter is typed
             u32 typingSpeed = 0;
-            if (letter == ' ') {
+            if (addCursor) {
+                typingSpeed = 0;
+            } else if (letter == ' ') {
                 // Write spaces instantly
                 typingSpeed = 1;
             } else if (letter == '.') {
                 // Pause 1 second at dots
                 typingSpeed = 100;
             } else {
-                typingSpeed = 8; // make rand 5-15
+                // make rand 5-15 or curve
+                typingSpeed = 8;
             }
 
             // Create GIF frame for the letter and add to canvas
@@ -168,21 +117,75 @@ STATUS_CODE createTypingGIF(char *sentence) {
                 numberOfRows++;
             }
 
-            // addBlinkingCursor(canvas, imageLeftPosition, imageTopPosition, 1, 30);
+            if (addCursor) {
+                addBlinkingCursor(canvas, imageLeftPosition, imageTopPosition, 1, 20, 5);
+            }
         }
 
         token = strtok(NULL, " ");
     }
 
     // Add a pause before looping
-    GIFFrame *frame = createLetterFrame(getLetterOrNumber('\0'), imageLeftPosition, imageTopPosition, 100);
-    canvasAddFrame(canvas, frame);
+    if (addCursor) {
+        addBlinkingCursor(canvas, imageLeftPosition, imageTopPosition, 4, 30, 10);
+    } else {
+        GIFFrame *frame = createLetterFrame(getLetterOrNumber('\0'), imageLeftPosition, imageTopPosition, 100);
+        canvasAddFrame(canvas, frame);
+    }
 
     canvasUpdateWidthAndHeight(canvas,
                                canvasWidth,
                                (numberOfRows * ROW_HEIGHT_IN_PIXELS));
     expandCanvas(canvas, 5, 5);
 
-    createGIFAndFreeCanvas(canvas);
+    createGIF(canvas, false, true);
     free(string);
 }
+
+/**
+ * @brief !IMPORTANT! Just a proof of concept. cursor and clear cursor frames should be globals 
+ * and need to ensure safe handling of freeing the frames. Also expanding frames
+ * would need to keep track of the addresses of the frames already expanded.
+ */
+static void addBlinkingCursor(GIFCanvas *canvas, u16 imageLeftPosition, u16 imageTopPosition, u32 numberOfBlinks, u32 lengthOfBlink, u32 lengthOfClearBlink) {
+    /* letterPattern *cursor       = getLetterOrNumber('_');
+
+
+    letterPattern *clearCursor  = getLetterOrNumber('~');
+
+    for (int i = 0; i < numberOfBlinks; i++) {
+        GIFFrame *cursorFrame = frameCreate(cursor->width, 
+                                        cursor->height, 
+                                        imageLeftPosition, 
+                                        imageTopPosition + (ROW_HEIGHT_IN_PIXELS - cursor->height - cursor->baseline));
+        frameAddIndexStreamFromArray(cursorFrame, cursor->pattern, cursor->width * cursor->height);
+        frameAddGraphicsControlInfo(cursorFrame, 1, lengthOfBlink);
+        
+        canvasAddFrame(canvas, cursorFrame);
+        
+        GIFFrame *clearCursorFrame = frameCreate(clearCursor->width, 
+                                        clearCursor->height, 
+                                        imageLeftPosition, 
+                                        imageTopPosition + (ROW_HEIGHT_IN_PIXELS - clearCursor->height - clearCursor->baseline));
+        frameAddIndexStreamFromArray(clearCursorFrame, clearCursor->pattern, clearCursor->width * clearCursor->height);
+        frameAddGraphicsControlInfo(clearCursorFrame, 1, lengthOfClearBlink);
+
+        canvasAddFrame(canvas, clearCursorFrame);
+    } */
+}
+
+/* static void newLine(u16 *imageLeftPosition,
+                    u16 *imageTopPosition, 
+                    u32 *numberOfRows, 
+                    letterPattern *space,
+                    u32 wordLength,
+                    u32 wordPixelWidth,
+                    u16 canvasWidth) {
+    if (*imageLeftPosition + wordPixelWidth > canvasWidth - (SPACES_AT_END_OF_LINE * space->width) && 
+        wordLength <= LETTERS_PER_ROW) 
+    {
+        *imageLeftPosition = (SPACES_AT_START_OF_LINE * space->width);
+        *imageTopPosition += ROW_HEIGHT_IN_PIXELS;
+        (*numberOfRows)++;
+    }
+} */
