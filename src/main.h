@@ -8,9 +8,8 @@
 // Preprocessor constants
 #define TRUE 1
 #define FALSE 0
-#define DEBUG_PRINT_ENABLE TRUE
-#define DEBUG_PRINT(...)  print(__VA_ARGS__)
-#define DEBUG_PRINTF(...) printf(__VA_ARGS__)
+#define DEBUG_PRINT_ENABLE  TRUE
+#define PRINTF(...) printf(__VA_ARGS__)
 #define PRINT_INT(X) printf("%d\n", X) 
 
 // renaming stdint types

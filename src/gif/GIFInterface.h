@@ -192,8 +192,6 @@ STATUS_CODE canvasAddColorToColorTable(GIFCanvas *canvas, u8 red, u8 green, u8 b
 STATUS_CODE canvasSetBackgroundColorIndex(GIFCanvas *canvas, u8 globalColorTableIndex);
 STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame);
 
-STATUS_CODE canvasUpdateWidthAndHeight(GIFCanvas *canvas, u16 newWidth, u16 newHeight);
-
 void freeCanvas(GIFCanvas *canvas);
 
 

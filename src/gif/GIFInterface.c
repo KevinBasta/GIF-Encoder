@@ -193,23 +193,6 @@ STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame) {
     return OPERATION_SUCCESS;
 }
 
-/**
- * @brief Update the width and height of a canvas record
- * @param canvas        Canvas record to update
- * @param newWidth      New width in pixels to set
- * @param newHeight     New height in pixels to set
- * 
- * @return OPERATION_SUCCESS or error code
- */
-STATUS_CODE canvasUpdateWidthAndHeight(GIFCanvas *canvas, u16 newWidth, u16 newHeight) {
-    CANVAS_NULL_CHECK(canvas);
-
-    canvas->canvasWidth  = newWidth;
-    canvas->canvasHeight = newHeight;
-
-    return OPERATION_SUCCESS;
-}
-
 // Free the canvas record and all it's frames
 void freeCanvas(GIFCanvas *canvas) {
     if (canvas != NULL) {

@@ -14,11 +14,11 @@
  *  @param postfixString:   a char array to print after
  */
 void printNBytes(u8 *string, u32 bytesToPrint, u8 prefixString[], u8 postfixString[]) { 
-    printf("%s", prefixString);
+    PRINTF("%s", prefixString);
     for (u32 i = 0; i < bytesToPrint; i++) { 
-        printf("%c", string[i]);
+        PRINTF("%c", string[i]);
     }
-    printf("%s", postfixString);
+    PRINTF("%s", postfixString);
 }
 
 /**
@@ -29,10 +29,10 @@ void printNBytes(u8 *string, u32 bytesToPrint, u8 prefixString[], u8 postfixStri
 void printHexNBytes(u8 *string, u32 bytesToPrint) { 
     // 15 == (0000 1111), masks the low 4 bits in a byte
     for (u32 i = 0; i < bytesToPrint; i++) {
-        printf("%X", (string[i] >> 4) & 15);
-        printf("%X ", string[i] & 15);
+        PRINTF("%X", (string[i] >> 4) & 15);
+        PRINTF("%X ", string[i] & 15);
     }
-    printf("\n");
+    PRINTF("\n");
 }
 
 /**
@@ -42,11 +42,11 @@ void printHexNBytes(u8 *string, u32 bytesToPrint) {
 void printCharArrayBits(u8 *bitPattern) { 
     for (u32 j = 0; j < 4; j++) {
         for (u32 i = 7; i >= 0; i--) {
-            printf("%d", (bitPattern[j] >> i) & 1);
+            PRINTF("%d", (bitPattern[j] >> i) & 1);
         }
-        printf(" ");
+        PRINTF(" ");
     }
-    printf("\n");
+    PRINTF("\n");
 }
 
 /**
@@ -62,9 +62,9 @@ void printIntBits(void const * const ptr, size_t const size) {
     for (i = size-1; i >= 0; i--) {
         for (j = 7; j >= 0; j--) {
             byte = (b[i] >> j) & 1;
-            printf("%u", byte);
+            PRINTF("%u", byte);
         }
-        printf(" ");
+        PRINTF(" ");
     }
     puts("");
 }
@@ -77,9 +77,9 @@ void printBits(void const * const ptr, size_t const size) {
     for (i = 0; i < size; i++) {
         for (j = 7; j >= 0; j--) {
             byte = (b[i] >> j) & 1;
-            printf("%u", byte);
+            PRINTF("%u", byte);
         }
-        printf(" ");
+        PRINTF(" ");
     }
     puts("");
 }

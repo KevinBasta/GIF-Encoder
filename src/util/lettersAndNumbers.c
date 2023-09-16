@@ -149,6 +149,18 @@ u8 underscoreMark[] =
   0,0,0,0,0,0,0,0};
 letterPattern underscorePattern = {8, 9, 0, underscoreMark};
 
+u8 dashMark[] = 
+ {0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,1,1,1,1,1,1,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0};
+letterPattern dashPattern = {8, 9, 0, dashMark};
+
 u8 underscoreClearMark[] = 
  {0,0,0,0,0,0,0,0,
   0,0,0,0,0,0,0,0,
@@ -1156,6 +1168,8 @@ letterPattern *getLetterOrNumber(char letterOrNumber) {
             return &underscorePattern;
         case '~':
             return &underscoreClearPattern;
+        case '-':
+            return &dashPattern;
         case '\0':
             return &emptyPattern;
         case ' ':

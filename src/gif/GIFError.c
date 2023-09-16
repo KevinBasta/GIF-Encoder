@@ -7,73 +7,104 @@
 #include "array.h"
 #include "GIFColorTable.h"
 #include "GIFInterface.h"
+#include "GIFExtendedInterface.h"
 #include "GIFEncode.h"
 #include "GIFTransformations.h"
 #include "printUtility.h"
 
 #include "lettersAndNumbers.h"
 
+/**
+ * @brief creates a gif that displays the word "ERROR ##!"
+ * @param errorCode The number to put for ## above
+ *
+ * @return OPERATION_SUCCESS or error code
+ */
 STATUS_CODE createErrorGif(u32 errorCode) {
-    // creates a gif that displays
-    // the word "ERROR!" in case the main
-    // program goes wrong somewhere
-    // also serves as a good test
     STATUS_CODE status;
 
     // create canvas
     GIFCanvas *canvas = canvasCreate(MAX_LETTER_PIXEL_WIDTH, ROW_HEIGHT_IN_PIXELS);
+    CANVAS_NULL_CHECK(canvas);
+
     status = canvasCreateGlobalColorTable(canvas);              CHECKSTATUS(status);
     status = canvasAddColorToColorTable(canvas, 0, 0, 0);       CHECKSTATUS(status);
     status = canvasAddColorToColorTable(canvas, 255, 255, 255); CHECKSTATUS(status);
     status = canvasSetBackgroundColorIndex(canvas, 0);          CHECKSTATUS(status);
 
-    // FRAME #1
-    char *errorString = "ERROR ";
+
+
+    // Create FRAME #1
+    char *errorString = "ERR_";
     letterPattern *pattern = getLetterOrNumber(errorString[0]);
+
+    // Create frame for the first letter
     GIFFrame *errFrame = frameCreate(pattern->width, pattern->height, 0, 0);
-    frameAddIndexStreamFromArray(errFrame, pattern->pattern, pattern->width * pattern->height);
-    frameAddGraphicsControlInfo(errFrame, 1, 100);
+    FRAME_NULL_CHECK(errFrame);
+
+    status = frameAddIndexStreamFromArray(errFrame, pattern->pattern, pattern->width * pattern->height);
+    CHECKSTATUS(status);
+    status = frameAddGraphicsControlInfo(errFrame, 1, 100);
+    CHECKSTATUS(status);
+    status = canvasAddFrame(canvas, errFrame);
+    CHECKSTATUS(status);
 
     // Add the rest of the error string to the frame
     for (int i = 1; errorString[i] != '\0'; i++) {
         letterPattern *nextLetter = getLetterOrNumber(errorString[i]);
-        appendToFrame(errFrame, nextLetter->pattern, nextLetter->width, nextLetter->height, 0, 0);
+        status = appendToFrame(errFrame, nextLetter->pattern, nextLetter->width, nextLetter->height, 0, 0);
+        CHECKSTATUS(status);
     }
     
-    // Add the error number
-    char *errorNumberString = intToString(errorCode, 3);
+    // Add the error number to the frame
     u16 startCodePose = errFrame->imageWidth;
+    char *errorNumberString = intToString(errorCode, 3);
     for (int i = 0; errorNumberString[i] != '\0'; i++) {
         letterPattern *nextLetter = getLetterOrNumber(errorNumberString[i]);
-        appendToFrame(errFrame, nextLetter->pattern, nextLetter->width, nextLetter->height, 0, 0);
+        status = appendToFrame(errFrame, nextLetter->pattern, nextLetter->width, nextLetter->height, 0, 0);
+        CHECKSTATUS(status);
     }
     free(errorNumberString);
     u16 endCodePose = errFrame->imageWidth;
 
-    // Add an exclamation mark
+    // Add an exclamation mark to the frame
     letterPattern *exclamation = getLetterOrNumber('!');
-    appendToFrame(errFrame, exclamation->pattern, exclamation->width, exclamation->height, 0, 0);
+    status = appendToFrame(errFrame, exclamation->pattern, exclamation->width, exclamation->height, 0, 0);
+    CHECKSTATUS(status);
 
-    canvasAddFrame(canvas, errFrame);
 
 
-    // FRAME #2
+
+    // Create FRAME #2
     u32 maskFrameWidth = (endCodePose - startCodePose);
     u32 maskFrameSize = maskFrameWidth * errFrame->imageHeight;
     u8 *maskFrameIndexStream = calloc(maskFrameSize, sizeof(u8));
     for (int i = 0; i < maskFrameSize; i++)
         maskFrameIndexStream[i] = 0;
 
+    // Create frame to mask the error code
     GIFFrame *maskFrame = frameCreate(maskFrameWidth, errFrame->imageHeight, startCodePose, errFrame->imageTopPosition);
-    frameAddIndexStreamFromArray(maskFrame, maskFrameIndexStream, maskFrameSize);
-    frameAddGraphicsControlInfo(maskFrame, 1, 100);
-    canvasAddFrame(canvas, maskFrame);
+    FRAME_NULL_CHECK(maskFrame);
 
-    canvasUpdateWidthAndHeight(canvas, errFrame->imageWidth, errFrame->imageHeight);
+    status = frameAddIndexStreamFromArray(maskFrame, maskFrameIndexStream, maskFrameSize);
+    CHECKSTATUS(status);
+    status = frameAddGraphicsControlInfo(maskFrame, 1, 100);
+    CHECKSTATUS(status);
+    status = canvasAddFrame(canvas, maskFrame);
+    CHECKSTATUS(status);
+
+
+
+    // Update the canvas dimentions and expand the canvas
+    status = canvasUpdateWidthAndHeight(canvas, errFrame->imageWidth, errFrame->imageHeight);
+    CHECKSTATUS(status);
+
     u32 widthMuliplier  = 10; u32 heightMuliplier = 10;
-    expandCanvas(canvas, widthMuliplier, heightMuliplier);
+    status = expandCanvas(canvas, widthMuliplier, heightMuliplier);
+    CHECKSTATUS(status);
 
-    encodeGIF(canvas);
+    status = encodeGIF(canvas);
+    CHECKSTATUS(status);
 
     free(maskFrameIndexStream);
     freeCanvas(canvas);

@@ -10,6 +10,7 @@
 #include "array.h"
 #include "GIFColorTable.h"
 #include "GIFInterface.h"
+#include "GIFExtendedInterface.h"
 #include "GIFEncode.h"
 #include "GIFTransformations.h"
 #include "lettersAndNumbers.h"
