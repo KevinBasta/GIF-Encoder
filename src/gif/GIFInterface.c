@@ -26,7 +26,7 @@
  * 
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE createGIF(GIFCanvas *canvas, bool createGIFOnError, bool freeCanvasRecord) {
+STATUS_CODE createGIF(GIFCanvas *canvas, bool freeCanvasRecord, bool createGIFOnError) {
     STATUS_CODE status;
 
     CANVAS_NULL_CHECK(canvas);

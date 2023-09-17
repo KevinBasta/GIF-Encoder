@@ -17,6 +17,9 @@ static void expandFrame(GIFFrame *frame, u32 widthMuliplier, u32 heightMuliplier
     u16 newWidth  = oldWidth  * widthMuliplier;
     u16 newHeight = oldHeight * heightMuliplier;
   
+    if (newWidth > INT16_MAX || newHeight > INT16_MAX)
+        return;
+
     frame->imageWidth   = newWidth;
     frame->imageHeight  = newHeight;
 
@@ -49,10 +52,10 @@ static void expandFrame(GIFFrame *frame, u32 widthMuliplier, u32 heightMuliplier
         }
     }
 
-    for (int i = 0; i < newArraySize && newWidth < 100; i++) {
-        printf("%d", newIndexStream->items[i]);
+    for (int i = 0; i < newArraySize && newWidth < 50 && newHeight < 50; i++) {
+        PRINTF("%d", newIndexStream->items[i]);
         if (i % newWidth == newWidth - 1) {
-            printf("\n");
+            PRINTF("\n");
         }
     }
 
@@ -65,8 +68,14 @@ STATUS_CODE expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 heightMulipl
     STATUS_CODE status;
     CANVAS_NULL_CHECK(canvas);
 
-    canvas->canvasWidth     = canvas->canvasWidth * widthMuliplier;
-    canvas->canvasHeight    = canvas->canvasHeight * heightMuliplier;
+    size_t newCanvasWidth  = canvas->canvasWidth * widthMuliplier;
+    size_t newCanvasHeight = canvas->canvasHeight * heightMuliplier;
+
+    if (newCanvasHeight > INT16_MAX || newCanvasWidth > INT16_MAX)
+        return OPERATION_FAILED;
+
+    canvas->canvasWidth     = newCanvasWidth;
+    canvas->canvasHeight    = newCanvasHeight;
 
     GIFFrame *frame;
     status = linkedlistYield(canvas->frames, (void**) (&frame));
@@ -145,9 +154,9 @@ STATUS_CODE appendToFrame(GIFFrame *frame,
     }
 
     /* for (int i = 0; i < newIndexStreamLength; i++) {
-        printf("%d", newIndexStream->items[i]);
+        PRINTF("%d", newIndexStream->items[i]);
         if (i % newIndexStreamWidth == newIndexStreamWidth - 1) {
-            printf("\n");
+            PRINTF("\n");
         }
     } */
 

@@ -10,50 +10,74 @@
 #include "GIFEncode.h"
 #include "GIFTransformations.h"
 
-STATUS_CODE createTestGif() {
+STATUS_CODE createLocalColorTableTest() {
     STATUS_CODE status;
 
-    // create color table
-    colorTable *globalColorTable = colortableInit();
-    status = colortableAppendRGB(globalColorTable, 0xFF, 0xFF, 0xFF);       
-    CHECKSTATUS(status);
-    status = colortableAppendRGB(globalColorTable, 0xFF, 0x00, 0x00); 
-    CHECKSTATUS(status);
-    status = colortableAppendRGB(globalColorTable, 0x00, 0x00, 0xFF); 
-    CHECKSTATUS(status);
+    // Create canvas
+    GIFCanvas *canvas = canvasCreate(33, 17);
+    CANVAS_NULL_CHECK(canvas);
 
-    // create canvas
-    GIFCanvas *canvas = canvasCreate(0x0A, 0x0A);
-    status = canvasAddGlobalColorTable(canvas, globalColorTable);   
-    CHECKSTATUS(status);
-    status = canvasSetBackgroundColorIndex(canvas, 0x00);           
-    CHECKSTATUS(status);
-
-    u8 frameOneTempIndexStream[] =
-    { 1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
-      1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
-      1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
-      1, 1, 1, 0, 0, 0, 0, 2, 2, 2,
-      1, 1, 1, 0, 0, 0, 0, 2, 2, 2,
-      2, 2, 2, 0, 0, 0, 0, 1, 1, 1,
-      2, 2, 2, 0, 0, 0, 0, 1, 1, 1,
-      2, 2, 2, 2, 2, 1, 1, 1, 1, 1,
-      2, 2, 2, 2, 2, 1, 1, 1, 1, 1,
-      2, 2, 2, 2, 2, 1, 1, 1, 1, 1 };
+    u8 tempIndexStream[] =
+    { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+      0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,
+      0,2,0,0,1,1,0,0,1,1,0,0,1,1,0,0,2,1,1,0,0,1,1,0,0,1,1,0,0,1,1,2,0,
+      0,2,0,0,1,1,0,0,1,1,0,0,1,1,0,0,2,1,1,0,0,1,1,0,0,1,1,0,0,1,1,2,0,
+      0,2,2,2,2,1,0,0,1,1,0,0,1,1,0,0,2,1,1,0,0,1,1,0,0,1,1,0,2,2,2,2,0,
+      0,2,0,0,2,1,0,0,1,1,0,0,1,1,0,0,2,1,1,0,0,1,1,0,0,1,1,0,2,1,1,2,0,
+      0,2,0,0,2,1,0,0,1,1,0,0,1,1,0,2,2,2,1,0,0,1,1,0,0,1,1,0,2,1,1,2,0,
+      0,2,0,0,2,1,0,0,1,1,0,0,1,1,2,0,2,1,2,0,0,1,1,0,0,1,1,0,2,1,1,2,0,
+      0,2,0,0,2,1,0,0,1,1,0,0,1,1,2,0,2,1,2,0,0,1,1,0,0,1,1,0,2,1,1,2,0,
+      0,2,0,0,2,1,0,0,1,1,0,0,1,1,2,0,2,1,2,0,0,1,1,0,0,1,1,0,2,1,1,2,0,
+      0,2,0,0,2,1,0,0,1,1,0,0,1,1,0,2,2,2,1,0,0,1,1,0,0,1,1,0,2,1,1,2,0,
+      0,2,0,0,2,1,0,0,1,1,0,0,1,1,0,0,2,1,1,0,0,1,1,0,0,1,1,0,2,1,1,2,0,
+      0,2,2,2,2,1,0,0,1,1,0,0,1,1,0,0,2,1,1,0,0,1,1,0,0,1,1,0,2,2,2,2,0,
+      0,2,0,0,1,1,0,0,1,1,0,0,1,1,0,0,2,1,1,0,0,1,1,0,0,1,1,0,0,1,1,2,0,
+      0,2,0,0,1,1,0,0,1,1,0,0,1,1,0,0,2,1,1,0,0,1,1,0,0,1,1,0,0,1,1,2,0,
+      0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
     
-    array *frameOneIndexStream = arrayInitFromStackArray((u8*)&frameOneTempIndexStream, sizeof(frameOneTempIndexStream));
-    GIFFrame *frameOne = frameCreate(24, 7, 0, 0);
-    status = frameAddIndexStream(frameOne, frameOneIndexStream);
-    CHECKSTATUS(status);
+    {
+        // First frame
+        GIFFrame *frameOne = frameCreate(33, 17, 0, 0);
+        status = frameAddIndexStreamFromArray(frameOne, tempIndexStream, sizeof(tempIndexStream));
+        CHECKSTATUS(status);
 
-    canvasAddFrame(canvas, frameOne);
+        // First frame local color table
+        status = frameCreateLocalColorTable(frameOne); CHECKSTATUS(status);
+        status = frameAddColorToColorTable(frameOne, 45, 133, 79); CHECKSTATUS(status);
+        status = frameAddColorToColorTable(frameOne, 47, 158, 90); CHECKSTATUS(status);
+        status = frameAddColorToColorTable(frameOne, 255, 255, 255); CHECKSTATUS(status);
+
+        status = frameAddGraphicsControlInfo(frameOne, 0, 100);
+        CHECKSTATUS(status);
+
+        status = canvasAddFrame(canvas, frameOne);
+        CHECKSTATUS(status);
+    }
     
-    u32 widthMuliplier  = 192; u32 heightMuliplier = 108;
+    {
+        // Second frame
+        GIFFrame *frameTwo = frameCreate(33, 17, 0, 0);
+        status = frameAddIndexStreamFromArray(frameTwo, tempIndexStream, sizeof(tempIndexStream));
+        CHECKSTATUS(status);
+        
+        // Second frame local color table
+        status = frameCreateLocalColorTable(frameTwo); CHECKSTATUS(status);
+        status = frameAddColorToColorTable(frameTwo, 47, 98, 153);   CHECKSTATUS(status);
+        status = frameAddColorToColorTable(frameTwo, 46, 89, 135);   CHECKSTATUS(status);
+        status = frameAddColorToColorTable(frameTwo, 0, 0, 0);     CHECKSTATUS(status);
+        
+        status = frameAddGraphicsControlInfo(frameTwo, 0, 100);
+        CHECKSTATUS(status);
+
+        status = canvasAddFrame(canvas, frameTwo);
+        CHECKSTATUS(status);
+    }
+    
+    u32 widthMuliplier  = 10; u32 heightMuliplier = 10;
     expandCanvas(canvas, widthMuliplier, heightMuliplier);
 
-    encodeGIF(canvas);
-
-    freeCanvas(canvas);
+    createGIF(canvas, true, true);
 
     return OPERATION_SUCCESS;
 }

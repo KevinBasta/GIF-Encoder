@@ -139,7 +139,7 @@ STATUS_CODE createTypingGIF(char *sentence, bool addCursor) {
                                (numberOfRows * ROW_HEIGHT_IN_PIXELS));
     expandCanvas(canvas, 5, 5);
 
-    createGIF(canvas, false, true);
+    createGIF(canvas, true, true);
     free(string);
 }
 

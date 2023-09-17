@@ -179,7 +179,7 @@ typedef struct GIFFrame {
 
 
 // Encode the canvas record
-STATUS_CODE createGIF(GIFCanvas *canvas, bool createGIFOnError, bool freeCanvasRecord);
+STATUS_CODE createGIF(GIFCanvas *canvas, bool freeCanvasRecord, bool createGIFOnError);
 
 
 // Create a canvas record

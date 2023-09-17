@@ -35,7 +35,7 @@ STATUS_CODE createErrorGif(u32 errorCode) {
 
 
     // Create FRAME #1
-    char *errorString = "ERR_";
+    char *errorString = "ERR";
     letterPattern *pattern = getLetterOrNumber(errorString[0]);
 
     // Create frame for the first letter
@@ -57,7 +57,6 @@ STATUS_CODE createErrorGif(u32 errorCode) {
     }
     
     // Add the error number to the frame
-    u16 startCodePose = errFrame->imageWidth;
     char *errorNumberString = intToString(errorCode, 3);
     for (int i = 0; errorNumberString[i] != '\0'; i++) {
         letterPattern *nextLetter = getLetterOrNumber(errorNumberString[i]);
@@ -65,12 +64,13 @@ STATUS_CODE createErrorGif(u32 errorCode) {
         CHECKSTATUS(status);
     }
     free(errorNumberString);
-    u16 endCodePose = errFrame->imageWidth;
 
     // Add an exclamation mark to the frame
-    letterPattern *exclamation = getLetterOrNumber('!');
-    status = appendToFrame(errFrame, exclamation->pattern, exclamation->width, exclamation->height, 0, 0);
+    u16 startCodePose = errFrame->imageWidth;
+    letterPattern *endLetter = getLetterOrNumber('_');
+    status = appendToFrame(errFrame, endLetter->pattern, endLetter->width, endLetter->height, 0, 0);
     CHECKSTATUS(status);
+    u16 endCodePose = errFrame->imageWidth;
 
 
 
@@ -82,7 +82,7 @@ STATUS_CODE createErrorGif(u32 errorCode) {
     for (int i = 0; i < maskFrameSize; i++)
         maskFrameIndexStream[i] = 0;
 
-    // Create frame to mask the error code
+    // Create frame to mask the udnerscore
     GIFFrame *maskFrame = frameCreate(maskFrameWidth, errFrame->imageHeight, startCodePose, errFrame->imageTopPosition);
     FRAME_NULL_CHECK(maskFrame);
 
@@ -103,11 +103,10 @@ STATUS_CODE createErrorGif(u32 errorCode) {
     status = expandCanvas(canvas, widthMuliplier, heightMuliplier);
     CHECKSTATUS(status);
 
-    status = encodeGIF(canvas);
+    status = createGIF(canvas, true, true);
     CHECKSTATUS(status);
 
     free(maskFrameIndexStream);
-    freeCanvas(canvas);
 
     return OPERATION_SUCCESS;
 }

@@ -141,7 +141,8 @@ STATUS_CODE arrayReset(array *arr) {
  * @return A '\0' terminated string (character array) or NULL
  */
 char* arrayConcat(array *arr, char entrySeparator) {
-    char *concat = calloc(arr->currentIndex * 2, sizeof(char));
+    // Allocate space for 3 chars per int (because max is 255) and 1 comma per int
+    char *concat = calloc((arr->currentIndex * 3) + arr->currentIndex, sizeof(char));
     if (concat == NULL)
         return NULL;
 
@@ -161,7 +162,7 @@ char* arrayConcat(array *arr, char entrySeparator) {
 
         free(itemStr);
     }
-    concat[(arr->currentIndex * 2) - 1] = '\0';
+    concat[k - 1] = '\0';
 
     return concat;
 }

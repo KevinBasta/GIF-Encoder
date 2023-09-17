@@ -72,7 +72,7 @@ STATUS_CODE linkedlistYield(linkedlist *list, void **item) {
         list->currentIter = list->currentIter->nextNode;
     }
 
-    printf("item: %p\n", *item);
+    PRINTF("item: %p\n", *item);
 
     return OPERATION_SUCCESS;
 }
@@ -107,11 +107,11 @@ void freeFrameLinkedList(linkedlist *list) {
     u32 *testVal = malloc(sizeof(u32));
     *testVal = 44;
 
-    printf("HI\n");
+    PRINTF("HI\n");
     linkedlistAppend(test, testVal);
 
     u32 *yeildReturn = malloc(sizeof(u32));
 
     linkedlistYieldInt(test, &yeildReturn);
-    printf("hello %d\n", *yeildReturn);
+    PRINTF("hello %d\n", *yeildReturn);
 } */

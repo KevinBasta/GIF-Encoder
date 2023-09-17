@@ -8,9 +8,14 @@
 // Preprocessor constants
 #define TRUE 1
 #define FALSE 0
-#define DEBUG_PRINT_ENABLE  TRUE
+
+#define PRINT_ENABLE
+
+#ifdef PRINT_ENABLE
 #define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT_INT(X) printf("%d\n", X) 
+#else
+#define PRINTF(...)
+#endif
 
 // renaming stdint types
 typedef int8_t  i8;
@@ -29,7 +34,7 @@ typedef uint64_t u64;
 #endif
 
 #ifndef max
-#define max(x, y) (((x) > (y)) ? (x) : (y))
+#define max(x, y)           (((x) > (y)) ? (x) : (y))
 #endif
 
 // benchmarking macros
