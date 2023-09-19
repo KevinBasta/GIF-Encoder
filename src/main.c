@@ -25,6 +25,8 @@
 #include "maxColorIndexTest.h"
 #include "gradientTest.h"
 #include "snakeTest.h"
+#include "trafficLightTest.h"
+#include "transparancyTest.h"
 
 int main(int argc, char **argv) { 
     STATUS_CODE status;
@@ -38,8 +40,10 @@ int main(int argc, char **argv) {
     // createTypingGIF("Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz 0 1 2 3 4 5 6 7 8 9 ! ? / \\ \" ' [ ], ( ).", false);
     // createLocalColorTableTest();
     // status = createMaxColorIndexTest();
-    status = createGradientTest();
+    // status = createGradientTest();
     // status = createSnakeTest();
+    // status = createTrafficLightGif();
+    status = createTransparancyTest();
 
     printf("%d\n", status);
     TIMER_END();

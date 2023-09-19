@@ -7,6 +7,7 @@
 
 #include "linkedlist.h"
 #include "GIFInterface.h"
+#include "searchUtility.h"
 
 /**
  * @brief Create a linkedlist
@@ -83,23 +84,36 @@ void linkedlistResetIter(linkedlist *list) {
 }
 
 void freeFrameLinkedList(linkedlist *list) {
-    if (list != NULL) {
-        linkedlistResetIter(list);
+    GIFFrame **framesFreed = calloc(list->size, sizeof(GIFFrame*));
+    size_t i = 0;
 
+    // If a frame is in the list twice
+    // it will make us find an early null
+    // since subsequent uses would be null
+    size_t entriesLeft = list->size;
+    
+    if (list != NULL) {
         node *currentHead = list->head;
 
-        while (currentHead != NULL) {
+        while (entriesLeft > 0) {
             GIFFrame *item = currentHead->item;
-            freeFrame(item);
-        
+            if (!frameInArray(item, framesFreed, i)) {
+                freeFrame(item);
+                framesFreed[i] = item;
+                i++;
+            }
+
             node *nextHead = currentHead->nextNode;
             free(currentHead);
             
             currentHead = nextHead;
+            entriesLeft--;
         }
 
         free(list);
     }
+
+    free(framesFreed);
 }
 
 /* void main() {

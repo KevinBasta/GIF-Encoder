@@ -7,6 +7,7 @@
 #include "main.h"
 
 #include "array.h"
+#include "searchUtility.h"
 #include "GIFInterface.h"
 
 // Expands a single frame in the x and y axis
@@ -76,17 +77,26 @@ STATUS_CODE expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 heightMulipl
 
     canvas->canvasWidth     = newCanvasWidth;
     canvas->canvasHeight    = newCanvasHeight;
+        
+    GIFFrame **framesExpanded = calloc(canvas->frames->size, sizeof(GIFFrame*));
+    size_t i = 0;
 
     GIFFrame *frame;
     status = linkedlistYield(canvas->frames, (void**) (&frame));
     CHECKSTATUS(status);
 
     while (frame != NULL) {
-        expandFrame(frame, widthMuliplier, heightMuliplier);
+        if (!frameInArray(frame, framesExpanded, i)) {
+            expandFrame(frame, widthMuliplier, heightMuliplier);
+            framesExpanded[i] = frame;
+            i++;
+        }
         
         status = linkedlistYield(canvas->frames, (void**) (&frame));
         CHECKSTATUS(status);
     }
+
+    free(framesExpanded);
 
     return OPERATION_SUCCESS;
 }

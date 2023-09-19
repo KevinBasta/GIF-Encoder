@@ -22,7 +22,7 @@ STATUS_CODE createSnakeTest() {
     status = canvasCreateGlobalColorTable(canvas);
     CHECKSTATUS(status);
     
-    status = canvasAddColorToColorTable(canvas, 32, 161, 51);
+    status = canvasAddColorToColorTable(canvas, 76, 175, 80);
     CHECKSTATUS(status);
     status = canvasAddColorToColorTable(canvas, 32, 96, 161);
     CHECKSTATUS(status);

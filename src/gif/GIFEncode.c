@@ -16,7 +16,13 @@
 #include "bitarray.h"
 #include "bitUtility.h"
 #include "endianUtility.h"
+#include "searchUtility.h"
 #include "printUtility.h"
+
+// Avoid encoding frames twice
+typedef struct duplicateFrameData {
+    bitarray *imageData;
+} duplicateFrameData;
 
 /**
  * @brief Write common GIF header to file
@@ -324,7 +330,7 @@ static bool validGlobalColorTable(GIFCanvas *canvas) {
 }
 
 static bool validLocalColorTable(GIFFrame *frame) {
-    if (frame->packedField_LocalColorTableFlag = 1) {
+    if (frame->packedField_LocalColorTableFlag == 1) {
         if (frame->localColorTable != NULL) {
             return true;
         }

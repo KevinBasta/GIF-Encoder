@@ -202,6 +202,8 @@ STATUS_CODE createLZWImageData(colorTable *clrTable, array *indexStream, bitarra
     status = bitarraySetBookMarkValue(imageData, imageData->currentIndex - imageData->markIndex - 1);
     CHECKSTATUS(status);
 
+    indexStream->currentIndex = 0;
+
     return OPERATION_SUCCESS;
 }
 
