@@ -144,35 +144,30 @@ STATUS_CODE createTypingGIF(char *sentence, bool addCursor) {
 }
 
 /**
- * @brief !IMPORTANT! Just a proof of concept. cursor and clear cursor frames should be globals 
- * and need to ensure safe handling of freeing the frames. Also expanding frames
- * would need to keep track of the addresses of the frames already expanded.
+ * @brief add blinking cursor frames to canvas 
  */
 static void addBlinkingCursor(GIFCanvas *canvas, u16 imageLeftPosition, u16 imageTopPosition, u32 numberOfBlinks, u32 lengthOfBlink, u32 lengthOfClearBlink) {
-    /* letterPattern *cursor       = getLetterOrNumber('_');
-
+    letterPattern *cursor       = getLetterOrNumber('_');
+    GIFFrame *cursorFrame = frameCreate(cursor->width, 
+                                    cursor->height, 
+                                    imageLeftPosition, 
+                                    imageTopPosition + (ROW_HEIGHT_IN_PIXELS - cursor->height - cursor->baseline));
+    frameAddIndexStreamFromArray(cursorFrame, cursor->pattern, cursor->width * cursor->height);
+    frameAddGraphicsControlInfo(cursorFrame, 1, lengthOfBlink);
 
     letterPattern *clearCursor  = getLetterOrNumber('~');
-
+    GIFFrame *clearCursorFrame = frameCreate(clearCursor->width, 
+                                    clearCursor->height, 
+                                    imageLeftPosition, 
+                                    imageTopPosition + (ROW_HEIGHT_IN_PIXELS - clearCursor->height - clearCursor->baseline));
+    frameAddIndexStreamFromArray(clearCursorFrame, clearCursor->pattern, clearCursor->width * clearCursor->height);
+    frameAddGraphicsControlInfo(clearCursorFrame, 1, lengthOfClearBlink);
+    
+    
     for (int i = 0; i < numberOfBlinks; i++) {
-        GIFFrame *cursorFrame = frameCreate(cursor->width, 
-                                        cursor->height, 
-                                        imageLeftPosition, 
-                                        imageTopPosition + (ROW_HEIGHT_IN_PIXELS - cursor->height - cursor->baseline));
-        frameAddIndexStreamFromArray(cursorFrame, cursor->pattern, cursor->width * cursor->height);
-        frameAddGraphicsControlInfo(cursorFrame, 1, lengthOfBlink);
-        
         canvasAddFrame(canvas, cursorFrame);
-        
-        GIFFrame *clearCursorFrame = frameCreate(clearCursor->width, 
-                                        clearCursor->height, 
-                                        imageLeftPosition, 
-                                        imageTopPosition + (ROW_HEIGHT_IN_PIXELS - clearCursor->height - clearCursor->baseline));
-        frameAddIndexStreamFromArray(clearCursorFrame, clearCursor->pattern, clearCursor->width * clearCursor->height);
-        frameAddGraphicsControlInfo(clearCursorFrame, 1, lengthOfClearBlink);
-
         canvasAddFrame(canvas, clearCursorFrame);
-    } */
+    }
 }
 
 /* static void newLine(u16 *imageLeftPosition,

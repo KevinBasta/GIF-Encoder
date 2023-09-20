@@ -32,7 +32,7 @@ STATUS_CODE createTransparancyTest() {
     CHECKSTATUS(status);
 
     // Set background to the transparent color
-    status = canvasSetBackgroundColorIndex(canvas, 0);
+    status = canvasSetBackgroundColorIndex(canvas, 2);
     CHECKSTATUS(status);
 
     GIFFrame *frameOne;

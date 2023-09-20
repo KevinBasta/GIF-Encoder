@@ -19,11 +19,6 @@
 #include "searchUtility.h"
 #include "printUtility.h"
 
-// Avoid encoding frames twice
-typedef struct duplicateFrameData {
-    bitarray *imageData;
-} duplicateFrameData;
-
 /**
  * @brief Write common GIF header to file
  * @param gif - Gif file to write to
@@ -275,17 +270,26 @@ STATUS_CODE encodeColorTable(FILE *gif, colorTable *colorTable) {
  * @brief Given a color table and index stream, generate the
  * corrosponding imageData using LZW and flexible code size compression
  * @param gif         - Gif file to write to
+ * @param frame       - A frame containing index stream
  * @param clrTable    - Color table to use
- * @param indexStream - A frame described in terms of the color table
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream) {
+STATUS_CODE encodeImageData(FILE *gif, GIFFrame *frame, colorTable *clrTable) {
     size_t status;
     u32 nmemb = 1;
 
-    bitarray *imageData = bitarrayInit(indexStream->size);
-    status = createLZWImageData(clrTable, indexStream, imageData);
-    CHECKSTATUS(status);
+    bitarray *imageData;
+    if (frame->persistentFrameEncodeData && frame->imageData != NULL) {
+        imageData = frame->imageData;
+    } else {
+        imageData = bitarrayInit(frame->indexStream->size);
+        status = createLZWImageData(clrTable, frame->indexStream, imageData);
+        CHECKSTATUS(status);
+
+        if (frame->persistentFrameEncodeData) {
+            frame->imageData = imageData;
+        }
+    }
     //printf("\n");
     //bitarrayPrint(imageData);
 
@@ -297,7 +301,9 @@ STATUS_CODE encodeImageData(FILE *gif, colorTable *clrTable, array *indexStream)
     u8 lastByte = 0x00;    
     status = fwrite(&lastByte, sizeof(u8), nmemb, gif);
 
-    freeBitArray(imageData);
+    if (!frame->persistentFrameEncodeData) {
+        freeBitArray(imageData);
+    }
 
     return OPERATION_SUCCESS;
 }
@@ -339,6 +345,41 @@ static bool validLocalColorTable(GIFFrame *frame) {
     return false;
 }
 
+/**
+ * @brief Set a flag in a frame for saving it's encoded image
+ * data for resue only if the frame appears more than once
+ * @param canvas    Canvas to 
+ * @return 
+ */
+static STATUS_CODE markDuplicateFrames(GIFCanvas *canvas) {
+    STATUS_CODE status;
+    
+    GIFFrame **uniqueFrames = calloc(canvas->frames->size, sizeof(GIFFrame*));
+    size_t i = 0;
+
+    GIFFrame *frame;
+    linkedlistResetIter(canvas->frames);
+    status = linkedlistYield(canvas->frames, (void**) (&frame));
+    CHECKSTATUS(status);
+
+    while (frame != NULL) {
+        if (!frameInArray(frame, uniqueFrames, i)) {
+            uniqueFrames[i] = frame;
+            i++;
+        } else {
+            frame->persistentFrameEncodeData = true;
+        }
+        
+        status = linkedlistYield(canvas->frames, (void**) (&frame));
+        CHECKSTATUS(status);
+    }
+
+    linkedlistResetIter(canvas->frames);
+
+    free(uniqueFrames);
+
+    return OPERATION_SUCCESS;
+}
 
 /**
  * @brief Encode a gif file given all the information required
@@ -353,7 +394,11 @@ STATUS_CODE encodeGIF(GIFCanvas *canvas) {
     LINKED_LIST_NULL_CHECK(canvas->frames);
     if (canvas->frames->size <= 0)
         return FRAMES_TO_WRITE_ZERO;
-    
+
+    // Data validation and optimizations
+    status = markDuplicateFrames(canvas);
+    CHECKSTATUS(status);
+
     FILE *gif = fopen("test.gif","wb");
 
     // Encode git header and canvas description
@@ -398,9 +443,9 @@ STATUS_CODE encodeGIF(GIFCanvas *canvas) {
 
         // Encode the frame's LZW compressed indexStream
         if (localColorTableIsValid == true) {
-            status = encodeImageData(gif, frame->localColorTable, frame->indexStream);
+            status = encodeImageData(gif, frame, frame->localColorTable);
         } else if (globalColorTableIsValid == true) {
-            status = encodeImageData(gif, canvas->globalColorTable, frame->indexStream);
+            status = encodeImageData(gif, frame, canvas->globalColorTable);
         } else {
             fclose(gif);
             return COLOR_TABLE_MISSING;

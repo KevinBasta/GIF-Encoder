@@ -250,6 +250,9 @@ GIFFrame *frameCreate(u16 frameWidth, u16 frameHeight, u16 imageLeftPosition, u1
 
     newFrame->indexStream = NULL;
 
+    newFrame->persistentFrameEncodeData = false;
+    newFrame->imageData = NULL;
+
     return newFrame;
 }
 
@@ -433,6 +436,9 @@ void freeFrame(GIFFrame *frame) {
 
         if (frame->indexStream != NULL)
             freeArray(frame->indexStream);
+
+        if (frame->imageData != NULL)
+            freeBitArray(frame->imageData);
 
         free(frame);
     }

@@ -82,6 +82,7 @@ STATUS_CODE expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 heightMulipl
     size_t i = 0;
 
     GIFFrame *frame;
+    linkedlistResetIter(canvas->frames);
     status = linkedlistYield(canvas->frames, (void**) (&frame));
     CHECKSTATUS(status);
 
@@ -95,6 +96,8 @@ STATUS_CODE expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 heightMulipl
         status = linkedlistYield(canvas->frames, (void**) (&frame));
         CHECKSTATUS(status);
     }
+
+    linkedlistResetIter(canvas->frames);
 
     free(framesExpanded);
 

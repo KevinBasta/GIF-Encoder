@@ -6,8 +6,8 @@
 #include "main.h"
 
 typedef struct HashMapEntry {
-    char *key;
-    char *value;
+    void *key;
+    void *value;
 } HashMapEntry;
 
 typedef struct HashMap {
@@ -18,8 +18,8 @@ typedef struct HashMap {
 
 HashMap *hashmapInit(size_t size);
 
-STATUS_CODE hashmapInsert(HashMap *map, char *key, char *value);
-char *hashmapSearch(HashMap *map, char *key); // !!TODO - REFACTOR
+STATUS_CODE hashmapInsert(HashMap *map, char *key, void *value);
+void *hashmapSearch(HashMap *map, char *key);
 char *hashmapSearchWithIntKey(HashMap *map, size_t key);
 STATUS_CODE hashmapSearchConvert(HashMap *map, char *key, u32 *value);
 

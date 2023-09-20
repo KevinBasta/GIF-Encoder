@@ -7,6 +7,7 @@
 #include "main.h"
 
 #include "array.h"
+#include "bitarray.h"
 #include "linkedlist.h"
 #include "GIFCodeTable.h"
 #include "GIFColorTable.h"
@@ -175,6 +176,13 @@ typedef struct GIFFrame {
     //
     array *indexStream;
     
+    // 
+    // Optimization fields to avoid
+    // re-encoding the same frames
+    //
+    bool persistentFrameEncodeData;
+    bitarray *imageData;
+
 } GIFFrame;
 
 

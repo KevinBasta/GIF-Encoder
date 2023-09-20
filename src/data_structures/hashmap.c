@@ -31,10 +31,10 @@ static size_t hashFunction(char *key, size_t size) {
 /**
  * @brief creates a hashmap entry
  * @param key   string
- * @param value string
+ * @param value any pointer
  * @return HashMapEntry 
  */
-HashMapEntry *hashmapCreateEntry(char *key, char *value) {
+HashMapEntry *hashmapCreateEntry(char *key, void *value) {
     if (key == NULL || value == NULL)
         return NULL;
 
@@ -78,7 +78,7 @@ HashMap *hashmapInit(size_t size) {
  * @param value the value of the new entry
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE hashmapInsert(HashMap *map, char *key, char *value) {
+STATUS_CODE hashmapInsert(HashMap *map, char *key, void *value) {
     HASH_MAP_NULL_CHECK(map);
     if (key == NULL || value == NULL)
         return HASH_MAP_KEY_VAL_NULL;
@@ -115,13 +115,13 @@ STATUS_CODE hashmapInsert(HashMap *map, char *key, char *value) {
  * @param key the key to search for
  * @return the value or null
  */
-char *hashmapSearch(HashMap *map, char *key) {
+void *hashmapSearch(HashMap *map, char *key) {
     if (map == NULL || key == NULL)
         return NULL;
 
     size_t index        = hashFunction(key, map->size);
     HashMapEntry *entry = map->entries[index];
-    char *value         = NULL;
+    void *value         = NULL;
 
     size_t k = 0;
     while (entry != NULL) {
@@ -199,7 +199,7 @@ char *hashmapCreateKey(char *str, u32 length) {
 void hashmapPrint(HashMap *map) {
     for (size_t i = 0; i < map->size; i++) {
         if (map->entries[i] != NULL) {
-            printf("key: %10s   value: %10s \n", map->entries[i]->key, map->entries[i]->value);
+            printf("key: %10s   value: %10s \n", (char*) map->entries[i]->key, (char*) map->entries[i]->value);
         }
     }
 }
