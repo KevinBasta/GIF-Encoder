@@ -17,6 +17,9 @@ STATUS_CODE createLocalColorTableTest() {
     GIFCanvas *canvas = canvasCreate(33, 17);
     CANVAS_NULL_CHECK(canvas);
 
+    status = canvasSetFileName(canvas, "localColorTableTest.gif");
+    CHECKSTATUS(status);
+
     u8 tempIndexStream[] =
     { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
       0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,

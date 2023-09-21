@@ -27,6 +27,9 @@ STATUS_CODE createErrorGif(u32 errorCode) {
     GIFCanvas *canvas = canvasCreate(MAX_LETTER_PIXEL_WIDTH, ROW_HEIGHT_IN_PIXELS);
     CANVAS_NULL_CHECK(canvas);
 
+    status = canvasSetFileName(canvas, "error.gif");
+    CHECKSTATUS(status);
+
     status = canvasCreateGlobalColorTable(canvas);              CHECKSTATUS(status);
     status = canvasAddColorToColorTable(canvas, 0, 0, 0);       CHECKSTATUS(status);
     status = canvasAddColorToColorTable(canvas, 255, 255, 255); CHECKSTATUS(status);
@@ -65,7 +68,7 @@ STATUS_CODE createErrorGif(u32 errorCode) {
     }
     free(errorNumberString);
 
-    // Add an exclamation mark to the frame
+    // Add an underscore mark to the frame
     u16 startCodePose = errFrame->imageWidth;
     letterPattern *endLetter = getLetterOrNumber('_');
     status = appendToFrame(errFrame, endLetter->pattern, endLetter->width, endLetter->height, 0, 0);

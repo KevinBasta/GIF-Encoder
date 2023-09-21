@@ -82,6 +82,11 @@ typedef struct GIFCanvas {
 
     linkedlist *frames;
 
+    //
+    // General canvas data
+    //
+    char *fileName;
+
 } GIFCanvas;
 
 
@@ -199,6 +204,8 @@ STATUS_CODE canvasAddColorToColorTable(GIFCanvas *canvas, u8 red, u8 green, u8 b
 
 STATUS_CODE canvasSetBackgroundColorIndex(GIFCanvas *canvas, u8 globalColorTableIndex);
 STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame);
+
+STATUS_CODE canvasSetFileName(GIFCanvas *canvas, char *newName);
 
 void freeCanvas(GIFCanvas *canvas);
 

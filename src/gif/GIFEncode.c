@@ -293,7 +293,7 @@ STATUS_CODE encodeImageData(FILE *gif, GIFFrame *frame, colorTable *clrTable) {
     //printf("\n");
     //bitarrayPrint(imageData);
 
-    for (u32 i = 0; i < imageData->currentIndex; i++) {
+    for (u32 i = 0; i < imageData->currentIndex + 1; i++) {
         status = fwrite(&(imageData->items[i]), sizeof(u8), nmemb, gif);
         CHECK_FWRITE_STATUS(status, nmemb);
     }
@@ -399,7 +399,12 @@ STATUS_CODE encodeGIF(GIFCanvas *canvas) {
     status = markDuplicateFrames(canvas);
     CHECKSTATUS(status);
 
-    FILE *gif = fopen("test.gif","wb");
+    FILE *gif;
+    if (canvas->fileName != NULL) {
+        gif = fopen(canvas->fileName,"wb");
+    } else {
+        gif = fopen("output.gif","wb");
+    }
 
     // Encode git header and canvas description
     status = encodeHeader(gif);

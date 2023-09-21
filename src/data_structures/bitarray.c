@@ -339,7 +339,7 @@ STATUS_CODE bitarrayAppendPackedRight(bitarray *arr, u32 item, u32 minNumberOfBi
 void bitarrayPrint(bitarray *arr) {
     size_t index = 0;
 
-    for (size_t i = 0; i < arr->currentIndex; i++) {
+    for (size_t i = 0; i < arr->currentIndex + 1; i++) {
         printf("%X ", arr->items[i]);
         index++;
         if (index % 24 == 0) {

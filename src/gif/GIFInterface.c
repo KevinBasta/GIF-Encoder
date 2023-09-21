@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -78,6 +79,8 @@ GIFCanvas *canvasCreate(u16 canvasWidth, u16 canvasHeight) {
         free(newCanvas);
         return NULL;
     }
+
+    newCanvas->fileName = NULL;
 
     return newCanvas;
 }
@@ -193,6 +196,31 @@ STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame) {
     return OPERATION_SUCCESS;
 }
 
+/**
+ * @brief Set the output file name of the gif
+ * @param canvas    Canvas to set name of
+ * @param name      Name to set to. MUST CONTAIN .gif suffix.
+ * Caller is expected to manage the memeory of this variable
+ * if it's stored on the heap. 
+ * @return OPERATION_SUCCESS or error code
+ */
+STATUS_CODE canvasSetFileName(GIFCanvas *canvas, char *newName) {
+    CANVAS_NULL_CHECK(canvas);
+
+    u32 newNameLength = strlen(newName);
+    if (newNameLength == 0)
+        return OPERATION_FAILED;
+
+    if (canvas->fileName != NULL)
+        free(canvas->fileName);
+
+    canvas->fileName = calloc(newNameLength + 1, sizeof(char));
+    strncpy(canvas->fileName, newName, newNameLength);
+    canvas->fileName[newNameLength] = '\0';
+
+    return OPERATION_SUCCESS;
+}
+
 // Free the canvas record and all it's frames
 void freeCanvas(GIFCanvas *canvas) {
     if (canvas != NULL) {
@@ -201,6 +229,9 @@ void freeCanvas(GIFCanvas *canvas) {
         
         if (canvas->frames != NULL)
             freeFrameLinkedList(canvas->frames);
+
+        if (canvas->fileName != NULL)
+            free(canvas->fileName);
 
         free(canvas);
     }

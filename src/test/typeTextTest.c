@@ -48,6 +48,9 @@ STATUS_CODE createTypingGIF(char *sentence, bool addCursor) {
 
     // Create canvas and set colors
     GIFCanvas *canvas = canvasCreate(canvasWidth, canvasHeight);
+
+    canvasSetFileName(canvas, "text.gif");
+
     canvasCreateGlobalColorTable(canvas);
     canvasAddColorToColorTable(canvas, 0, 0, 0);
     canvasAddColorToColorTable(canvas, 255, 255, 255);

@@ -19,6 +19,9 @@ STATUS_CODE createSnakeTest() {
     GIFCanvas *canvas = canvasCreate(width, height);
     CANVAS_NULL_CHECK(canvas);
 
+    status = canvasSetFileName(canvas, "snakeTest.gif");
+    CHECKSTATUS(status);
+
     status = canvasCreateGlobalColorTable(canvas);
     CHECKSTATUS(status);
     

@@ -110,7 +110,12 @@ static STATUS_CODE encodeFlexibleCodeSizeCodeStream(colorTable *clrTable, array 
     STATUS_CODE status;
 
     codeTable *codeTable    = NULL;
-    array     *indexBuffer  = arrayInit(indexStream->size);
+    array     *indexBuffer;
+    if (indexStream->size < 10) {
+        indexBuffer = arrayInit(indexStream->size * 50);
+    } else {
+        indexBuffer = arrayInit(indexStream->size);
+    }
 
     // Put the LZW color table min code size in the image data
     u8 currentCodeSize = getLWZMinCodeSize(clrTable->lastIndex);
@@ -187,6 +192,8 @@ static STATUS_CODE encodeFlexibleCodeSizeCodeStream(colorTable *clrTable, array 
 STATUS_CODE createLZWImageData(colorTable *clrTable, array *indexStream, bitarray *imageData) {
     STATUS_CODE status; 
 
+    indexStream->currentIndex = 0;
+    
     //
     // Setting a rule to insert the size of each subblock after its written
     // Boundry is 0xFF + 1 because of the extra CC code at start of imageData
@@ -199,7 +206,7 @@ STATUS_CODE createLZWImageData(colorTable *clrTable, array *indexStream, bitarra
     CHECKSTATUS(status);
 
     // Set the number of bytes for the last chunk in the imageData bitarray
-    status = bitarraySetBookMarkValue(imageData, imageData->currentIndex - imageData->markIndex - 1);
+    status = bitarraySetBookMarkValue(imageData, imageData->currentIndex - imageData->markIndex);
     CHECKSTATUS(status);
 
     indexStream->currentIndex = 0;
@@ -236,9 +243,12 @@ STATUS_CODE createLZWImageDataInitialDraft(colorTable *clrTable, array *indexStr
     status = arrayAppend(indexBuffer, arrayGetIncrement(indexStream));
     CHECKSTATUS(status);
 
+    status = bitarrayAppendPackedRight(imageData, clearCodeValue, currentCodeSize);
+    CHECKSTATUS(status);
+
     queue *increaseCodeSize = queueInit(100);
 
-    for (size_t i = 1; i <= indexStream->size; i++) {
+    for (size_t i = 1; i < indexStream->size; i++) {
         // Get next index from index stream
         u32 k = arrayGetIncrement(indexStream);
 

@@ -20,6 +20,9 @@ STATUS_CODE createTransparancyTest() {
     GIFCanvas *canvas = canvasCreate(TRANSPARENT_SMILY_FACE_TEST_WIDTH, TRANSPARENT_SMILY_FACE_TEST_HEIGHT);
     CANVAS_NULL_CHECK(canvas);
 
+    status = canvasSetFileName(canvas, "transparancyTest.gif");
+    CHECKSTATUS(status);
+
     status = canvasCreateGlobalColorTable(canvas);
     CHECKSTATUS(status);
     

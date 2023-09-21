@@ -20,6 +20,9 @@ STATUS_CODE createTrafficLightGif() {
     GIFCanvas *canvas = canvasCreate(TRAFFIC_LIGHT_WIDTH_IN_PIXELS, TRAFFIC_LIGHT_HEIGHT_IN_PIXELS);
     CANVAS_NULL_CHECK(canvas);
 
+    status = canvasSetFileName(canvas, "trafficLightTest.gif");
+    CHECKSTATUS(status);
+
     status = canvasCreateGlobalColorTable(canvas);
     CHECKSTATUS(status);
     

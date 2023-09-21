@@ -12,12 +12,14 @@
 #include "GIFExtendedInterface.h"
 
 #include "GIFError.h"
+#include "gradientTest.h"
+#include "localColorTableTest.h"
+#include "maxColorIndexTest.h"
+#include "smallTest.h"
 #include "snakeTest.h"
-#include "typeTextTest.h"
 #include "trafficLightTest.h"
 #include "transparancyTest.h"
-#include "maxColorIndexTest.h"
-#include "localColorTableTest.h"
+#include "typeTextTest.h"
 
 #include "bitUtility.h"
 #include "endianUtility.h"
@@ -49,8 +51,28 @@ int main() {
 
     PRINTF("All Assertions Passed\n");
 
-    createErrorGif(FRAME_NULL);
-    
+    STATUS_CODE status;
 
+    status = createErrorGif(CANVAS_NULL);
+    CHECKSTATUS(status);
+    status = createGradientTest();
+    CHECKSTATUS(status);
+    status = createLocalColorTableTest();
+    CHECKSTATUS(status);
+    status = createMaxColorIndexTest();
+    CHECKSTATUS(status);
+    status = createSmallGif();
+    CHECKSTATUS(status);
+    // status = createSnakeTest();
+    // CHECKSTATUS(status);
+    status = createTrafficLightGif();
+    CHECKSTATUS(status);
+    status = createTransparancyTest();
+    CHECKSTATUS(status);
+    status = createTypingGIF("Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz 0 1 2 3 4 5 6 7 8 9 ! ? / \\ \" ' [ ], ( ).", false);
+    CHECKSTATUS(status);
+
+    PRINTF("All Encodings Passed\n");
+    exit(0);
 }
 
