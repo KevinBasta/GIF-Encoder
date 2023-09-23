@@ -10,6 +10,7 @@
 #include "GIFEncode.h"
 #include "GIFTransformations.h"
 
+
 STATUS_CODE createSnakeTest() {
     STATUS_CODE status;
 
@@ -19,83 +20,106 @@ STATUS_CODE createSnakeTest() {
     GIFCanvas *canvas = canvasCreate(width, height);
     CANVAS_NULL_CHECK(canvas);
 
-    status = canvasSetFileName(canvas, "snakeTest.gif");
+    status = canvasSetFileName(canvas, "testGIF_Snake.gif");
     CHECKSTATUS(status);
 
     status = canvasCreateGlobalColorTable(canvas);
     CHECKSTATUS(status);
     
-    status = canvasAddColorToColorTable(canvas, 76, 175, 80);
+    status = canvasAddColorToColorTable(canvas, 76, 175, 80); // 0
     CHECKSTATUS(status);
-    status = canvasAddColorToColorTable(canvas, 32, 96, 161);
+    status = canvasAddColorToColorTable(canvas, 32, 96, 161); // 1
     CHECKSTATUS(status);
-    status = canvasAddColorToColorTable(canvas, 161, 32, 32);
+    status = canvasAddColorToColorTable(canvas, 161, 32, 32); // 2
+    CHECKSTATUS(status);
+    status = canvasAddColorToColorTable(canvas, 0, 0, 0); // 3
     CHECKSTATUS(status);
 
-    status = canvasSetBackgroundColorIndex(canvas, 0);
-    CHECKSTATUS(status);
-    
-    bool directionTop = false;
+    {
+        GIFFrame *backgroundFrame = frameCreate(width, height, 0, 0);
+        FRAME_NULL_CHECK(backgroundFrame);
 
-    for (int imageLeftPosition = 0; imageLeftPosition < width; imageLeftPosition++) {
-        for (int imageTopPosition = 0; imageTopPosition < height; imageTopPosition++) {
-            u8 tempIndexStream[100];
-            for (int i = 0; i < 100; i++) {
-                if (i == width - 1) {
-                    tempIndexStream[i] = 2;
-                } else {
-                    tempIndexStream[i] = 0;
-                }
-            }
+        status = frameCreateIndexStream(backgroundFrame, width * height);
+        CHECKSTATUS(status);
 
-            
-            if (directionTop) {
-                tempIndexStream[(imageLeftPosition) + ((height - imageTopPosition) * width)] = 1;
-
-                if (height - imageTopPosition + 1 < height) {
-                    tempIndexStream[(imageLeftPosition) + ((height - imageTopPosition + 1) * width)] = 1;
-                } else if (imageLeftPosition - 1 > 0){
-                    tempIndexStream[(imageLeftPosition - 1) + ((height - imageTopPosition) * width)] = 1;
-                }
-                /* if (imageTopPosition - 2 > 0) {
-                    tempIndexStream[(imageLeftPosition) + ((imageTopPosition - 2) * width)] = 1;
-                } else if (imageLeftPosition - 2 > 0) {
-                    tempIndexStream[(imageLeftPosition - 2) + ((imageTopPosition - 2) * width)] = 1;
-                } */
+        // Fill the background with green and put apple
+        for (int i = 0; i < width * height; i++) {
+            if (i == width - 1) {
+                status = frameAppendToIndexStream(backgroundFrame, 2);
             } else {
-                tempIndexStream[(imageLeftPosition) + (imageTopPosition * width)] = 1;
-
-                if (imageTopPosition - 1 > 0) {
-                    tempIndexStream[(imageLeftPosition) + ((imageTopPosition - 1) * width)] = 1;
-                } else if (imageLeftPosition - 1 > 0){
-                    tempIndexStream[(imageLeftPosition - 1) + ((imageTopPosition) * width)] = 1;
-                }
-
-                /* if (imageTopPosition - 2 > 0) {
-                    tempIndexStream[(imageLeftPosition) + ((imageTopPosition - 2) * width)] = 1;
-                } else if (imageLeftPosition - 2 > 0) {
-                    tempIndexStream[(imageLeftPosition - 2) + ((imageTopPosition - 2) * width)] = 1;
-                } */
+                status = frameAppendToIndexStream(backgroundFrame, 0);
             }
-
-            GIFFrame *frameOne = frameCreate(width, height, 0, 0);
-            FRAME_NULL_CHECK(frameOne);
-
-            status = frameAddIndexStreamFromArray(frameOne, tempIndexStream, sizeof(tempIndexStream));
-            CHECKSTATUS(status);
-
-            status = frameAddGraphicsControlInfo(frameOne, 2, 0);
-            CHECKSTATUS(status);
-
-            status = canvasAddFrame(canvas, frameOne);
             CHECKSTATUS(status);
         }
 
-        directionTop = !directionTop;
+        status = frameAddGraphicsControlInfo(backgroundFrame, 1, 0);
+        CHECKSTATUS(status);
+
+        status = canvasAddFrame(canvas, backgroundFrame);
+        CHECKSTATUS(status);
+    }
+    
+    {   
+        bool directionTop = false;
+        for (int imageLeftPosition = 0; imageLeftPosition < width; imageLeftPosition++) {
+            
+            int imageTopPosition = 0;
+            if (directionTop == true) {
+                imageTopPosition = 1;
+            }
+            
+            for (; imageTopPosition < height; imageTopPosition++) {
+                
+                u32 snakeWidth      = 0;
+                u32 snakeHeight     = 0;
+                u32 snakeLeftPos    = 0;
+                u32 snakeTopPos     = 0;
+
+                if (imageTopPosition == height - 1 && imageLeftPosition != width - 1) {
+                    snakeWidth  = 2;
+                    snakeHeight = 1;
+                } else {
+                    snakeWidth  = 1;
+                    snakeHeight = 2;
+                }
+                
+                if (directionTop) {
+                    snakeLeftPos = imageLeftPosition;
+                    snakeTopPos  = height - 1 - imageTopPosition;
+                } else {                    
+                    snakeLeftPos = imageLeftPosition;
+                    snakeTopPos  = imageTopPosition;
+                }
+
+                GIFFrame *frame = frameCreate(snakeWidth, snakeHeight, snakeLeftPos, snakeTopPos);
+                FRAME_NULL_CHECK(frame);
+
+                status = frameCreateIndexStream(frame, 1);
+                CHECKSTATUS(status);
+                status = frameAppendToIndexStream(frame, 1);
+                CHECKSTATUS(status);
+                status = frameAppendToIndexStream(frame, 1);
+                CHECKSTATUS(status);
+
+
+                if (imageLeftPosition == width - 1 && imageTopPosition == height - 1) {
+                    status = frameAddGraphicsControlInfo(frame, 3, 100);
+                } else { 
+                    status = frameAddGraphicsControlInfo(frame, 3, 0);
+                }
+                CHECKSTATUS(status);
+
+                status = canvasAddFrame(canvas, frame);
+                CHECKSTATUS(status);
+            }
+
+            directionTop = !directionTop;
+        }
     }
 
-    u32 widthMuliplier  = 10; u32 heightMuliplier = 10;
+    u32 widthMuliplier  = 20; u32 heightMuliplier = 20;
     status = expandCanvas(canvas, widthMuliplier, heightMuliplier);
+    CHECKSTATUS(status);
 
     createGIF(canvas, true, true);
 

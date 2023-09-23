@@ -10,6 +10,7 @@
 STATUS_CODE canvasUpdateWidthAndHeight(GIFCanvas *canvas, u16 canvasWidth, u16 canvasHeight);
 STATUS_CODE canvasUpdateWidth(GIFCanvas *canvas, u16 canvasWidth);
 STATUS_CODE canvasUpdateHeight(GIFCanvas *canvas, u16 canvasHeight);
+STATUS_CODE canvasPrependFrame(GIFCanvas *canvas, GIFFrame *frame);
 
 STATUS_CODE frameUpdateWidthAndHeight(GIFFrame *frame, u16 frameWidth, u16 frameHeight);
 STATUS_CODE frameUpdateWidth(GIFFrame *frame, u16 frameWidth);

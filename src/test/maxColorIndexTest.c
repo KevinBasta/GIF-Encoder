@@ -16,7 +16,7 @@ STATUS_CODE createMaxColorIndexTest() {
     GIFCanvas *canvas = canvasCreate(255, 1);
     CANVAS_NULL_CHECK(canvas);
 
-    status = canvasSetFileName(canvas, "maxColorIndexTest.gif");
+    status = canvasSetFileName(canvas, "testGIF_MaxColorIndex.gif");
     CHECKSTATUS(status);
 
     status = canvasCreateGlobalColorTable(canvas);

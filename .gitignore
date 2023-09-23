@@ -13,7 +13,9 @@ l_*.c
 *.bak
 
 *.mp4
-*.gif
+testGIF_*.gif
+ERROR.gif
+text.gif
 
 *.py
 

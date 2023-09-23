@@ -15,7 +15,7 @@ STATUS_CODE createGradientTest() {
     GIFCanvas *canvas = canvasCreate(254, 1);
     CANVAS_NULL_CHECK(canvas);
 
-    status = canvasSetFileName(canvas, "gradientTest.gif");
+    status = canvasSetFileName(canvas, "testGIF_Gradient.gif");
     CHECKSTATUS(status);
 
     status = canvasCreateGlobalColorTable(canvas);

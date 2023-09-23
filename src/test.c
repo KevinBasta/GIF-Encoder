@@ -63,8 +63,8 @@ int main() {
     CHECKSTATUS(status);
     status = createSmallGif();
     CHECKSTATUS(status);
-    // status = createSnakeTest();
-    // CHECKSTATUS(status);
+    status = createSnakeTest();
+    CHECKSTATUS(status);
     status = createTrafficLightGif();
     CHECKSTATUS(status);
     status = createTransparancyTest();

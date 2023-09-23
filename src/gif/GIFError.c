@@ -27,7 +27,7 @@ STATUS_CODE createErrorGif(u32 errorCode) {
     GIFCanvas *canvas = canvasCreate(MAX_LETTER_PIXEL_WIDTH, ROW_HEIGHT_IN_PIXELS);
     CANVAS_NULL_CHECK(canvas);
 
-    status = canvasSetFileName(canvas, "error.gif");
+    status = canvasSetFileName(canvas, "ERROR.gif");
     CHECKSTATUS(status);
 
     status = canvasCreateGlobalColorTable(canvas);              CHECKSTATUS(status);

@@ -109,7 +109,9 @@ static STATUS_CODE encodeLZWChunk(array *indexBuffer, codeTable *codeTable, u8 *
 static STATUS_CODE encodeFlexibleCodeSizeCodeStream(colorTable *clrTable, array *indexStream, bitarray *imageData) {
     STATUS_CODE status;
 
-    codeTable *codeTable    = NULL;
+    // Needs to be initialized for the edgecase where 
+    // the while loop below isn't executed
+    codeTable *codeTable    = codetableInit(clrTable);
     array     *indexBuffer;
     if (indexStream->size < 10) {
         indexBuffer = arrayInit(indexStream->size * 50);

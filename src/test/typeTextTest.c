@@ -16,7 +16,7 @@
 #include "lettersAndNumbers.h"
 
 #define ROW_HEIGHT_IN_PIXELS        11
-#define LETTERS_PER_ROW             15
+#define LETTERS_PER_ROW             16
 
 #define SPACES_AT_START_OF_LINE     1
 #define SPACES_AT_END_OF_LINE       1
@@ -39,22 +39,32 @@ static GIFFrame *createLetterFrame(letterPattern *pattern, u16 imageLeftPosition
 static void addBlinkingCursor(GIFCanvas *canvas, u16 imageLeftPosition, u16 imageTopPosition, u32 numberOfBlinks, u32 lengthOfBlink, u32 lengthOfClearBlink);
 
 STATUS_CODE createTypingGIF(char *sentence, bool addCursor) {
+    STATUS_CODE status; 
 
     size_t numberOfLetters = strlen(sentence);
 
+    // Initial values for initialization. Updated through program and reflected
+    // in the final record by using the extended interface
     u16 canvasWidth  = LETTERS_PER_ROW * MAX_LETTER_PIXEL_WIDTH;
     u16 canvasHeight = (u16) ceil((double) numberOfLetters / (double) LETTERS_PER_ROW) * ROW_HEIGHT_IN_PIXELS;
     u32 numberOfRows = EMPTY_ROWS_BEFORE_TEXT + 1 + EMPTY_ROWS_AFTER_TEXT;
 
-    // Create canvas and set colors
+    // Create canvas and set it's file name
     GIFCanvas *canvas = canvasCreate(canvasWidth, canvasHeight);
+    status = canvasSetFileName(canvas, "text.gif");
+    CHECKSTATUS(status);
 
-    canvasSetFileName(canvas, "text.gif");
+    // Create global color table and add colors
+    status = canvasCreateGlobalColorTable(canvas);
+    CHECKSTATUS(status);
 
-    canvasCreateGlobalColorTable(canvas);
-    canvasAddColorToColorTable(canvas, 0, 0, 0);
-    canvasAddColorToColorTable(canvas, 255, 255, 255);
-    canvasSetBackgroundColorIndex(canvas, 0);
+    status = canvasAddColorToColorTable(canvas, 0, 0, 0);
+    CHECKSTATUS(status);
+    status = canvasAddColorToColorTable(canvas, 255, 255, 255);
+    CHECKSTATUS(status);
+
+    status = canvasSetBackgroundColorIndex(canvas, 0);
+    CHECKSTATUS(status);
 
     // Must not use a stack string for strtok
     char *string = calloc(numberOfLetters + 1, sizeof(char));
@@ -63,7 +73,7 @@ STATUS_CODE createTypingGIF(char *sentence, bool addCursor) {
 
     letterPattern *space = getLetterOrNumber(' ');
 
-    u16 imageLeftPosition = (SPACES_AT_START_OF_LINE * space->width);
+    u16 imageLeftPosition = (SPACES_AT_START_OF_LINE * ROW_HEIGHT_IN_PIXELS);
     u16 imageTopPosition  = (EMPTY_ROWS_BEFORE_TEXT * ROW_HEIGHT_IN_PIXELS);
 
     char *token = strtok(string, " ");
@@ -72,10 +82,10 @@ STATUS_CODE createTypingGIF(char *sentence, bool addCursor) {
         u32 wordPixelWidth      = calculateWordPixelWidth(token, wordLength);
                 
         // Start a new line if not enough space left in current line for this word
-        if (imageLeftPosition + wordPixelWidth >= canvasWidth - (SPACES_AT_END_OF_LINE * space->width) && 
+        if (imageLeftPosition + wordPixelWidth >= canvasWidth - (SPACES_AT_END_OF_LINE * ROW_HEIGHT_IN_PIXELS) && 
             wordLength <= LETTERS_PER_ROW) {
             imageTopPosition += ROW_HEIGHT_IN_PIXELS;
-            imageLeftPosition = (SPACES_AT_START_OF_LINE * space->width);
+            imageLeftPosition = (SPACES_AT_START_OF_LINE * ROW_HEIGHT_IN_PIXELS);
             numberOfRows++;
         }
 
@@ -111,13 +121,14 @@ STATUS_CODE createTypingGIF(char *sentence, bool addCursor) {
 
             // Create GIF frame for the letter and add to canvas
             GIFFrame *frame = createLetterFrame(pattern, imageLeftPosition, imageTopPosition, typingSpeed);
-            canvasAddFrame(canvas, frame);
+            status = canvasAddFrame(canvas, frame);
+            CHECKSTATUS(status);
 
             // Move left and top positions to next letter start
             imageLeftPosition += pattern->width;
-            if (imageLeftPosition + pattern->width >= canvasWidth - (SPACES_AT_END_OF_LINE * space->width)) {
+            if (imageLeftPosition + pattern->width >= canvasWidth - (SPACES_AT_END_OF_LINE * ROW_HEIGHT_IN_PIXELS)) {
                 imageTopPosition += ROW_HEIGHT_IN_PIXELS;
-                imageLeftPosition = (SPACES_AT_START_OF_LINE * space->width);
+                imageLeftPosition = (SPACES_AT_START_OF_LINE * ROW_HEIGHT_IN_PIXELS);
                 numberOfRows++;
             }
 
@@ -129,18 +140,41 @@ STATUS_CODE createTypingGIF(char *sentence, bool addCursor) {
         token = strtok(NULL, " ");
     }
 
-    // Add a pause before looping
+    // Add a pause before the gif loops
     if (addCursor) {
         addBlinkingCursor(canvas, imageLeftPosition, imageTopPosition, 4, 30, 10);
     } else {
         GIFFrame *frame = createLetterFrame(getLetterOrNumber('\0'), imageLeftPosition, imageTopPosition, 100);
         canvasAddFrame(canvas, frame);
     }
+    
+    // Update canvas hight
+    canvasHeight = (numberOfRows * ROW_HEIGHT_IN_PIXELS);
+    status = canvasUpdateWidthAndHeight(canvas, canvasWidth, canvasHeight);
+    CHECKSTATUS(status);
 
-    canvasUpdateWidthAndHeight(canvas,
-                               canvasWidth,
-                               (numberOfRows * ROW_HEIGHT_IN_PIXELS));
-    expandCanvas(canvas, 5, 5);
+    {
+        // Create a blank background frame and prepend it to the frames list
+        GIFFrame *blankFrame = frameCreate(canvasWidth, canvasHeight, 0, 0);
+        CHECKSTATUS(status);
+
+        status = frameCreateIndexStream(blankFrame, canvasWidth * canvasHeight);
+        CHECKSTATUS(status);
+
+        for (int i = 0; i < canvasWidth * canvasHeight; i++) {
+            status = frameAppendToIndexStream(blankFrame, 0);
+            CHECKSTATUS(status);
+        }
+
+        status = frameAddGraphicsControlInfo(blankFrame, 1, 0);
+        CHECKSTATUS(status);
+
+        status = canvasPrependFrame(canvas, blankFrame);
+        CHECKSTATUS(status);
+    }
+
+    status = expandCanvas(canvas, 5, 5);
+    CHECKSTATUS(status);
 
     createGIF(canvas, true, true);
     free(string);

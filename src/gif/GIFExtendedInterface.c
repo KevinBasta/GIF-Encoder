@@ -30,6 +30,22 @@ STATUS_CODE canvasUpdateHeight(GIFCanvas *canvas, u16 canvasHeight) {
     return OPERATION_SUCCESS;
 }
 
+STATUS_CODE canvasPrependFrame(GIFCanvas *canvas, GIFFrame *frame) {
+    STATUS_CODE status;
+    
+    CANVAS_NULL_CHECK(canvas);
+    FRAME_NULL_CHECK(frame);
+
+    if (canvas->frames == NULL) {
+        canvas->frames = linkedlistInit();
+    }
+
+    status = linkedlistPrepend(canvas->frames, frame);
+    CHECKSTATUS(status);
+
+    return OPERATION_SUCCESS;
+}
+
 
 // Frame value updaters
 STATUS_CODE frameUpdateWidthAndHeight(GIFFrame *frame, u16 frameWidth, u16 frameHeight) {

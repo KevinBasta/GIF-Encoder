@@ -20,7 +20,7 @@ STATUS_CODE createSmallGif() {
     GIFCanvas *canvas = canvasCreate(SMALL_TEST_WIDTH, SMALL_TEST_HEIGHT);
     CANVAS_NULL_CHECK(canvas);
 
-    status = canvasSetFileName(canvas, "smallTest.gif");
+    status = canvasSetFileName(canvas, "testGIF_Small.gif");
     CHECKSTATUS(status);
 
     status = canvasCreateGlobalColorTable(canvas);

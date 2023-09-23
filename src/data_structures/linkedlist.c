@@ -58,6 +58,39 @@ STATUS_CODE linkedlistAppend(linkedlist *list, void *item) {
 }
 
 /**
+ * @brief Append item to the tail of a linkedlist
+ * @param list  list to append to
+ * @param item  item to append
+ * @return OPERATION_SUCCESS or error code
+ */
+STATUS_CODE linkedlistPrepend(linkedlist *list, void *item) {
+    LINKED_LIST_NULL_CHECK(list);
+
+    node *newNode       = calloc(1, sizeof(node));
+    if (newNode == NULL)
+        return LINKED_LIST_NODE_NULL;
+    
+    newNode->item       = item;
+    newNode->nextNode   = NULL;
+
+    if (list->size == 0) {
+        list->head        = newNode;
+        list->tail        = list->head;
+
+        list->currentIter = list->head;
+    } else {
+        newNode->nextNode = list->head;
+        list->head = newNode;
+        
+        list->currentIter = list->head;
+    }
+
+    list->size++;
+
+    return OPERATION_SUCCESS;
+}
+
+/**
  * @brief Yield the next item currentIter points to
  * @param list  list to yield from
  * @param item  item returned (being yielded)

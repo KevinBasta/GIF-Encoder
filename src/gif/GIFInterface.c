@@ -184,6 +184,8 @@ STATUS_CODE canvasSetBackgroundColorIndex(GIFCanvas *canvas, u8 globalColorTable
  * @return OPERATION_SUCCESS or error code
  */
 STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame) {
+    STATUS_CODE status;
+    
     CANVAS_NULL_CHECK(canvas);
     FRAME_NULL_CHECK(frame);
 
@@ -191,7 +193,8 @@ STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame) {
         canvas->frames = linkedlistInit();
     }
 
-    linkedlistAppend(canvas->frames, frame);
+    status = linkedlistAppend(canvas->frames, frame);
+    CHECKSTATUS(status);
 
     return OPERATION_SUCCESS;
 }
