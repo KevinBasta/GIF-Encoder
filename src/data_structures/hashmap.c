@@ -174,7 +174,8 @@ STATUS_CODE hashmapSearchConvert(HashMap *map, char *key, u32 *value) {
     HASH_MAP_NULL_CHECK(map);
 
     char *valueSearched = hashmapSearch(map, key);
-    CHECK_NULL(valueSearched);
+    if (valueSearched == NULL)
+        return HASH_MAP_SEARCH_FAILED;
 
     *value = atoi(valueSearched);
 

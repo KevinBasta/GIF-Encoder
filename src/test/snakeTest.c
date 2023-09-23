@@ -11,6 +11,26 @@
 #include "GIFTransformations.h"
 
 
+static STATUS_CODE createOneBlockFrame(GIFCanvas *canvas, u16 leftPos, u16 topPos, u16 colorTableIndex, u32 delayTime) {
+    STATUS_CODE status;
+
+    GIFFrame *frame = frameCreate(1, 1, leftPos, topPos);
+    FRAME_NULL_CHECK(frame);
+
+    status = frameCreateIndexStream(frame, 1);
+    CHECKSTATUS(status);
+    status = frameAppendToIndexStream(frame, colorTableIndex);
+    CHECKSTATUS(status);
+
+    status = frameAddGraphicsControlInfo(frame, 3, delayTime);
+    CHECKSTATUS(status);
+
+    status = canvasAddFrame(canvas, frame);
+    CHECKSTATUS(status);
+
+    return OPERATION_SUCCESS;
+}
+
 STATUS_CODE createSnakeTest() {
     STATUS_CODE status;
 
@@ -36,6 +56,7 @@ STATUS_CODE createSnakeTest() {
     CHECKSTATUS(status);
 
     {
+        // Background frame
         GIFFrame *backgroundFrame = frameCreate(width, height, 0, 0);
         FRAME_NULL_CHECK(backgroundFrame);
 
@@ -52,14 +73,19 @@ STATUS_CODE createSnakeTest() {
             CHECKSTATUS(status);
         }
 
-        status = frameAddGraphicsControlInfo(backgroundFrame, 1, 0);
+        status = frameAddGraphicsControlInfo(backgroundFrame, 1, 100);
         CHECKSTATUS(status);
 
         status = canvasAddFrame(canvas, backgroundFrame);
         CHECKSTATUS(status);
     }
+
+    // Snake one block length body frame
+    status = createOneBlockFrame(canvas, 0, 0, 1, 0);
+    CHECKSTATUS(status);
     
-    {   
+    {
+        // Snake two block length body frames
         bool directionTop = false;
         for (int imageLeftPosition = 0; imageLeftPosition < width; imageLeftPosition++) {
             
@@ -94,19 +120,14 @@ STATUS_CODE createSnakeTest() {
                 GIFFrame *frame = frameCreate(snakeWidth, snakeHeight, snakeLeftPos, snakeTopPos);
                 FRAME_NULL_CHECK(frame);
 
-                status = frameCreateIndexStream(frame, 1);
+                status = frameCreateIndexStream(frame, 2);
                 CHECKSTATUS(status);
                 status = frameAppendToIndexStream(frame, 1);
                 CHECKSTATUS(status);
                 status = frameAppendToIndexStream(frame, 1);
                 CHECKSTATUS(status);
 
-
-                if (imageLeftPosition == width - 1 && imageTopPosition == height - 1) {
-                    status = frameAddGraphicsControlInfo(frame, 3, 100);
-                } else { 
-                    status = frameAddGraphicsControlInfo(frame, 3, 0);
-                }
+                status = frameAddGraphicsControlInfo(frame, 3, 0);
                 CHECKSTATUS(status);
 
                 status = canvasAddFrame(canvas, frame);
@@ -116,6 +137,14 @@ STATUS_CODE createSnakeTest() {
             directionTop = !directionTop;
         }
     }
+
+    // Snake one block length body frame
+    status = createOneBlockFrame(canvas, width - 1, 0, 1, 0);
+    CHECKSTATUS(status);
+
+    // Apple mask frame
+    status = createOneBlockFrame(canvas, width - 1, 0, 0, 400);
+    CHECKSTATUS(status);
 
     u32 widthMuliplier  = 20; u32 heightMuliplier = 20;
     status = expandCanvas(canvas, widthMuliplier, heightMuliplier);

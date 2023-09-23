@@ -324,7 +324,6 @@ STATUS_CODE encodeTrailer(FILE *gif) {
     return OPERATION_SUCCESS;
 }
 
-
 static bool validGlobalColorTable(GIFCanvas *canvas) {
     if (canvas->packedField_GlobalColorTableFlag == 1) {
         if (canvas->globalColorTable != NULL) {
@@ -343,6 +342,77 @@ static bool validLocalColorTable(GIFFrame *frame) {
     }
 
     return false;
+}
+
+/**
+ * @brief The following are validated:
+ * [1]: The canvas is not null
+ * [2]: The frames linked list is not null
+ * [3]: The canvas linked list contains more than 0 frames
+ * [4]: If no global color table, then each frame has a local color table
+ * [5]: Each frame has an index stream
+ * [6]: Each index stream size is equal to it's set length and width
+ * [7]: Each index of the index stream is in the range of the color table
+ * @param canvas    Record being validated
+ * @return OPERATION_SUCCESS or error code
+ */
+static STATUS_CODE validateCanvasRecord(GIFCanvas *canvas) {
+    STATUS_CODE status;
+
+    // 1
+    CANVAS_NULL_CHECK(canvas);
+
+    // 2
+    LINKED_LIST_NULL_CHECK(canvas->frames);
+
+    // 3
+    if (canvas->frames->size <= 0)
+        return FRAMES_TO_WRITE_ZERO;
+
+    bool hasGlobalColorTable = validGlobalColorTable(canvas);
+
+    GIFFrame *frame;
+    linkedlistResetIter(canvas->frames);
+    status = linkedlistYield(canvas->frames, (void**) (&frame));
+    CHECKSTATUS(status);
+
+    while (frame != NULL) {
+        bool hasLocalColorTable = validLocalColorTable(frame);
+        
+        // 4
+        if (!hasGlobalColorTable && !hasLocalColorTable)
+            return FRAME_LOCAL_COLOR_TABLE_MISSING;
+        
+        // 5
+        if (frame->indexStream == NULL)
+            return FRAME_INDEX_STREAM_MISSING;
+        
+        // 6
+        if (frame->imageWidth * frame->imageHeight != frame->indexStream->size)
+            return FRAME_INDEX_STREAM_WRONG_SIZE;
+
+        // 7
+        colorTable *activeColorTable;
+        if (hasLocalColorTable) {
+            activeColorTable = frame->localColorTable;
+        } else {
+            activeColorTable = canvas->globalColorTable;
+        }
+
+        for (size_t i = 0; i < frame->indexStream->size; i++) {
+            u32 pixelColorTableIndex = frame->indexStream->items[i];
+            if (pixelColorTableIndex > activeColorTable->lastIndex) {
+                return FRAME_INDEX_STREAM_PIXEL_VALUE_INVALID;
+            }
+        }
+
+        status = linkedlistYield(canvas->frames, (void**) (&frame));
+        CHECKSTATUS(status);
+    }
+
+    linkedlistResetIter(canvas->frames);
+
+    return OPERATION_SUCCESS;
 }
 
 /**
@@ -390,10 +460,8 @@ STATUS_CODE encodeGIF(GIFCanvas *canvas) {
     size_t status;
    
     // Error checking data inputted
-    CANVAS_NULL_CHECK(canvas);
-    LINKED_LIST_NULL_CHECK(canvas->frames);
-    if (canvas->frames->size <= 0)
-        return FRAMES_TO_WRITE_ZERO;
+    status = validateCanvasRecord(canvas);
+    CHECKSTATUS(status);
 
     // Data validation and optimizations
     status = markDuplicateFrames(canvas);

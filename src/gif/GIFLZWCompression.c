@@ -33,7 +33,8 @@ static STATUS_CODE encodeLZWChunk(array *indexBuffer, codeTable *codeTable, u8 *
         CHECKSTATUS(status);
         
         char *indexBufferPlusKKey = arrayConcat(indexBuffer, ',');
-        CHECK_NULL(indexBufferPlusKKey);
+        if (indexBufferPlusKKey == NULL)
+            return LZW_INDEX_BUFFER_PLUS_K_CONCAT_NULL;
         
         status = arrayPop(indexBuffer);
         CHECKSTATUS(status);
@@ -54,7 +55,8 @@ static STATUS_CODE encodeLZWChunk(array *indexBuffer, codeTable *codeTable, u8 *
 
             // Get  the code value of the index buffer without K
             char *indexBufferKey = arrayConcat(indexBuffer, ',');
-            CHECK_NULL(indexBufferKey);
+            if (indexBufferKey == NULL)
+                return LZW_INDEX_BUFFER_CONCAT_NULL;
 
             u32 indexBufferValue;
             status = hashmapSearchConvert(codeTable->map, indexBufferKey, &indexBufferValue);
@@ -109,9 +111,14 @@ static STATUS_CODE encodeLZWChunk(array *indexBuffer, codeTable *codeTable, u8 *
 static STATUS_CODE encodeFlexibleCodeSizeCodeStream(colorTable *clrTable, array *indexStream, bitarray *imageData) {
     STATUS_CODE status;
 
-    // Needs to be initialized for the edgecase where 
-    // the while loop below isn't executed
-    codeTable *codeTable    = codetableInit(clrTable);
+    codeTable *codeTable = NULL;
+    if (!(indexStream->currentIndex + 1 < indexStream->size)) {
+        // Needs to be initialized for the edgecase where 
+        // the while loop below isn't executed
+        codeTable    = codetableInit(clrTable);
+        CODE_TABLE_NULL_CHECK(codeTable);
+    }
+
     array     *indexBuffer;
     if (indexStream->size < 10) {
         indexBuffer = arrayInit(indexStream->size * 50);
@@ -140,6 +147,7 @@ static STATUS_CODE encodeFlexibleCodeSizeCodeStream(colorTable *clrTable, array 
         if (codeTable != NULL)
             freeCodeTable(codeTable);
         codeTable = codetableInit(clrTable);
+        CODE_TABLE_NULL_CHECK(codeTable);
         currentCodeSize = startingCodeSize;
 
         status = encodeLZWChunk(indexBuffer, codeTable, &currentCodeSize, indexStream, imageData);
@@ -148,7 +156,8 @@ static STATUS_CODE encodeFlexibleCodeSizeCodeStream(colorTable *clrTable, array 
 
     // Put the code value of the last index buffer state into the image data
     char *indexBufferKey = arrayConcat(indexBuffer, ',');
-    CHECK_NULL(indexBufferKey);
+    if (indexBufferKey == NULL)
+        return LZW_INDEX_BUFFER_LAST_CONCAT_NULL;
     
     u32 indexBufferValue;
     status = hashmapSearchConvert(codeTable->map, indexBufferKey, &indexBufferValue);

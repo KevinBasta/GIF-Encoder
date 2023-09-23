@@ -25,6 +25,8 @@
 #include "endianUtility.h"
 #include "printUtility.h"
 
+#define PRINT_STATUS_AND_EXIT(status) if (status != OPERATION_SUCCESS) { printf("Test Faild With Status %d\n", status); exit(1); }
+
 int main() { 
     assert(getNBits(0, 2, 0xFF)  == 7);
     assert(getNBits(2, 4, 0x5C)  == 3);
@@ -53,26 +55,31 @@ int main() {
 
     STATUS_CODE status;
 
-    status = createErrorGif(CANVAS_NULL);
-    CHECKSTATUS(status);
-    status = createGradientTest();
-    CHECKSTATUS(status);
-    status = createLocalColorTableTest();
-    CHECKSTATUS(status);
-    status = createMaxColorIndexTest();
-    CHECKSTATUS(status);
-    status = createSmallGif();
-    CHECKSTATUS(status);
-    status = createSnakeTest();
-    CHECKSTATUS(status);
-    status = createTrafficLightGif();
-    CHECKSTATUS(status);
-    status = createTransparancyTest();
-    CHECKSTATUS(status);
-    status = createTypingGIF("Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz 0 1 2 3 4 5 6 7 8 9 ! ? / \\ \" ' [ ], ( ).", false);
-    CHECKSTATUS(status);
+    TIMER_INIT;
+    TIMER_START();
 
-    printf("All Encodings Done\n");
+    status = createErrorGif(CANVAS_NULL);
+    PRINT_STATUS_AND_EXIT(status);
+    status = createGradientTest();
+    PRINT_STATUS_AND_EXIT(status);
+    status = createLocalColorTableTest();
+    PRINT_STATUS_AND_EXIT(status);
+    status = createMaxColorIndexTest();
+    PRINT_STATUS_AND_EXIT(status);
+    status = createSmallGif();
+    PRINT_STATUS_AND_EXIT(status);
+    status = createSnakeTest();
+    PRINT_STATUS_AND_EXIT(status);
+    status = createTrafficLightGif();
+    PRINT_STATUS_AND_EXIT(status);
+    status = createTransparancyTest();
+    PRINT_STATUS_AND_EXIT(status);
+    status = createTypingGIF("Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz 0 1 2 3 4 5 6 7 8 9 ! ? / \\ \" ' [ ], ( ).", false);
+    PRINT_STATUS_AND_EXIT(status);
+
+    TIMER_END();
+
+    printf("All Test GIFs Encoded Without Error\n");
     exit(0);
 }
 

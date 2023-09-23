@@ -9,7 +9,7 @@
 #define TRUE 1
 #define FALSE 0
 
-//#define PRINT_ENABLE
+#define PRINT_ENABLE
 
 #ifdef PRINT_ENABLE
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -60,9 +60,10 @@ typedef uint64_t u64;
 
 // error handling
 typedef enum STATUS_CODE {
-    OPERATION_SUCCESS = 0, 
-    OPERATION_FAILED  = 1,
-    OPERATION_NULL    = 2,
+    OPERATION_SUCCESS   = 0, 
+    OPERATION_FAILED    = 1,
+    OPERATION_NULL      = 2,
+    OPERATION_OVERFLOW  = 3,
 
     // Array Errors
     ARRAY_NULL              = 10,
@@ -81,6 +82,7 @@ typedef enum STATUS_CODE {
     HASH_MAP_KEY_VAL_NULL   = 31,
     HASH_MAP_FULL           = 32,
     HASH_MAP_INSERT_TIMEOUT = 33,
+    HASH_MAP_SEARCH_FAILED  = 34,
 
     // Linked List Errors
     LINKED_LIST_NULL        = 40,
@@ -100,11 +102,22 @@ typedef enum STATUS_CODE {
     CANVAS_BACKGROUND_INDEX_OUT_OF_BOUNDS      = 72,
     FRAME_NULL                                 = 73,
     FRAMES_TO_WRITE_ZERO                       = 74,
+    FRAME_LOCAL_COLOR_TABLE_MISSING            = 75,
+    FRAME_INDEX_STREAM_MISSING                 = 76,
+    FRAME_INDEX_STREAM_WRONG_SIZE              = 77,
+    FRAME_INDEX_STREAM_PIXEL_VALUE_INVALID     = 78, 
 
     // Color Table Errors
     COLOR_TABLE_NULL        = 80,
     COLOR_TABLE_MISSING     = 81,
     COLOR_TABLE_OVERFLOW    = 82,
+    CODE_TABLE_NULL         = 83,
+
+    // LZW Algorithm Errors
+    LZW_INDEX_BUFFER_CONCAT_NULL        = 90,
+    LZW_INDEX_BUFFER_PLUS_K_CONCAT_NULL = 91,
+    LZW_INDEX_BUFFER_LAST_CONCAT_NULL   = 92,
+
 } STATUS_CODE;
 
 #define CHECKSTATUS(status)                     if (status != OPERATION_SUCCESS) { return status; }
@@ -121,6 +134,6 @@ typedef enum STATUS_CODE {
 #define CANVAS_NULL_CHECK(canvas)               if (canvas == NULL)             { return CANVAS_NULL; }
 #define FRAME_NULL_CHECK(frame)                 if (frame == NULL)              { return FRAME_NULL; }
 #define COLOR_TABLE_NULL_CHECK(clrTable)        if (clrTable == NULL)           { return COLOR_TABLE_NULL; }
-// #define CODE_TABLE_NULL_CHECK(cdTable)
+#define CODE_TABLE_NULL_CHECK(cdTable)          if (cdTable == NULL)            { return CODE_TABLE_NULL; }
 
 #endif //MAIN_H

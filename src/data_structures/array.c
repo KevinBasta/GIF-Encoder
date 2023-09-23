@@ -10,12 +10,15 @@
 #include "printUtility.h"
 
 /**
- * @brief Decide a new size for an array in the context of realloc 
+ * @brief Only add one more entry to the array.
+ * Can be optimized later by having a new field for
+ * the actual size and the encoded size (where the
+ * array would be expanded by much more).
  * @param arr Array to return new size for
  * @return New size (number of entries) for the array
  */
 static size_t arrayNewSize(array *arr) {
-    return arr->size + (arr->size / 2);
+    return arr->size + 1;
 }
 
 /**
