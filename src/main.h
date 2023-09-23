@@ -41,7 +41,7 @@ typedef uint64_t u64;
 #define TIMER_INIT     \
     float startTime;   \
     float endTime;     \
-    float timeElapsed; \
+    float timeElapsed = 0; \
 
 #define TIMER_START() { \
     startTime = (float)clock()/CLOCKS_PER_SEC; \
@@ -50,6 +50,15 @@ typedef uint64_t u64;
 #define TIMER_END() { \
     endTime = (float)clock()/CLOCKS_PER_SEC; \
     timeElapsed = endTime - startTime; \
+    printf("Elapsed: %f seconds\n", timeElapsed); \
+}
+
+#define TIMER_ADD() { \
+    endTime = (float)clock()/CLOCKS_PER_SEC; \
+    timeElapsed += endTime - startTime; \
+}
+
+#define TIMER_PRINT() { \
     PRINTF("Elapsed: %f seconds\n", timeElapsed); \
 }
 

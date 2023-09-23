@@ -48,8 +48,8 @@ STATUS_CODE createSmallGif() {
         CHECKSTATUS(status);
     }
 
-    // u32 widthMuliplier  = 10; u32 heightMuliplier = 10;
-    // status = expandCanvas(canvas, widthMuliplier, heightMuliplier);
+    u32 widthMuliplier  = 2; u32 heightMuliplier = 2;
+    status = expandCanvas(canvas, widthMuliplier, heightMuliplier);
 
     status = createGIF(canvas, true, true);
     CHECKSTATUS(status);

@@ -58,7 +58,7 @@ int main() {
     TIMER_INIT;
     TIMER_START();
 
-    status = createErrorGif(CANVAS_NULL);
+    status = createErrorGif(0);
     PRINT_STATUS_AND_EXIT(status);
     status = createGradientTest();
     PRINT_STATUS_AND_EXIT(status);

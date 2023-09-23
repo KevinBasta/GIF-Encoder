@@ -13,11 +13,11 @@ CFLAGS += $(addprefix -I , $(DIRS)) -I src
 
 # main program rule
 main: bin/main.o $(OBJECTS)
-	gcc -o a.out bin/main.o $(OBJECTS) -lm -Wall -Werror -Wpedantic
+	$(CC) -o a.out bin/main.o $(OBJECTS) -lm -Wall -Werror -Wpedantic
 
 # unittesting rule
 test: bin/test.o $(OBJECTS)
-	gcc -o a.out bin/test.o $(OBJECTS) -lm -Wall -Werror -Wpedantic
+	$(CC) -o a.out bin/test.o $(OBJECTS) -lm -Wall -Werror -Wpedantic
 
 # c file rules, -c src/file.c -o bin/file.o
 bin/%.o: src/%.c

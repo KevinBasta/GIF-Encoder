@@ -104,8 +104,41 @@ void printBits(void const * const ptr, size_t const size) {
     #endif // PRINT_ENABLE
 }
 
-char* intToString(size_t i, u32 maxStringLength) {
-    char *str     = calloc(6, sizeof(u8));
+char *intToString(long num, u32 maxStringLength) {
+    if (num < 0)
+        return NULL;
+    
+    char *str = calloc(maxStringLength, sizeof(u32));
+    if (str == NULL)
+        return NULL;
+
+    size_t rem, len = 0;
+    long n = num;
+
+    // Length would be 0 otherwise
+    if (n == 0) {
+        len++;
+    }
+
+    // Get the exact length of the number
+    while (n != 0) {
+        len++;
+        n /= 10;
+    }
+
+    // Go through each digit and add it
+    for (size_t i = 0; i < len; i++) {
+        rem = num % 10;
+        num = num / 10;
+        str[len - (i + 1)] = rem + '0';
+    }
+    str[len] = '\0';
+
+    return str;
+}
+
+char* slowerIntToString(size_t i, u32 maxStringLength) {
+    char *str     = calloc(maxStringLength, sizeof(u8));
     if (str == NULL)
         return NULL;
 

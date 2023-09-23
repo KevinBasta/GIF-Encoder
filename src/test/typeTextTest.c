@@ -111,7 +111,7 @@ STATUS_CODE createTypingGIF(char *sentence, bool addCursor) {
             } else if (letter == ' ') {
                 // Write spaces instantly
                 typingSpeed = 1;
-            } else if (letter == '.') {
+            } else if (letter == '.' || letter == '!' || letter == '?') {
                 // Pause 1 second at dots
                 typingSpeed = 100;
             } else {

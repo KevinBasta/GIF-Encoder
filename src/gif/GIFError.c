@@ -33,7 +33,7 @@ static STATUS_CODE createErrorString(char *string, u32 stringLength, u32 errorCo
     u32 stringIndex = 0;
     
     char prefix[]        = "ERR";
-    char *errorCodeString = intToString(errorCode, 3);
+    char *errorCodeString = intToString(errorCode, 10);
     char suffix[]        = "_";
 
     status = appendToString(string, &stringIndex, stringLength, prefix);
