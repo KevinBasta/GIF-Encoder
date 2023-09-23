@@ -49,8 +49,8 @@ u32 getOccupiedBits(u32 item) {
     }
 
     u32 itemSize = (sizeof(item) * 8) - leadingBits;
-    //printf("leading bits: %d\n", leadingBits);
-    //printf("final size: %d\n", itemSize);
+    //PRINTF("leading bits: %d\n", leadingBits);
+    //PRINTF("final size: %d\n", itemSize);
     
     return itemSize;
 }

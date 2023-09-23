@@ -7,38 +7,44 @@
 
 #include "GIFInterface.h"
 
-
+/**
+ * @brief Checks if a frame address is in a frame pointer array
+ * @param target        The frame pointer searching for
+ * @param array         The array to search in
+ * @param totalEntries  The total number of entries of the array
+ * @return true or false
+ */
 bool frameInArray(GIFFrame *target, GIFFrame **array, u32 totalEntries) { 
     for (int i = 0; i < totalEntries; i++) {
         if (target == array[i])
             return true;
     }
 
-    return 0;
+    return false;
 }
 
-/* i32 compFrameAddress(const void *a, const void *b) { 
-    i32 arg1 = (GIFFrame*) a;
-    i32 arg2 = (GIFFrame*) b;
 
-    if (arg1 < arg2) return -1;
-    if (arg1 > arg2) return 1;
-    return 0;
+// The following function and the following comp functions implement binary search
+u32 binarySearch(u32 target, u32 *table, u32 totalEntries, i32 (*comp) (const void *, const void *)) { 
+    u32 low = 0;
+    u32 high = totalEntries;
+    u32 mid; 
+    
+    while (low <= high) { 
+        mid = (low + high) / 2;
+        i32 result = comp(&target, &table[mid]); 
+
+        if (result == 0) { 
+            return mid;
+        } else if (result <  0) { 
+            high = mid - 1;
+        } else if (result > 0) { 
+            low = mid + 1;
+        }
+    }
+
+    return low;
 }
- */
-
-
-/* i32 compPpsId(const void *a, const void *b) {
-    picParameterSet *c = (picParameterSet*) a;
-    picParameterSet *d = (picParameterSet*) b;
-
-    i32 arg1 = *(const u32*) c->picParameterSetId;
-    i32 arg2 = *(const u32*) d->picParameterSetId;
-
-    if (arg1 < arg2) return -1;
-    if (arg1 > arg2) return 1;
-    return 0;
-} */
 
 i32 compi32(const void *a, const void *b) { 
     i32 arg1 = *(const int*) a;
@@ -59,46 +65,7 @@ i32 compu32(const void *a, const void *b) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// search algorithm for stss/sync sample
-// returns the preceeding 
-u32 binarySearch(u32 target, u32 *table, u32 totalEntries, i32 (*comp) (const void *, const void *)) { 
-    u32 low = 0;
-    u32 high = totalEntries;
-    u32 mid; 
-    
-    while (low <= high) { 
-        mid = (low + high) / 2;
-        i32 result = comp(&target, &table[mid]); 
-
-        if (result == 0) { 
-            return mid;
-        } else if (result <  0) { 
-            high = mid - 1;
-        } else if (result > 0) { 
-            low = mid + 1;
-        }
-
-        //printf("%d %d %d %d %d\n", low, high, mid, sampleNumber, syncSampleTable[mid]->number);
-    }
-
-    return low; // currently used as a fallback value in processMPEG
-}
-
-// quick sort
+// The following functions implement bubble sort
 void swap (u32 *arr1, u32 *arr2, u32 firstIndex, u32 secondIndex) { 
     u32 arr1Temp = arr1[firstIndex];
     u32 arr2Temp = arr2[firstIndex];
@@ -110,6 +77,24 @@ void swap (u32 *arr1, u32 *arr2, u32 firstIndex, u32 secondIndex) {
     arr2[secondIndex] = arr2Temp;
 }
 
+void bubbleSort(u32 *arr1, u32* arr2, int n) {
+    int swapped;
+    for (int i = 0; i < n - 1; i++) {
+        swapped = FALSE;
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr1[j] > arr1[j + 1]) {
+                swap(arr1, arr2, j, j+1);
+                swapped = TRUE;
+            }
+        }
+ 
+        if (swapped == FALSE)
+            break;
+    }
+}
+
+
+// The following functions implement quick sort
 u32 partition(u32 *arr1, u32 *arr2, u32 low, u32 high) { 
     int i = (low - 1);
 
@@ -132,23 +117,5 @@ void quickSort(u32 *arr1, u32 *arr2, u32 low, u32 high) {
 
         quickSort(arr1, arr2, low, pivotIndex - 1);
         quickSort(arr1, arr2, pivotIndex + 1, high);
-    }
-}
-
-
-// bubble sort
-void bubbleSort(u32 *arr1, u32* arr2, int n) {
-    int swapped;
-    for (int i = 0; i < n - 1; i++) {
-        swapped = FALSE;
-        for (int j = 0; j < n - i - 1; j++) {
-            if (arr1[j] > arr1[j + 1]) {
-                swap(arr1, arr2, j, j+1);
-                swapped = TRUE;
-            }
-        }
- 
-        if (swapped == FALSE)
-            break;
     }
 }

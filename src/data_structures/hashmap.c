@@ -104,7 +104,7 @@ STATUS_CODE hashmapInsert(HashMap *map, char *key, void *value) {
 
     map->entries[index] = newEntry;
     map->currentCount++;
-    //printf("FINAL INDEX: %ld\n", index);
+    //PRINTF("FINAL INDEX: %ld\n", index);
 
     return OPERATION_SUCCESS;
 }
@@ -130,9 +130,9 @@ void *hashmapSearch(HashMap *map, char *key) {
         }
 
         if (strncmp(entry->key, key, strlen(key)) == 0) {
-            //printf("entry key: %s \n      key: %s\n", entry->key, key);
+            //PRINTF("entry key: %s \n      key: %s\n", entry->key, key);
             value = entry->value;
-            //printf("search found: %s\n", value);
+            //PRINTF("search found: %s\n", value);
             break;
         }
 
@@ -197,22 +197,30 @@ char *hashmapCreateKey(char *str, u32 length) {
 
 // Print all non-null hashmap entries
 void hashmapPrint(HashMap *map) {
+    #ifdef PRINT_ENABLE
+
     for (size_t i = 0; i < map->size; i++) {
         if (map->entries[i] != NULL) {
-            printf("key: %10s   value: %10s \n", (char*) map->entries[i]->key, (char*) map->entries[i]->value);
+            PRINTF("key: %10s   value: %10s \n", (char*) map->entries[i]->key, (char*) map->entries[i]->value);
         }
     }
+
+    #endif // PRINT_ENABLE
 }
 
 // Print the key value pair if key is found in hashmap
 void hashmapSearchPrint(HashMap *map, char *key) {
+    #ifdef PRINT_ENABLE
+
     char *value = hashmapSearch(map, key);
 
     if (value == NULL) {
-        printf("Key [%s] not found\n", key);
+        PRINTF("Key [%s] not found\n", key);
     } else {
-        printf("Key: [%s] \t Value: [%s]\n", key, value);
+        PRINTF("Key: [%s] \t Value: [%s]\n", key, value);
     }
+
+    #endif // PRINT_ENABLE
 }
 
 

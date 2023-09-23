@@ -49,7 +49,7 @@ int main() {
     assert(getOccupiedBits(0x8000)      == 16);
     assert(getOccupiedBits(0x80000000)  == 32);
 
-    PRINTF("All Assertions Passed\n");
+    printf("All Assertions Passed\n");
 
     STATUS_CODE status;
 
@@ -72,7 +72,7 @@ int main() {
     status = createTypingGIF("Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz 0 1 2 3 4 5 6 7 8 9 ! ? / \\ \" ' [ ], ( ).", false);
     CHECKSTATUS(status);
 
-    PRINTF("All Encodings Passed\n");
+    printf("All Encodings Done\n");
     exit(0);
 }
 

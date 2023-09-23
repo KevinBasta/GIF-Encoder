@@ -122,7 +122,7 @@ static union endianSwappedInt bigEndianIntegerStoredInCharArrayToLittleEndianGen
             */
             i32 currentBit = (bigEndianCharArray[headerByte] >> bitInHeaderByte) & 1;
             i32 bitOffset = (((byteNumb-headerByte)*8) + bitInHeaderByte);
-            // DEBUG printf("current bit: %d bit offset: %d\n", currentBit, bitOffset);
+            // DEBUG PRINTF("current bit: %d bit offset: %d\n", currentBit, bitOffset);
 
             if (currentBit == 1) {
                 intUnion.u64val = intUnion.u64val | (currentBit << bitOffset);

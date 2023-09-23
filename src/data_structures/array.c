@@ -35,7 +35,7 @@ static STATUS_CODE arrayRealloc(array *arr, size_t newTotalEntries) {
     arr->items = status;
     arr->size  = newTotalEntries;
 
-    printf("ARRAY REALLOC!\n");
+    PRINTF("ARRAY REALLOC!\n");
 
     return OPERATION_SUCCESS;
 }
@@ -195,17 +195,21 @@ array *arrayInitFromStackArray(u8 stackArr[], size_t size) {
 
 // Print an array's items up to the last populated entry
 void arrayPrint(array *arr) {
+    #ifdef PRINT_ENABLE
+
     size_t index = 0;
 
     for (size_t i = 0; i < arr->currentIndex; i++) {
-        printf("%d ", arr->items[i]);
+        PRINTF("%d ", arr->items[i]);
         index++;
         if (index % 24 == 0) {
-            printf("\n");
+            PRINTF("\n");
         }
     }
 
-    printf("\n");
+    PRINTF("\n");
+    
+    #endif // PRINT_ENABLE
 }
 
 // Free all of an array's entries

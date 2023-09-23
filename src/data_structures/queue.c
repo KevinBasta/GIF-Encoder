@@ -86,11 +86,15 @@ size_t queueGetCurrentLength(queue *queue) {
 
 // Print every queue entry
 void queuePrint(queue *queue) {
+    #ifdef PRINT_ENABLE
+
     for (size_t i = 0; i < queue->size; i++) {
-        printf("%d ", queue->items[i]);
+        PRINTF("%d ", queue->items[i]);
     }
     
-    printf("\n");
+    PRINTF("\n");
+
+    #endif // PRINT_ENABLE
 }
 
 void freeQueue(queue *queue) {
@@ -114,7 +118,7 @@ void freeQueue(queue *queue) {
     bool dequeueVal;
     queueDequeue(newQueue, &dequeueVal);
     queuePrint(newQueue);
-    printf("Dequeue Val: %d\n", dequeueVal);
+    PRINTF("Dequeue Val: %d\n", dequeueVal);
     
     for (int i = 0; i < 3; i++) {
         queueEnqueue(newQueue, true);
@@ -124,7 +128,7 @@ void freeQueue(queue *queue) {
     for (int i = 0; i < 8; i++) {
         queueDequeue(newQueue, &dequeueVal);
         queuePrint(newQueue);
-        printf("Dequeue Val: %d\n", dequeueVal);
+        PRINTF("Dequeue Val: %d\n", dequeueVal);
     }
 
     queueEnqueue(newQueue, true);

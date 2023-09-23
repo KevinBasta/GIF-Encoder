@@ -176,8 +176,12 @@ STATUS_CODE createTypingGIF(char *sentence, bool addCursor) {
     status = expandCanvas(canvas, 5, 5);
     CHECKSTATUS(status);
 
-    createGIF(canvas, true, true);
+    status = createGIF(canvas, true, true);
+    CHECKSTATUS(status);
+
     free(string);
+
+    return OPERATION_SUCCESS;
 }
 
 /**

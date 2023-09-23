@@ -67,7 +67,7 @@ codeTable* codetableInit(colorTable *clrTable) {
 // Return next code table index for LZW
 u32 codetableGetNextIndex(codeTable *table) {
     table->index++;
-    //printf("%d\n", table->map->currentCount);
+    //PRINTF("%d\n", table->map->currentCount);
 
     return table->index;
 }

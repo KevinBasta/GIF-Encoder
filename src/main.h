@@ -9,7 +9,7 @@
 #define TRUE 1
 #define FALSE 0
 
-#define PRINT_ENABLE
+//#define PRINT_ENABLE
 
 #ifdef PRINT_ENABLE
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -50,12 +50,12 @@ typedef uint64_t u64;
 #define TIMER_END() { \
     endTime = (float)clock()/CLOCKS_PER_SEC; \
     timeElapsed = endTime - startTime; \
-    printf("Elapsed: %f seconds\n", timeElapsed); \
+    PRINTF("Elapsed: %f seconds\n", timeElapsed); \
 }
 
 // debug macros
 #ifndef HERE
-    #define HERE {printf("HERE %d\n", g_here); g_here++;}
+    #define HERE {PRINTF("HERE %d\n", g_here); g_here++;}
 #endif // HERE
 
 // error handling

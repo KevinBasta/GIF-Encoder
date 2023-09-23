@@ -69,7 +69,7 @@ STATUS_CODE bitarraySetBookMarkValue(bitarray *arr, u8 item) {
 
     if (arr->markIndex != -1) {
         arr->items[arr->markIndex] = item;
-        printf("%d %d\n", arr->items[arr->markIndex], item);
+        PRINTF("%d %d\n", arr->items[arr->markIndex], item);
     }
 
     return OPERATION_SUCCESS;
@@ -337,17 +337,21 @@ STATUS_CODE bitarrayAppendPackedRight(bitarray *arr, u32 item, u32 minNumberOfBi
 
 // Print bitarray up to last occupied byte
 void bitarrayPrint(bitarray *arr) {
+    #ifdef PRINT_ENABLE
+
     size_t index = 0;
 
     for (size_t i = 0; i < arr->currentIndex + 1; i++) {
-        printf("%X ", arr->items[i]);
+        PRINTF("%X ", arr->items[i]);
         index++;
         if (index % 24 == 0) {
-            printf("\n");
+            PRINTF("\n");
         }
     }
 
-    printf("\n");
+    PRINTF("\n");
+
+    #endif // PRINT_ENABLE
 }
 
 // Free the struct and its pointer fields

@@ -290,7 +290,7 @@ STATUS_CODE encodeImageData(FILE *gif, GIFFrame *frame, colorTable *clrTable) {
             frame->imageData = imageData;
         }
     }
-    //printf("\n");
+    //PRINTF("\n");
     //bitarrayPrint(imageData);
 
     for (u32 i = 0; i < imageData->currentIndex + 1; i++) {

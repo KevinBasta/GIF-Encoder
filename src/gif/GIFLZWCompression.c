@@ -258,7 +258,7 @@ STATUS_CODE createLZWImageDataInitialDraft(colorTable *clrTable, array *indexStr
         CHECKSTATUS(status);
         
         char *indexBufferPlusKKey = arrayConcat(indexBuffer, ',');
-        //printf("Index buffer plus k: %s\n", indexBufferPlusKKey);
+        //PRINTF("Index buffer plus k: %s\n", indexBufferPlusKKey);
         
         status = arrayPop(indexBuffer);
         CHECKSTATUS(status);
@@ -300,7 +300,7 @@ STATUS_CODE createLZWImageDataInitialDraft(colorTable *clrTable, array *indexStr
 
             // if maximum code table value reached, send clear code and reset code table
             if (codeTable->map->currentCount == 4095) {
-                // printf("%ld %d %d %ld\n", i, currentCodeSize, getCurrentIndexCodeTable(codeTable), codeTable->map->currentCount);
+                // PRINTF("%ld %d %d %ld\n", i, currentCodeSize, getCurrentIndexCodeTable(codeTable), codeTable->map->currentCount);
                 arrayPrint(indexBuffer);
                 
                 // Put the clear code in the code stream
