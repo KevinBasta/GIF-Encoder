@@ -1,15 +1,18 @@
+<style>
+td, th {
+   border: none!important;
+}
+</style>
+
 # GIF-Encoder 
 A GIF (Graphics Interchange Format) encoder written in the C programming language.
 
 ![This GIF was generated using my GIF encoder!](assets/text_1.gif)
 
 ## Generated Examples
-The following gifs were created using my encoder. You can find the code for these in src/test and src/gif/GIFError.c
+The following gifs were created using my encoder. You can find the code for these and others in src/test and src/gif/GIFError.c
 
-| ![Error GIF](assets/error.gif) | ![Gradient GIF](assets/gradient.gif) |
-| :----: | :----: | 
-
-| ![Sanke GIF](assets/snake.gif) | ![traffic light](assets/traffic_light.gif) |
+| ![Error GIF](assets/error_70.gif) | ![Gradient GIF](assets/gradient.gif) |
 | :----: | :----: | 
 
 ## Interface

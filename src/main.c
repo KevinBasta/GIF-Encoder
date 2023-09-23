@@ -35,14 +35,14 @@ int main(int argc, char **argv) {
     TIMER_INIT;
     TIMER_START();
     
-    // status = createErrorGif(CANVAS_NULL);
+    status = createErrorGif(CANVAS_NULL);
     // status = createTypingGIF("This GIF was generated using my GIF encoder!", false);
     // status = createTypingGIF("hello (not really hello, I can't see you). anyways!", false);
     // status = createTypingGIF("public static void main string args! public. static. void. main. string[]. args!!", false);
     // status = createTypingGIF("Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz 0 1 2 3 4 5 6 7 8 9 ! ? / \\ \" ' [ ], ( ).", false);
     // status = createLocalColorTableTest();
     // status = createMaxColorIndexTest();
-    status = createGradientTest();
+    // status = createGradientTest();
     // status = createSnakeTest();
     // status = createTrafficLightGif();
     // status = createTransparancyTest();
