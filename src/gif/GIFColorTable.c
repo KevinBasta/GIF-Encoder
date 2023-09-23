@@ -87,9 +87,6 @@ static u16 colortableSizeToCodeTableEntry(char *request, i32 colorTableLastIndex
         LWZ_CC_EOI[0] = 7; LWZ_CC_EOI[1] = 128; LWZ_CC_EOI[2] = 129;
     } else if (colorTableLastIndex <= 255) {
         LWZ_CC_EOI[0] = 8; LWZ_CC_EOI[1] = 256; LWZ_CC_EOI[2] = 257;
-    } else {
-        // This case should never run
-        return 0;
     }
 
     if (strncmp(request, "LWZ", 3) == 0) {
@@ -99,6 +96,8 @@ static u16 colortableSizeToCodeTableEntry(char *request, i32 colorTableLastIndex
     } else if (strncmp(request, "EOI", 3) == 0) {
         return LWZ_CC_EOI[2];
     }
+
+    return 0;
 }
 
 // Get the last index number in the code table

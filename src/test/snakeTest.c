@@ -30,7 +30,17 @@ static STATUS_CODE createOneBlockFrame(GIFCanvas *canvas, u16 leftPos, u16 topPo
 
     return OPERATION_SUCCESS;
 }
-
+/**
+ * @note This test may not work with some decoders since
+ * the graphics control extention disposal method #3
+ * has different interpretations. On my windows machine
+ * the snake appears fine because the decoder used by windows
+ * interprets disposal method #3 as "the previous full state"
+ * where all the states before it (including the first background
+ * image) are part of the state. With other decoders when disposal
+ * method #3 is used, it's interpreted as "only the state of the
+ * previous frame in isolation", leading to an empty canvas.
+ */
 STATUS_CODE createSnakeTest() {
     STATUS_CODE status;
 

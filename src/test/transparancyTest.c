@@ -42,7 +42,6 @@ STATUS_CODE createTransparancyTest() {
     GIFFrame *frameTwo;
     GIFFrame *frameThree;
     GIFFrame *frameFour;
-    GIFFrame *frameFive;
 
     {
         u8 tempIndexStream[] = 

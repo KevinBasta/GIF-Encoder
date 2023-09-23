@@ -19,10 +19,16 @@ main: bin/main.o $(OBJECTS)
 test: bin/test.o $(OBJECTS)
 	$(CC) -o a.out bin/test.o $(OBJECTS) -lm -Wall -Werror -Wpedantic
 
+lib: $(OBJECTS)
+	ar -cvq libgif.a $(OBJECTS)
+
+wasam: $(OBJECTS)
+
+
 # c file rules, -c src/file.c -o bin/file.o
 bin/%.o: src/%.c
 	mkdir -p $(@D)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@ -Wall 
 
 # cleaning all generated files
 clean:
