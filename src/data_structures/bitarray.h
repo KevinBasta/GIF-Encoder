@@ -1,6 +1,6 @@
 
-#ifndef BIT_ARRAY_H
-#define BIT_ARRAY_H
+#ifndef GIF_ENCODER_BIT_ARRAY_H
+#define GIF_ENCODER_BIT_ARRAY_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -31,4 +31,4 @@ STATUS_CODE bitarraySetIntervalInsertRule(bitarray *arr, size_t boundry, u8 inse
 void bitarrayPrint(bitarray *arr);
 void freeBitArray(bitarray *arr);
 
-#endif // BIT_ARRAY_H
+#endif // GIF_ENCODER_BIT_ARRAY_H

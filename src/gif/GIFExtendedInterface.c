@@ -5,7 +5,7 @@
 #include "GIFInterface.h"
 
 // Canvas value updaters
-STATUS_CODE canvasUpdateWidthAndHeight(GIFCanvas *canvas, u16 canvasWidth, u16 canvasHeight) {
+WASM_EXPORT STATUS_CODE canvasUpdateWidthAndHeight(GIFCanvas *canvas, u16 canvasWidth, u16 canvasHeight) {
     CANVAS_NULL_CHECK(canvas);
 
     canvas->canvasWidth  = canvasWidth;
@@ -14,7 +14,7 @@ STATUS_CODE canvasUpdateWidthAndHeight(GIFCanvas *canvas, u16 canvasWidth, u16 c
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE canvasUpdateWidth(GIFCanvas *canvas, u16 canvasWidth) {
+WASM_EXPORT STATUS_CODE canvasUpdateWidth(GIFCanvas *canvas, u16 canvasWidth) {
     CANVAS_NULL_CHECK(canvas);
 
     canvas->canvasWidth = canvasWidth;
@@ -22,7 +22,7 @@ STATUS_CODE canvasUpdateWidth(GIFCanvas *canvas, u16 canvasWidth) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE canvasUpdateHeight(GIFCanvas *canvas, u16 canvasHeight) {
+WASM_EXPORT STATUS_CODE canvasUpdateHeight(GIFCanvas *canvas, u16 canvasHeight) {
     CANVAS_NULL_CHECK(canvas);
 
     canvas->canvasHeight = canvasHeight;
@@ -30,7 +30,7 @@ STATUS_CODE canvasUpdateHeight(GIFCanvas *canvas, u16 canvasHeight) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE canvasPrependFrame(GIFCanvas *canvas, GIFFrame *frame) {
+WASM_EXPORT STATUS_CODE canvasPrependFrame(GIFCanvas *canvas, GIFFrame *frame) {
     STATUS_CODE status;
     
     CANVAS_NULL_CHECK(canvas);
@@ -48,7 +48,7 @@ STATUS_CODE canvasPrependFrame(GIFCanvas *canvas, GIFFrame *frame) {
 
 
 // Frame value updaters
-STATUS_CODE frameUpdateWidthAndHeight(GIFFrame *frame, u16 frameWidth, u16 frameHeight) {
+WASM_EXPORT STATUS_CODE frameUpdateWidthAndHeight(GIFFrame *frame, u16 frameWidth, u16 frameHeight) {
     FRAME_NULL_CHECK(frame);
 
     frame->imageWidth  = frameWidth;
@@ -57,7 +57,7 @@ STATUS_CODE frameUpdateWidthAndHeight(GIFFrame *frame, u16 frameWidth, u16 frame
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE frameUpdateWidth(GIFFrame *frame, u16 frameWidth) {
+WASM_EXPORT STATUS_CODE frameUpdateWidth(GIFFrame *frame, u16 frameWidth) {
     FRAME_NULL_CHECK(frame);
 
     frame->imageWidth = frameWidth;
@@ -65,7 +65,7 @@ STATUS_CODE frameUpdateWidth(GIFFrame *frame, u16 frameWidth) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE frameUpdateHeight(GIFFrame *frame, u16 frameHeight) {
+WASM_EXPORT STATUS_CODE frameUpdateHeight(GIFFrame *frame, u16 frameHeight) {
     FRAME_NULL_CHECK(frame);
 
     frame->imageHeight = frameHeight;
@@ -73,7 +73,7 @@ STATUS_CODE frameUpdateHeight(GIFFrame *frame, u16 frameHeight) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE frameUpdateImageLeftPosition(GIFFrame *frame, u16 imageLeftPosition) {
+WASM_EXPORT STATUS_CODE frameUpdateImageLeftPosition(GIFFrame *frame, u16 imageLeftPosition) {
     FRAME_NULL_CHECK(frame);
 
     frame->imageLeftPosition = imageLeftPosition;
@@ -81,7 +81,7 @@ STATUS_CODE frameUpdateImageLeftPosition(GIFFrame *frame, u16 imageLeftPosition)
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE frameUpdateImageTopPosition(GIFFrame *frame, u16 imageTopPosition) {
+WASM_EXPORT STATUS_CODE frameUpdateImageTopPosition(GIFFrame *frame, u16 imageTopPosition) {
     FRAME_NULL_CHECK(frame);
 
     frame->imageTopPosition = imageTopPosition;
@@ -89,7 +89,7 @@ STATUS_CODE frameUpdateImageTopPosition(GIFFrame *frame, u16 imageTopPosition) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE frameUpdateDisposalMethod(GIFFrame *frame, u8 disposalMethod) {
+WASM_EXPORT STATUS_CODE frameUpdateDisposalMethod(GIFFrame *frame, u8 disposalMethod) {
     FRAME_NULL_CHECK(frame);
 
     frame->packedField_GCE_DisposalMethod = disposalMethod;
@@ -97,7 +97,7 @@ STATUS_CODE frameUpdateDisposalMethod(GIFFrame *frame, u8 disposalMethod) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE frameUpdateDelayTime(GIFFrame *frame, u16 delayTime) {
+WASM_EXPORT STATUS_CODE frameUpdateDelayTime(GIFFrame *frame, u16 delayTime) {
     FRAME_NULL_CHECK(frame);
 
     frame->delayTime = delayTime;
@@ -105,7 +105,7 @@ STATUS_CODE frameUpdateDelayTime(GIFFrame *frame, u16 delayTime) {
     return OPERATION_SUCCESS;
 }
 
-STATUS_CODE frameRemoveTransparentColorIndex(GIFFrame *frame) {
+WASM_EXPORT STATUS_CODE frameRemoveTransparentColorIndex(GIFFrame *frame) {
     FRAME_NULL_CHECK(frame);
 
     frame->packedField_GCE_TransparentColorFlag = 0;

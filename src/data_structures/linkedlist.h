@@ -1,6 +1,6 @@
 
-#ifndef LINKED_LIST_H
-#define LINKED_LIST_H
+#ifndef GIF_ENCODER_LINKED_LIST_H
+#define GIF_ENCODER_LINKED_LIST_H
 
 #include <stdint.h>
 #include "main.h"
@@ -25,4 +25,4 @@ void linkedlistResetIter(linkedlist *list);
 void freeFrameLinkedList(linkedlist *list);
 
 
-#endif // LINKED_LIST_H
+#endif // GIF_ENCODER_LINKED_LIST_H

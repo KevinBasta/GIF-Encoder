@@ -38,7 +38,7 @@ static GIFFrame *createLetterFrame(letterPattern *pattern, u16 imageLeftPosition
 // Needs support for reusing frames when encoding for this to work efficiently. 
 static void addBlinkingCursor(GIFCanvas *canvas, u16 imageLeftPosition, u16 imageTopPosition, u32 numberOfBlinks, u32 lengthOfBlink, u32 lengthOfClearBlink);
 
-STATUS_CODE createTypingGIF(char *sentence, bool addCursor) {
+WASM_EXPORT STATUS_CODE createTypingGIF(char *sentence, bool addCursor) {
     STATUS_CODE status; 
 
     size_t numberOfLetters = strlen(sentence);
@@ -51,6 +51,8 @@ STATUS_CODE createTypingGIF(char *sentence, bool addCursor) {
 
     // Create canvas and set it's file name
     GIFCanvas *canvas = canvasCreate(canvasWidth, canvasHeight);
+    CANVAS_NULL_CHECK(canvas);
+    
     status = canvasSetFileName(canvas, "text.gif");
     CHECKSTATUS(status);
 

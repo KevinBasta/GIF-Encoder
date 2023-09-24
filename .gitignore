@@ -3,21 +3,25 @@ bin
 *.out
 *.exe
 *.o
-
-log
-*.log
-*.txt
-local_files
-local_tests
-l_*.c
+*.a
+*.so
+*.wasm
+*.js
+*.html
+*.py
 *.bak
 
-*.mp4
+log
+local_files
+local_tests
+*.log
+*.txt
+l_*.c
+
+output.gif
 testGIF_*.gif
 ERROR.gif
 text.gif
-
-*.py
 
 .vs
 .vscode

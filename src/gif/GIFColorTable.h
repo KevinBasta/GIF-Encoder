@@ -1,6 +1,6 @@
 
-#ifndef GIF_COLOR_TABLE_H
-#define GIF_COLOR_TABLE_H
+#ifndef GIF_ENCODER_COLOR_TABLE_H
+#define GIF_ENCODER_COLOR_TABLE_H
 
 #include <stdint.h>
 #include "main.h"
@@ -29,4 +29,4 @@ u8 getLWZMinCodeSize(i32 colorTableSize);
 u16 getClearCodeValue(i32 colorTableSize);
 u16 getEOICodeValue(i32 colorTableSize);
 
-#endif // COLOR_TABLE_H
+#endif // GIF_ENCODER_COLOR_TABLE_H

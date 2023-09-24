@@ -1,6 +1,6 @@
 
-#ifndef HASHMAP_H
-#define HASHMAP_H
+#ifndef GIF_ENCODER_HASHMAP_H
+#define GIF_ENCODER_HASHMAP_H
 
 #include <stdint.h>
 #include "main.h"
@@ -30,4 +30,4 @@ void hashmapSearchPrint(HashMap *map, char *key);
 void freeHashMapEntry(HashMapEntry *entry);
 void freeHashMap(HashMap *map);
 
-#endif // HASHMAP_H
+#endif // GIF_ENCODER_HASHMAP_H

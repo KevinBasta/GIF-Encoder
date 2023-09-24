@@ -65,7 +65,7 @@ static void expandFrame(GIFFrame *frame, u32 widthMuliplier, u32 heightMuliplier
 }
 
 // Expand the canvas frame index streams in the x and y axis
-STATUS_CODE expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 heightMuliplier) {
+WASM_EXPORT STATUS_CODE expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 heightMuliplier) {
     STATUS_CODE status;
     CANVAS_NULL_CHECK(canvas);
 
@@ -119,7 +119,7 @@ STATUS_CODE expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 heightMulipl
  *
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE appendToFrame(GIFFrame *frame,
+WASM_EXPORT STATUS_CODE appendToFrame(GIFFrame *frame,
                           u8 *arrayToAppend, 
                           u32 widthOfAppendingArray, 
                           u32 heightOfAppendingArray, 

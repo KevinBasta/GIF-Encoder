@@ -1,6 +1,6 @@
 
-#ifndef ARRAY_H
-#define ARRAY_H
+#ifndef GIF_ENCODER_ARRAY_H
+#define GIF_ENCODER_ARRAY_H
 
 #include <stdint.h>
 #include "main.h"
@@ -26,4 +26,4 @@ array *arrayInitFromStackArray(u8 stackArr[], size_t size);
 void arrayPrint(array *arr);
 void freeArray (array *arr);
 
-#endif // ARRAY_H
+#endif // GIF_ENCODER_ARRAY_H

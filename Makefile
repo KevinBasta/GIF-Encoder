@@ -19,19 +19,30 @@ main: bin/main.o $(OBJECTS)
 test: bin/test.o $(OBJECTS)
 	$(CC) -o a.out bin/test.o $(OBJECTS) -lm -Wall -Werror -Wpedantic
 
+# for shared library must used -fPIC for all compilations
 lib: $(OBJECTS)
-	ar -cvq libgif.a $(OBJECTS)
+	ar -cvq libgifencoder.a $(OBJECTS)
 
-wasam: $(OBJECTS)
+#objcopy --prefix-symbols=gifEncoder_ libgifencoder.a
+#$(CC) -shared -o libgifencoder.so $(OBJECTS) -lm -Wall -Werror -Wpedantic
 
+# compile web assembly
+wasm: CFLAGS += -D WASM
+wasm: $(SOURCE)
+	emcc -O3 -s WASM=1 \
+    $(SOURCE) $(CFLAGS) -o gifEncoder.html \
+	-s NO_EXIT_RUNTIME=1 -s "EXPORTED_RUNTIME_METHODS=['ccall']" -sFORCE_FILESYSTEM
 
 # c file rules, -c src/file.c -o bin/file.o
 bin/%.o: src/%.c
 	mkdir -p $(@D)
-	$(CC) $(CFLAGS) -c $< -o $@ -Wall 
+	$(CC) $(CFLAGS) -c $< -o $@ -Wall
 
 # cleaning all generated files
 clean:
+	-rm libgifencoder.a libgifencoder.so 2> /dev/null
+	-rm gifEncoder.html gifEncoder.js gifEncoder.wasm 2> /dev/null
+	-rm $(wildcard *.gif) 2> /dev/null
 	-rm $(OBJECTS) bin/main.o bin/test.o a.out 2> /dev/null
 	-rmdir $(sort $(dir $(OBJECTS))) 2> /dev/null
 

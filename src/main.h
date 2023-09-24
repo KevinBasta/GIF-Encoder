@@ -1,14 +1,23 @@
 
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef GIF_ENCODER_MAIN_H
+#define GIF_ENCODER_MAIN_H
 
 #include <stdint.h>
 #include <time.h>
+
+// put wasm export prefix
+#ifdef WASM
+#include <emscripten/emscripten.h>
+#define WASM_EXPORT extern EMSCRIPTEN_KEEPALIVE
+#else
+#define WASM_EXPORT
+#endif
 
 // Preprocessor constants
 #define TRUE 1
 #define FALSE 0
 
+// Enabled in makefile
 #define PRINT_ENABLE
 
 #ifdef PRINT_ENABLE
@@ -145,4 +154,4 @@ typedef enum STATUS_CODE {
 #define COLOR_TABLE_NULL_CHECK(clrTable)        if (clrTable == NULL)           { return COLOR_TABLE_NULL; }
 #define CODE_TABLE_NULL_CHECK(cdTable)          if (cdTable == NULL)            { return CODE_TABLE_NULL; }
 
-#endif //MAIN_H
+#endif // GIF_ENCODER_MAIN_H

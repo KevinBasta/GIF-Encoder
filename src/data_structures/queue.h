@@ -1,6 +1,6 @@
 
-#ifndef QUEUE_H
-#define QUEUE_H
+#ifndef GIF_ENCODER_QUEUE_H
+#define GIF_ENCODER_QUEUE_H
 
 #include <stdbool.h>
 
@@ -22,4 +22,4 @@ size_t queueGetCurrentLength(queue *queue);
 void queuePrint(queue *queue);
 void freeQueue(queue *queue);
 
-#endif // QUEUE_H
+#endif // GIF_ENCODER_QUEUE_H

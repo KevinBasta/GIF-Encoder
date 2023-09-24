@@ -56,7 +56,7 @@ static STATUS_CODE createErrorString(char *string, u32 stringLength, u32 errorCo
  *
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE createErrorGif(u32 errorCode) {
+WASM_EXPORT STATUS_CODE createErrorGif(u32 errorCode) {
     STATUS_CODE status;
 
     // create canvas
