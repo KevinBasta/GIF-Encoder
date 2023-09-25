@@ -28,28 +28,28 @@
 #define PRINT_STATUS_AND_EXIT(status) if (status != OPERATION_SUCCESS) { printf("Test Faild With Status %d\n", status); exit(1); }
 
 int main() { 
-    assert(getNBits(0, 2, 0xFF)  == 7);
-    assert(getNBits(2, 4, 0x5C)  == 3);
-    assert(getNBits(0, 0, 0x8C)  == 1);
-    assert(getNBits(0, 7, 0x8C)  == 0x8C);
-    assert(getNBits(8, 4, 0x5C)  == 0);
-    assert(getNBits(-1, 4, 0x5C) == 0);
-    assert(getNBits(3, 0, 0x5C)  == 0);
+    assert(gif_getNBits(0, 2, 0xFF)  == 7);
+    assert(gif_getNBits(2, 4, 0x5C)  == 3);
+    assert(gif_getNBits(0, 0, 0x8C)  == 1);
+    assert(gif_getNBits(0, 7, 0x8C)  == 0x8C);
+    assert(gif_getNBits(8, 4, 0x5C)  == 0);
+    assert(gif_getNBits(-1, 4, 0x5C) == 0);
+    assert(gif_getNBits(3, 0, 0x5C)  == 0);
 
-    assert(getNthBit(0, 0x8C)  == 1);
-    assert(getNthBit(2, 0xFF)  == 1);
-    assert(getNthBit(4, 0x5C)  == 1);
-    assert(getNthBit(6, 0x98)  == 0);
-    assert(getNthBit(7, 0x9E)  == 0);
-    assert(getNthBit(7, 0x9F)  == 1);
-    assert(getNthBit(8, 0x5C)  == 0);
-    assert(getNthBit(-1, 0x5C) == 0);
+    assert(gif_getNthBit(0, 0x8C)  == 1);
+    assert(gif_getNthBit(2, 0xFF)  == 1);
+    assert(gif_getNthBit(4, 0x5C)  == 1);
+    assert(gif_getNthBit(6, 0x98)  == 0);
+    assert(gif_getNthBit(7, 0x9E)  == 0);
+    assert(gif_getNthBit(7, 0x9F)  == 1);
+    assert(gif_getNthBit(8, 0x5C)  == 0);
+    assert(gif_getNthBit(-1, 0x5C) == 0);
 
-    assert(getOccupiedBits(0x1)         == 1);
-    assert(getOccupiedBits(0x4)         == 3);
-    assert(getOccupiedBits(0x80)        == 8);
-    assert(getOccupiedBits(0x8000)      == 16);
-    assert(getOccupiedBits(0x80000000)  == 32);
+    assert(gif_getOccupiedBits(0x1)         == 1);
+    assert(gif_getOccupiedBits(0x4)         == 3);
+    assert(gif_getOccupiedBits(0x80)        == 8);
+    assert(gif_getOccupiedBits(0x8000)      == 16);
+    assert(gif_getOccupiedBits(0x80000000)  == 32);
 
     printf("All Assertions Passed\n");
 
@@ -58,23 +58,23 @@ int main() {
     TIMER_INIT;
     TIMER_START();
 
-    status = createErrorGif(0);
+    status = gif_createErrorGif(0);
     PRINT_STATUS_AND_EXIT(status);
-    status = createGradientTest();
+    status = gif_createGradientTest();
     PRINT_STATUS_AND_EXIT(status);
-    status = createLocalColorTableTest();
+    status = gif_createLocalColorTableTest();
     PRINT_STATUS_AND_EXIT(status);
-    status = createMaxColorIndexTest();
+    status = gif_createMaxColorIndexTest();
     PRINT_STATUS_AND_EXIT(status);
-    status = createSmallGif();
+    status = gif_createSmallGif();
     PRINT_STATUS_AND_EXIT(status);
-    status = createSnakeTest();
+    status = gif_createSnakeTest();
     PRINT_STATUS_AND_EXIT(status);
-    status = createTrafficLightGif();
+    status = gif_createTrafficLightGif();
     PRINT_STATUS_AND_EXIT(status);
-    status = createTransparancyTest();
+    status = gif_createTransparancyTest();
     PRINT_STATUS_AND_EXIT(status);
-    status = createTypingGIF("Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz 0 1 2 3 4 5 6 7 8 9 ! ? / \\ \" ' [ ], ( ).", false);
+    status = gif_createTypingGIF("Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz 0 1 2 3 4 5 6 7 8 9 ! ? / \\ \" ' [ ], ( ).", false);
     PRINT_STATUS_AND_EXIT(status);
 
     TIMER_END();

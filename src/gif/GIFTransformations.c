@@ -11,7 +11,7 @@
 #include "GIFInterface.h"
 
 // Expands a single frame in the x and y axis
-static void expandFrame(GIFFrame *frame, u32 widthMuliplier, u32 heightMuliplier) {
+static void gif_expandFrame(GIFFrame *frame, u32 widthMuliplier, u32 heightMuliplier) {
     u16 oldWidth  = frame->imageWidth;
     u16 oldHeight = frame->imageHeight;
 
@@ -28,7 +28,7 @@ static void expandFrame(GIFFrame *frame, u32 widthMuliplier, u32 heightMuliplier
     frame->imageTopPosition  = frame->imageTopPosition * heightMuliplier;
 
     u32 newArraySize = newWidth * newHeight;
-    array *newIndexStream = arrayInit(newArraySize);
+    gif_array *newIndexStream = gif_arrayInit(newArraySize);
 
     for (int i = 0; i < oldHeight; i++) {
         for (int j = 0; j < oldWidth; j++) {
@@ -60,12 +60,12 @@ static void expandFrame(GIFFrame *frame, u32 widthMuliplier, u32 heightMuliplier
         }
     }
 
-    freeArray(frame->indexStream);
+    gif_freeArray(frame->indexStream);
     frame->indexStream = newIndexStream;
 }
 
 // Expand the canvas frame index streams in the x and y axis
-WASM_EXPORT STATUS_CODE expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 heightMuliplier) {
+WASM_EXPORT STATUS_CODE gif_expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 heightMuliplier) {
     STATUS_CODE status;
     CANVAS_NULL_CHECK(canvas);
 
@@ -82,22 +82,22 @@ WASM_EXPORT STATUS_CODE expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 
     size_t i = 0;
 
     GIFFrame *frame;
-    linkedlistResetIter(canvas->frames);
-    status = linkedlistYield(canvas->frames, (void**) (&frame));
+    gif_linkedlistResetIter(canvas->frames);
+    status = gif_linkedlistYield(canvas->frames, (void**) (&frame));
     CHECKSTATUS(status);
 
     while (frame != NULL) {
-        if (!frameInArray(frame, framesExpanded, i)) {
-            expandFrame(frame, widthMuliplier, heightMuliplier);
+        if (!gif_frameInArray(frame, framesExpanded, i)) {
+            gif_expandFrame(frame, widthMuliplier, heightMuliplier);
             framesExpanded[i] = frame;
             i++;
         }
         
-        status = linkedlistYield(canvas->frames, (void**) (&frame));
+        status = gif_linkedlistYield(canvas->frames, (void**) (&frame));
         CHECKSTATUS(status);
     }
 
-    linkedlistResetIter(canvas->frames);
+    gif_linkedlistResetIter(canvas->frames);
 
     free(framesExpanded);
 
@@ -119,7 +119,7 @@ WASM_EXPORT STATUS_CODE expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 
  *
  * @return OPERATION_SUCCESS or error code
  */
-WASM_EXPORT STATUS_CODE appendToFrame(GIFFrame *frame,
+WASM_EXPORT STATUS_CODE gif_appendToFrame(GIFFrame *frame,
                           u8 *arrayToAppend, 
                           u32 widthOfAppendingArray, 
                           u32 heightOfAppendingArray, 
@@ -128,7 +128,7 @@ WASM_EXPORT STATUS_CODE appendToFrame(GIFFrame *frame,
     STATUS_CODE status;
     FRAME_NULL_CHECK(frame);
 
-    array *oldIndexStream       = frame->indexStream;
+    gif_array *oldIndexStream       = frame->indexStream;
     oldIndexStream->currentIndex = 0;
 
     u32 oldIndexStreamWidth     = frame->imageWidth;
@@ -141,7 +141,7 @@ WASM_EXPORT STATUS_CODE appendToFrame(GIFFrame *frame,
     u32 newIndexStreamHeight = frame->imageHeight + heightDifference;
     u32 newIndexStreamLength = newIndexStreamWidth * newIndexStreamHeight;
 
-    array *newIndexStream     = arrayInit(newIndexStreamLength);
+    gif_array *newIndexStream     = gif_arrayInit(newIndexStreamLength);
     ARRAY_NULL_CHECK(newIndexStream);
 
     u32 appendingArrayCounter = 0;
@@ -149,15 +149,15 @@ WASM_EXPORT STATUS_CODE appendToFrame(GIFFrame *frame,
         for (u32 column = 0; column < newIndexStreamWidth; column++) {
             if (column < oldIndexStreamWidth) {
                 if (row > oldIndexStreamHeight - 1) {
-                    status = arrayAppend(newIndexStream, valueToUseForOverflow);
+                    status = gif_arrayAppend(newIndexStream, valueToUseForOverflow);
                 } else {
-                    status = arrayAppend(newIndexStream, arrayGetIncrement(oldIndexStream));
+                    status = gif_arrayAppend(newIndexStream, gif_arrayGetIncrement(oldIndexStream));
                 }
             } else {
                 if (row > heightOfAppendingArray - 1) {
-                    status = arrayAppend(newIndexStream, valueToUseForOverflow);
+                    status = gif_arrayAppend(newIndexStream, valueToUseForOverflow);
                 } else {
-                    status = arrayAppend(newIndexStream, arrayToAppend[appendingArrayCounter]);
+                    status = gif_arrayAppend(newIndexStream, arrayToAppend[appendingArrayCounter]);
                 }
                 appendingArrayCounter++;
             }
@@ -173,7 +173,7 @@ WASM_EXPORT STATUS_CODE appendToFrame(GIFFrame *frame,
         }
     } */
 
-    freeArray(oldIndexStream);
+    gif_freeArray(oldIndexStream);
     frame->indexStream  = newIndexStream;
     frame->imageWidth   = newIndexStreamWidth;
     frame->imageHeight  = newIndexStreamHeight;

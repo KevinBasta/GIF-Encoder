@@ -5,6 +5,6 @@
 #include <stdint.h>
 #include "main.h"
 
-STATUS_CODE createTransparancyTest();
+STATUS_CODE gif_createTransparancyTest();
 
 #endif // GIF_TRANSPARANCY_TEST_H

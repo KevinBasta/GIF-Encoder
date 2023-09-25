@@ -14,18 +14,18 @@
 static STATUS_CODE createOneBlockFrame(GIFCanvas *canvas, u16 leftPos, u16 topPos, u16 colorTableIndex, u32 delayTime) {
     STATUS_CODE status;
 
-    GIFFrame *frame = frameCreate(1, 1, leftPos, topPos);
+    GIFFrame *frame = gif_frameCreate(1, 1, leftPos, topPos);
     FRAME_NULL_CHECK(frame);
 
-    status = frameCreateIndexStream(frame, 1);
+    status = gif_frameCreateIndexStream(frame, 1);
     CHECKSTATUS(status);
-    status = frameAppendToIndexStream(frame, colorTableIndex);
-    CHECKSTATUS(status);
-
-    status = frameAddGraphicsControlInfo(frame, 3, delayTime);
+    status = gif_frameAppendToIndexStream(frame, colorTableIndex);
     CHECKSTATUS(status);
 
-    status = canvasAddFrame(canvas, frame);
+    status = gif_frameAddGraphicsControlInfo(frame, 3, delayTime);
+    CHECKSTATUS(status);
+
+    status = gif_canvasAddFrame(canvas, frame);
     CHECKSTATUS(status);
 
     return OPERATION_SUCCESS;
@@ -41,52 +41,52 @@ static STATUS_CODE createOneBlockFrame(GIFCanvas *canvas, u16 leftPos, u16 topPo
  * method #3 is used, it's interpreted as "only the state of the
  * previous frame in isolation", leading to an empty canvas.
  */
-STATUS_CODE createSnakeTest() {
+STATUS_CODE gif_createSnakeTest() {
     STATUS_CODE status;
 
     u16 width  = 10;
     u16 height = 10;
 
-    GIFCanvas *canvas = canvasCreate(width, height);
+    GIFCanvas *canvas = gif_canvasCreate(width, height);
     CANVAS_NULL_CHECK(canvas);
 
-    status = canvasSetFileName(canvas, "testGIF_Snake.gif");
+    status = gif_canvasSetFileName(canvas, "testGIF_Snake.gif");
     CHECKSTATUS(status);
 
-    status = canvasCreateGlobalColorTable(canvas);
+    status = gif_canvasCreateGlobalColorTable(canvas);
     CHECKSTATUS(status);
     
-    status = canvasAddColorToColorTable(canvas, 76, 175, 80); // 0
+    status = gif_canvasAddColorToColorTable(canvas, 76, 175, 80); // 0
     CHECKSTATUS(status);
-    status = canvasAddColorToColorTable(canvas, 32, 96, 161); // 1
+    status = gif_canvasAddColorToColorTable(canvas, 32, 96, 161); // 1
     CHECKSTATUS(status);
-    status = canvasAddColorToColorTable(canvas, 161, 32, 32); // 2
+    status = gif_canvasAddColorToColorTable(canvas, 161, 32, 32); // 2
     CHECKSTATUS(status);
-    status = canvasAddColorToColorTable(canvas, 0, 0, 0); // 3
+    status = gif_canvasAddColorToColorTable(canvas, 0, 0, 0); // 3
     CHECKSTATUS(status);
 
     {
         // Background frame
-        GIFFrame *backgroundFrame = frameCreate(width, height, 0, 0);
+        GIFFrame *backgroundFrame = gif_frameCreate(width, height, 0, 0);
         FRAME_NULL_CHECK(backgroundFrame);
 
-        status = frameCreateIndexStream(backgroundFrame, width * height);
+        status = gif_frameCreateIndexStream(backgroundFrame, width * height);
         CHECKSTATUS(status);
 
         // Fill the background with green and put apple
         for (int i = 0; i < width * height; i++) {
             if (i == width - 1) {
-                status = frameAppendToIndexStream(backgroundFrame, 2);
+                status = gif_frameAppendToIndexStream(backgroundFrame, 2);
             } else {
-                status = frameAppendToIndexStream(backgroundFrame, 0);
+                status = gif_frameAppendToIndexStream(backgroundFrame, 0);
             }
             CHECKSTATUS(status);
         }
 
-        status = frameAddGraphicsControlInfo(backgroundFrame, 1, 100);
+        status = gif_frameAddGraphicsControlInfo(backgroundFrame, 1, 100);
         CHECKSTATUS(status);
 
-        status = canvasAddFrame(canvas, backgroundFrame);
+        status = gif_canvasAddFrame(canvas, backgroundFrame);
         CHECKSTATUS(status);
     }
 
@@ -127,20 +127,20 @@ STATUS_CODE createSnakeTest() {
                     snakeTopPos  = imageTopPosition;
                 }
 
-                GIFFrame *frame = frameCreate(snakeWidth, snakeHeight, snakeLeftPos, snakeTopPos);
+                GIFFrame *frame = gif_frameCreate(snakeWidth, snakeHeight, snakeLeftPos, snakeTopPos);
                 FRAME_NULL_CHECK(frame);
 
-                status = frameCreateIndexStream(frame, 2);
+                status = gif_frameCreateIndexStream(frame, 2);
                 CHECKSTATUS(status);
-                status = frameAppendToIndexStream(frame, 1);
+                status = gif_frameAppendToIndexStream(frame, 1);
                 CHECKSTATUS(status);
-                status = frameAppendToIndexStream(frame, 1);
-                CHECKSTATUS(status);
-
-                status = frameAddGraphicsControlInfo(frame, 3, 0);
+                status = gif_frameAppendToIndexStream(frame, 1);
                 CHECKSTATUS(status);
 
-                status = canvasAddFrame(canvas, frame);
+                status = gif_frameAddGraphicsControlInfo(frame, 3, 0);
+                CHECKSTATUS(status);
+
+                status = gif_canvasAddFrame(canvas, frame);
                 CHECKSTATUS(status);
             }
 
@@ -157,10 +157,10 @@ STATUS_CODE createSnakeTest() {
     CHECKSTATUS(status);
 
     u32 widthMuliplier  = 20; u32 heightMuliplier = 20;
-    status = expandCanvas(canvas, widthMuliplier, heightMuliplier);
+    status = gif_expandCanvas(canvas, widthMuliplier, heightMuliplier);
     CHECKSTATUS(status);
 
-    createGIF(canvas, true, true);
+    gif_createGIF(canvas, true, true);
 
     return OPERATION_SUCCESS;
 }

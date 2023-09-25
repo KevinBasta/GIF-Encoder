@@ -9,7 +9,7 @@
 #include "bitarray.h"
 #include "GIFColorTable.h"
 
-STATUS_CODE createLZWImageData(colorTable *clrTable, array *indexStream, bitarray *imageData);
-STATUS_CODE createLZWImageDataInitialDraft(colorTable *clrTable, array *indexStream, bitarray *imageData);
+STATUS_CODE gif_createLZWImageData(gif_colorTable *clrTable, gif_array *indexStream, gif_bitarray *imageData);
+STATUS_CODE gif_createLZWImageDataInitialDraft(gif_colorTable *clrTable, gif_array *indexStream, gif_bitarray *imageData);
 
 #endif // GIF_LZW_COMPRESSION_H

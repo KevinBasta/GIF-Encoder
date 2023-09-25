@@ -7,19 +7,19 @@
 #include <stdint.h>
 #include "main.h"
 
-typedef struct queue {
+typedef struct gif_queue {
     size_t size;
     size_t count;
     long head;
     long tail;
     bool *items;
-} queue;
+} gif_queue;
 
-queue *queueInit(size_t size);
-STATUS_CODE queueEnqueue(queue *queue, bool newItem);
-STATUS_CODE queueDequeue(queue *queue, bool *returnedItem);
-size_t queueGetCurrentLength(queue *queue);
-void queuePrint(queue *queue);
-void freeQueue(queue *queue);
+gif_queue *gif_queueInit(size_t size);
+STATUS_CODE gif_queueEnqueue(gif_queue *queue, bool newItem);
+STATUS_CODE gif_queueDequeue(gif_queue *queue, bool *returnedItem);
+size_t gif_queueGetCurrentLength(gif_queue *queue);
+void gif_queuePrint(gif_queue *queue);
+void gif_freeQueue(gif_queue *queue);
 
 #endif // GIF_ENCODER_QUEUE_H

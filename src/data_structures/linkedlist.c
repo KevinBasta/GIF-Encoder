@@ -13,8 +13,8 @@
  * @brief Create a linkedlist
  * @return linklist pointer
  */
-linkedlist *linkedlistInit() {
-    linkedlist *list = calloc(1, sizeof(linkedlist));
+gif_linkedlist *gif_linkedlistInit() {
+    gif_linkedlist *list = calloc(1, sizeof(gif_linkedlist));
     if (list == NULL)
         return NULL;
 
@@ -32,10 +32,10 @@ linkedlist *linkedlistInit() {
  * @param item  item to append
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE linkedlistAppend(linkedlist *list, void *item) {
+STATUS_CODE gif_linkedlistAppend(gif_linkedlist *list, void *item) {
     LINKED_LIST_NULL_CHECK(list);
 
-    node *newNode       = calloc(1, sizeof(node));
+    gif_node *newNode       = calloc(1, sizeof(gif_node));
     if (newNode == NULL)
         return LINKED_LIST_NODE_NULL;
     
@@ -63,10 +63,10 @@ STATUS_CODE linkedlistAppend(linkedlist *list, void *item) {
  * @param item  item to append
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE linkedlistPrepend(linkedlist *list, void *item) {
+STATUS_CODE gif_linkedlistPrepend(gif_linkedlist *list, void *item) {
     LINKED_LIST_NULL_CHECK(list);
 
-    node *newNode       = calloc(1, sizeof(node));
+    gif_node *newNode       = calloc(1, sizeof(gif_node));
     if (newNode == NULL)
         return LINKED_LIST_NODE_NULL;
     
@@ -96,7 +96,7 @@ STATUS_CODE linkedlistPrepend(linkedlist *list, void *item) {
  * @param item  item returned (being yielded)
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE linkedlistYield(linkedlist *list, void **item) {
+STATUS_CODE gif_linkedlistYield(gif_linkedlist *list, void **item) {
     LINKED_LIST_NULL_CHECK(list);
 
     if (list->currentIter == NULL) {
@@ -112,11 +112,11 @@ STATUS_CODE linkedlistYield(linkedlist *list, void **item) {
 }
 
 // Reset list's currentIter field
-void linkedlistResetIter(linkedlist *list) {
+void gif_linkedlistResetIter(gif_linkedlist *list) {
     list->currentIter = list->head;
 }
 
-void freeFrameLinkedList(linkedlist *list) {
+void gif_freeFrameLinkedList(gif_linkedlist *list) {
     GIFFrame **framesFreed = calloc(list->size, sizeof(GIFFrame*));
     size_t i = 0;
 
@@ -126,17 +126,17 @@ void freeFrameLinkedList(linkedlist *list) {
     size_t entriesLeft = list->size;
     
     if (list != NULL) {
-        node *currentHead = list->head;
+        gif_node *currentHead = list->head;
 
         while (entriesLeft > 0) {
             GIFFrame *item = currentHead->item;
-            if (!frameInArray(item, framesFreed, i)) {
-                freeFrame(item);
+            if (!gif_frameInArray(item, framesFreed, i)) {
+                gif_freeFrame(item);
                 framesFreed[i] = item;
                 i++;
             }
 
-            node *nextHead = currentHead->nextNode;
+            gif_node *nextHead = currentHead->nextNode;
             free(currentHead);
             
             currentHead = nextHead;
@@ -150,12 +150,12 @@ void freeFrameLinkedList(linkedlist *list) {
 }
 
 /* void main() {
-    linkedlist *test = linkedlistInit();
+    gif_linkedlist *test = gif_linkedlistInit();
     u32 *testVal = malloc(sizeof(u32));
     *testVal = 44;
 
     PRINTF("HI\n");
-    linkedlistAppend(test, testVal);
+    gif_linkedlistAppend(test, testVal);
 
     u32 *yeildReturn = malloc(sizeof(u32));
 

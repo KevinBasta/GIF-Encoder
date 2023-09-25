@@ -24,7 +24,7 @@
  * @param gif - Gif file to write to
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE encodeHeader(FILE *gif) {
+static STATUS_CODE encodeHeader(FILE *gif) {
     size_t status;
 
     const char header[3]    = "GIF";
@@ -56,15 +56,15 @@ static u8 packCanvasPackedField(GIFCanvas *canvas) {
  * @param canvas    - Struct containing required fields
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE encodeLogicalScreenDescriptor(FILE *gif, GIFCanvas *canvas) {
+static STATUS_CODE encodeLogicalScreenDescriptor(FILE *gif, GIFCanvas *canvas) {
     size_t status;
     u32 nmemb = 1;
 
-    u16 canvasWidth         = littleEndianU16(canvas->canvasWidth);
-    u16 canvasHeight        = littleEndianU16(canvas->canvasHeight);
+    u16 canvasWidth         = gif_littleEndianU16(canvas->canvasWidth);
+    u16 canvasHeight        = gif_littleEndianU16(canvas->canvasHeight);
     
     u8 packedField          = packCanvasPackedField(canvas);
-    printBits(&packedField, sizeof(u8));
+    gif_printBits(&packedField, sizeof(u8));
 
     // Represents which index in the global color table should be used 
     // for pixels on the virtual canvas that aren't overlayed by an image
@@ -107,18 +107,18 @@ static u8 packFramePackedField(GIFFrame *frame) {
  * @param frame     - Struct containing required fields
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE encodeImageDescriptor(FILE *gif, GIFFrame *frame) {
+static STATUS_CODE encodeImageDescriptor(FILE *gif, GIFFrame *frame) {
     size_t status;
     u32 nmemb = 1;
 
     u8 imageSeparator = 0x2C;
-    u16 imageLeftPosition   = littleEndianU16(frame->imageLeftPosition);
-    u16 imageTopPosition    = littleEndianU16(frame->imageTopPosition);
-    u16 imageWidth          = littleEndianU16(frame->imageWidth);
-    u16 imageHeight         = littleEndianU16(frame->imageHeight);
+    u16 imageLeftPosition   = gif_littleEndianU16(frame->imageLeftPosition);
+    u16 imageTopPosition    = gif_littleEndianU16(frame->imageTopPosition);
+    u16 imageWidth          = gif_littleEndianU16(frame->imageWidth);
+    u16 imageHeight         = gif_littleEndianU16(frame->imageHeight);
     
     u8 packedField          = packFramePackedField(frame);
-    printIntBits(&packedField, sizeof(u8));
+    gif_printIntBits(&packedField, sizeof(u8));
 
     status = fwrite(&imageSeparator, sizeof(imageSeparator), nmemb, gif);
     CHECK_FWRITE_STATUS(status, nmemb);
@@ -147,7 +147,7 @@ STATUS_CODE encodeImageDescriptor(FILE *gif, GIFFrame *frame) {
  * @param numberOfTimesToLoop   - Zero (0) for infinite loop
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE encodeNetscapeLoopExtention(FILE *gif, u16 numberOfTimesToLoop) {
+static STATUS_CODE encodeNetscapeLoopExtention(FILE *gif, u16 numberOfTimesToLoop) {
     size_t status;
     u32 nmemb = 1;
 
@@ -161,7 +161,7 @@ STATUS_CODE encodeNetscapeLoopExtention(FILE *gif, u16 numberOfTimesToLoop) {
     // three bytes of data follow
     u8 lengthOfDataSubblock     = 0x03;
     u8 subblockIntroducer       = 0x01;
-    numberOfTimesToLoop         = littleEndianU16(numberOfTimesToLoop);
+    numberOfTimesToLoop         = gif_littleEndianU16(numberOfTimesToLoop);
     u8 blockTerminator          = 0x00;
 
     status = fwrite(&extensionIntroducer, sizeof(extensionIntroducer), nmemb, gif);
@@ -202,7 +202,7 @@ static u8 packGraphcisControlExtentionPackedField(GIFFrame *frame) {
     return packedField;
 }
 
-STATUS_CODE encodeGraphicsControlExtension(FILE *gif, GIFFrame *frame) {
+static STATUS_CODE encodeGraphicsControlExtension(FILE *gif, GIFFrame *frame) {
     size_t status;
     u32 nmemb = 1;
 
@@ -211,7 +211,7 @@ STATUS_CODE encodeGraphicsControlExtension(FILE *gif, GIFFrame *frame) {
     u8 byteSize             = 0x04;
 
     u8 packedField           = packGraphcisControlExtentionPackedField(frame);
-    u16 delayTime            = littleEndianU16(frame->delayTime);
+    u16 delayTime            = gif_littleEndianU16(frame->delayTime);
     u8 transparentColorIndex = frame->transparentColorIndex;
 
     u8 blockTerminator      = 0x00;
@@ -246,12 +246,12 @@ STATUS_CODE encodeGraphicsControlExtension(FILE *gif, GIFFrame *frame) {
  * @param colorTable - Table to write to file
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE encodeColorTable(FILE *gif, colorTable *colorTable) {
+static STATUS_CODE encodeColorTable(FILE *gif, gif_colorTable *colorTable) {
     size_t status;
     u32 nmemb = 1;
 
     for (int i = 0; i <= colorTable->lastIndex; i++) {
-        RGB entry = colorTable->items[i];
+        gif_RGB entry = colorTable->items[i];
         
         status = fwrite(&entry.red, sizeof(u8), nmemb, gif);
         CHECK_FWRITE_STATUS(status, nmemb);
@@ -274,16 +274,16 @@ STATUS_CODE encodeColorTable(FILE *gif, colorTable *colorTable) {
  * @param clrTable    - Color table to use
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE encodeImageData(FILE *gif, GIFFrame *frame, colorTable *clrTable) {
+static STATUS_CODE encodeImageData(FILE *gif, GIFFrame *frame, gif_colorTable *clrTable) {
     size_t status;
     u32 nmemb = 1;
 
-    bitarray *imageData;
+    gif_bitarray *imageData;
     if (frame->persistentFrameEncodeData && frame->imageData != NULL) {
         imageData = frame->imageData;
     } else {
-        imageData = bitarrayInit(frame->indexStream->size);
-        status = createLZWImageData(clrTable, frame->indexStream, imageData);
+        imageData = gif_bitarrayInit(frame->indexStream->size);
+        status = gif_createLZWImageData(clrTable, frame->indexStream, imageData);
         CHECKSTATUS(status);
 
         if (frame->persistentFrameEncodeData) {
@@ -291,7 +291,7 @@ STATUS_CODE encodeImageData(FILE *gif, GIFFrame *frame, colorTable *clrTable) {
         }
     }
     //PRINTF("\n");
-    //bitarrayPrint(imageData);
+    //gif_bitarrayPrint(imageData);
 
     for (u32 i = 0; i < imageData->currentIndex + 1; i++) {
         status = fwrite(&(imageData->items[i]), sizeof(u8), nmemb, gif);
@@ -302,7 +302,7 @@ STATUS_CODE encodeImageData(FILE *gif, GIFFrame *frame, colorTable *clrTable) {
     status = fwrite(&lastByte, sizeof(u8), nmemb, gif);
 
     if (!frame->persistentFrameEncodeData) {
-        freeBitArray(imageData);
+        gif_freeBitArray(imageData);
     }
 
     return OPERATION_SUCCESS;
@@ -313,7 +313,7 @@ STATUS_CODE encodeImageData(FILE *gif, GIFFrame *frame, colorTable *clrTable) {
  * @param gif - Gif file to write to
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE encodeTrailer(FILE *gif) {
+static STATUS_CODE encodeTrailer(FILE *gif) {
     size_t status;
     u32 nmemb = 1;
 
@@ -372,8 +372,8 @@ static STATUS_CODE validateCanvasRecord(GIFCanvas *canvas) {
     bool hasGlobalColorTable = validGlobalColorTable(canvas);
 
     GIFFrame *frame;
-    linkedlistResetIter(canvas->frames);
-    status = linkedlistYield(canvas->frames, (void**) (&frame));
+    gif_linkedlistResetIter(canvas->frames);
+    status = gif_linkedlistYield(canvas->frames, (void**) (&frame));
     CHECKSTATUS(status);
 
     while (frame != NULL) {
@@ -392,7 +392,7 @@ static STATUS_CODE validateCanvasRecord(GIFCanvas *canvas) {
             return FRAME_INDEX_STREAM_WRONG_SIZE;
 
         // 7
-        colorTable *activeColorTable;
+        gif_colorTable *activeColorTable;
         if (hasLocalColorTable) {
             activeColorTable = frame->localColorTable;
         } else {
@@ -406,11 +406,11 @@ static STATUS_CODE validateCanvasRecord(GIFCanvas *canvas) {
             }
         }
 
-        status = linkedlistYield(canvas->frames, (void**) (&frame));
+        status = gif_linkedlistYield(canvas->frames, (void**) (&frame));
         CHECKSTATUS(status);
     }
 
-    linkedlistResetIter(canvas->frames);
+    gif_linkedlistResetIter(canvas->frames);
 
     return OPERATION_SUCCESS;
 }
@@ -428,23 +428,23 @@ static STATUS_CODE markDuplicateFrames(GIFCanvas *canvas) {
     size_t i = 0;
 
     GIFFrame *frame;
-    linkedlistResetIter(canvas->frames);
-    status = linkedlistYield(canvas->frames, (void**) (&frame));
+    gif_linkedlistResetIter(canvas->frames);
+    status = gif_linkedlistYield(canvas->frames, (void**) (&frame));
     CHECKSTATUS(status);
 
     while (frame != NULL) {
-        if (!frameInArray(frame, uniqueFrames, i)) {
+        if (!gif_frameInArray(frame, uniqueFrames, i)) {
             uniqueFrames[i] = frame;
             i++;
         } else {
             frame->persistentFrameEncodeData = true;
         }
         
-        status = linkedlistYield(canvas->frames, (void**) (&frame));
+        status = gif_linkedlistYield(canvas->frames, (void**) (&frame));
         CHECKSTATUS(status);
     }
 
-    linkedlistResetIter(canvas->frames);
+    gif_linkedlistResetIter(canvas->frames);
 
     free(uniqueFrames);
 
@@ -456,7 +456,7 @@ static STATUS_CODE markDuplicateFrames(GIFCanvas *canvas) {
  * @param canvas - Struct containing required information
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE encodeGIF(GIFCanvas *canvas) {
+STATUS_CODE gif_encodeGIF(GIFCanvas *canvas) {
     size_t status;
    
     // Error checking data inputted
@@ -494,8 +494,8 @@ STATUS_CODE encodeGIF(GIFCanvas *canvas) {
     }
 
     GIFFrame *frame;
-    linkedlistResetIter(canvas->frames);
-    status = linkedlistYield(canvas->frames, (void**) (&frame));
+    gif_linkedlistResetIter(canvas->frames);
+    status = gif_linkedlistYield(canvas->frames, (void**) (&frame));
     CHECKSTATUS_CLOSE_FILE(status, gif);
 
     while (frame != NULL) {
@@ -526,7 +526,7 @@ STATUS_CODE encodeGIF(GIFCanvas *canvas) {
         CHECKSTATUS_CLOSE_FILE(status, gif);
         
         // Get the next frame in the linked list
-        status = linkedlistYield(canvas->frames, (void**) (&frame));
+        status = gif_linkedlistYield(canvas->frames, (void**) (&frame));
         CHECKSTATUS_CLOSE_FILE(status, gif);
     }
 

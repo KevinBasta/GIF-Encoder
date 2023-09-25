@@ -14,8 +14,8 @@
  * in the queue at one time
  * @return queue pointer or NULL
  */
-queue *queueInit(size_t size) {
-    queue *newQueue = calloc(1, sizeof(queue));
+gif_queue *gif_queueInit(size_t size) {
+    gif_queue *newQueue = calloc(1, sizeof(gif_queue));
     if (newQueue == NULL)
         return NULL;
 
@@ -37,7 +37,7 @@ queue *queueInit(size_t size) {
  * @param newItem   item to add to queue
  * @return OPERATION_SUCCESS
  */
-STATUS_CODE queueEnqueue(queue *queue, bool newItem) {
+STATUS_CODE gif_queueEnqueue(gif_queue *queue, bool newItem) {
     QUEUE_NULL_CHECK(queue);
 
     if (queue->count == queue->size)
@@ -61,7 +61,7 @@ STATUS_CODE queueEnqueue(queue *queue, bool newItem) {
  * @param returnedItem  item being dequeued (returned)
  * @return 
  */
-STATUS_CODE queueDequeue(queue *queue, bool *returnedItem) {
+STATUS_CODE gif_queueDequeue(gif_queue *queue, bool *returnedItem) {
     QUEUE_NULL_CHECK(queue);
     
     if (queue->count == 0)
@@ -80,12 +80,12 @@ STATUS_CODE queueDequeue(queue *queue, bool *returnedItem) {
 }
 
 // Return current items in the queue
-size_t queueGetCurrentLength(queue *queue) {
+size_t gif_queueGetCurrentLength(gif_queue *queue) {
     return queue->count;
 }
 
 // Print every queue entry
-void queuePrint(queue *queue) {
+void gif_queuePrint(gif_queue *queue) {
     #ifdef PRINT_ENABLE
 
     for (size_t i = 0; i < queue->size; i++) {
@@ -97,7 +97,7 @@ void queuePrint(queue *queue) {
     #endif // PRINT_ENABLE
 }
 
-void freeQueue(queue *queue) {
+void gif_freeQueue(gif_queue *queue) {
     if (queue != NULL) {
         if (queue->items != NULL)
             free(queue->items);
@@ -107,32 +107,32 @@ void freeQueue(queue *queue) {
 }
 
 /* int main() {
-    queue *newQueue = queueInit(7);
-    queuePrint(newQueue);
+    gif_queue *newQueue = gif_queueInit(7);
+    gif_queuePrint(newQueue);
 
     for (int i = 0; i < 8; i++) {
-        queueEnqueue(newQueue, true);
-        queuePrint(newQueue);
+        gif_queueEnqueue(newQueue, true);
+        gif_queuePrint(newQueue);
     }
 
     bool dequeueVal;
-    queueDequeue(newQueue, &dequeueVal);
-    queuePrint(newQueue);
+    gif_queueDequeue(newQueue, &dequeueVal);
+    gif_queuePrint(newQueue);
     PRINTF("Dequeue Val: %d\n", dequeueVal);
     
     for (int i = 0; i < 3; i++) {
-        queueEnqueue(newQueue, true);
-        queuePrint(newQueue);
+        gif_queueEnqueue(newQueue, true);
+        gif_queuePrint(newQueue);
     }
 
     for (int i = 0; i < 8; i++) {
-        queueDequeue(newQueue, &dequeueVal);
-        queuePrint(newQueue);
+        gif_queueDequeue(newQueue, &dequeueVal);
+        gif_queuePrint(newQueue);
         PRINTF("Dequeue Val: %d\n", dequeueVal);
     }
 
-    queueEnqueue(newQueue, true);
-    queuePrint(newQueue);
-    queueEnqueue(newQueue, true);
-    queuePrint(newQueue);
+    gif_queueEnqueue(newQueue, true);
+    gif_queuePrint(newQueue);
+    gif_queueEnqueue(newQueue, true);
+    gif_queuePrint(newQueue);
 } */

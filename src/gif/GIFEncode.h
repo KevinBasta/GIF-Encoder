@@ -8,6 +8,6 @@
 #include "GIFColorTable.h"
 #include "GIFInterface.h"
 
-STATUS_CODE encodeGIF(GIFCanvas *gifData);
+STATUS_CODE gif_encodeGIF(GIFCanvas *gifData);
 
 #endif // GIF_ENCODE_H

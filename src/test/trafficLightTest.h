@@ -5,6 +5,6 @@
 #include <stdint.h>
 #include "main.h"
 
-STATUS_CODE createTrafficLightGif();
+STATUS_CODE gif_createTrafficLightGif();
 
 #endif // GIF_TRAFFIC_LIGHT_TEST

@@ -13,7 +13,7 @@
  *  @param prefixString:    a char array to print before
  *  @param postfixString:   a char array to print after
  */
-void printNBytes(u8 *string, u32 bytesToPrint, u8 prefixString[], u8 postfixString[]) { 
+void gif_printNBytes(u8 *string, u32 bytesToPrint, u8 prefixString[], u8 postfixString[]) { 
     #ifdef PRINT_ENABLE
     
     PRINTF("%s", prefixString);
@@ -30,7 +30,7 @@ void printNBytes(u8 *string, u32 bytesToPrint, u8 prefixString[], u8 postfixStri
  *  @param *string:         a pointer to first element in a character array
  *  @param bytesToPrint:    the number of bytes to print from a char array
  */
-void printHexNBytes(u8 *string, u32 bytesToPrint) { 
+void gif_printHexNBytes(u8 *string, u32 bytesToPrint) { 
     #ifdef PRINT_ENABLE
 
     // 15 == (0000 1111), masks the low 4 bits in a byte
@@ -47,7 +47,7 @@ void printHexNBytes(u8 *string, u32 bytesToPrint) {
  *  prints binary bits of a 4 byte char array
  *  @param bitPattern:  a 4 byte char array
  */
-void printCharArrayBits(u8 *bitPattern) { 
+void gif_printCharArrayBits(u8 *bitPattern) { 
     #ifdef PRINT_ENABLE
 
     for (u32 j = 0; j < 4; j++) {
@@ -66,7 +66,7 @@ void printCharArrayBits(u8 *bitPattern) {
  *  @param size:    the number of bytes to print
  *  @param ptr:     a pointer to an element of any type
  */
-void printIntBits(void const * const ptr, size_t const size) {
+void gif_printIntBits(void const * const ptr, size_t const size) {
     #ifdef PRINT_ENABLE
 
     u8 *b = (u8*) ptr;
@@ -85,7 +85,7 @@ void printIntBits(void const * const ptr, size_t const size) {
     #endif // PRINT_ENABLE
 }
 
-void printBits(void const * const ptr, size_t const size) {
+void gif_printBits(void const * const ptr, size_t const size) {
     #ifdef PRINT_ENABLE
 
     u8 *b = (u8*) ptr;
@@ -104,7 +104,7 @@ void printBits(void const * const ptr, size_t const size) {
     #endif // PRINT_ENABLE
 }
 
-char *intToString(long num, u32 maxStringLength) {
+char *gif_intToString(long num, u32 maxStringLength) {
     if (num < 0)
         return NULL;
     
@@ -137,7 +137,7 @@ char *intToString(long num, u32 maxStringLength) {
     return str;
 }
 
-char* slowerIntToString(size_t i, u32 maxStringLength) {
+char* gif_slowerIntToString(size_t i, u32 maxStringLength) {
     char *str     = calloc(maxStringLength, sizeof(u8));
     if (str == NULL)
         return NULL;

@@ -13,13 +13,6 @@
 #define WASM_EXPORT
 #endif
 
-// Preprocessor constants
-#define TRUE 1
-#define FALSE 0
-
-// Enabled in makefile
-#define PRINT_ENABLE
-
 #ifdef PRINT_ENABLE
 #define PRINTF(...) printf(__VA_ARGS__)
 #else

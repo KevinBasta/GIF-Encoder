@@ -13,29 +13,29 @@
 #define TRANSPARENT_SMILY_FACE_TEST_WIDTH       8
 #define TRANSPARENT_SMILY_FACE_TEST_HEIGHT      7
 
-STATUS_CODE createTransparancyTest() {
+STATUS_CODE gif_createTransparancyTest() {
     STATUS_CODE status;
 
     // Create canvas
-    GIFCanvas *canvas = canvasCreate(TRANSPARENT_SMILY_FACE_TEST_WIDTH, TRANSPARENT_SMILY_FACE_TEST_HEIGHT);
+    GIFCanvas *canvas = gif_canvasCreate(TRANSPARENT_SMILY_FACE_TEST_WIDTH, TRANSPARENT_SMILY_FACE_TEST_HEIGHT);
     CANVAS_NULL_CHECK(canvas);
 
-    status = canvasSetFileName(canvas, "testGIF_Transparancy.gif");
+    status = gif_canvasSetFileName(canvas, "testGIF_Transparancy.gif");
     CHECKSTATUS(status);
 
-    status = canvasCreateGlobalColorTable(canvas);
+    status = gif_canvasCreateGlobalColorTable(canvas);
     CHECKSTATUS(status);
     
     // Set to transparent
-    status = canvasAddColorToColorTable(canvas, 0, 0, 0);
+    status = gif_canvasAddColorToColorTable(canvas, 0, 0, 0);
     CHECKSTATUS(status);
-    status = canvasAddColorToColorTable(canvas, 0, 0, 0); // index 1 - black
+    status = gif_canvasAddColorToColorTable(canvas, 0, 0, 0); // index 1 - black
     CHECKSTATUS(status);
-    status = canvasAddColorToColorTable(canvas, 255, 255, 255); // index 2 - white
+    status = gif_canvasAddColorToColorTable(canvas, 255, 255, 255); // index 2 - white
     CHECKSTATUS(status);
 
     // Set background to the transparent color
-    status = canvasSetBackgroundColorIndex(canvas, 2);
+    status = gif_canvasSetBackgroundColorIndex(canvas, 2);
     CHECKSTATUS(status);
 
     GIFFrame *frameOne;
@@ -53,16 +53,16 @@ STATUS_CODE createTransparancyTest() {
          1,0,0,0,0,0,0,1,
          0,1,1,1,1,1,1,0,};
 
-        frameOne = frameCreate(TRANSPARENT_SMILY_FACE_TEST_WIDTH, TRANSPARENT_SMILY_FACE_TEST_HEIGHT, 0, 0);
+        frameOne = gif_frameCreate(TRANSPARENT_SMILY_FACE_TEST_WIDTH, TRANSPARENT_SMILY_FACE_TEST_HEIGHT, 0, 0);
         FRAME_NULL_CHECK(frameOne);
 
-        status = frameAddIndexStreamFromArray(frameOne, tempIndexStream, sizeof(tempIndexStream));
+        status = gif_frameAddIndexStreamFromArray(frameOne, tempIndexStream, sizeof(tempIndexStream));
         CHECKSTATUS(status);
 
-        status = frameSetTransparanetColorIndexInColorTable(frameOne, 0);
+        status = gif_frameSetTransparanetColorIndexInColorTable(frameOne, 0);
         CHECKSTATUS(status);
 
-        status = frameAddGraphicsControlInfo(frameOne, 2, 200);
+        status = gif_frameAddGraphicsControlInfo(frameOne, 2, 200);
         CHECKSTATUS(status);
     }
 
@@ -76,16 +76,16 @@ STATUS_CODE createTransparancyTest() {
          1,0,0,0,0,0,0,1,
          0,1,1,1,1,1,1,0,};
 
-        frameTwo = frameCreate(TRANSPARENT_SMILY_FACE_TEST_WIDTH, TRANSPARENT_SMILY_FACE_TEST_HEIGHT, 0, 0);
+        frameTwo = gif_frameCreate(TRANSPARENT_SMILY_FACE_TEST_WIDTH, TRANSPARENT_SMILY_FACE_TEST_HEIGHT, 0, 0);
         FRAME_NULL_CHECK(frameTwo);
 
-        status = frameAddIndexStreamFromArray(frameTwo, tempIndexStream, sizeof(tempIndexStream));
+        status = gif_frameAddIndexStreamFromArray(frameTwo, tempIndexStream, sizeof(tempIndexStream));
         CHECKSTATUS(status);
 
-        status = frameSetTransparanetColorIndexInColorTable(frameTwo, 0);
+        status = gif_frameSetTransparanetColorIndexInColorTable(frameTwo, 0);
         CHECKSTATUS(status);
 
-        status = frameAddGraphicsControlInfo(frameTwo, 2, 1);
+        status = gif_frameAddGraphicsControlInfo(frameTwo, 2, 1);
         CHECKSTATUS(status);
     }
 
@@ -99,16 +99,16 @@ STATUS_CODE createTransparancyTest() {
          1,0,0,0,0,0,0,1,
          0,1,1,1,1,1,1,0,};
 
-        frameThree = frameCreate(TRANSPARENT_SMILY_FACE_TEST_WIDTH, TRANSPARENT_SMILY_FACE_TEST_HEIGHT, 0, 0);
+        frameThree = gif_frameCreate(TRANSPARENT_SMILY_FACE_TEST_WIDTH, TRANSPARENT_SMILY_FACE_TEST_HEIGHT, 0, 0);
         FRAME_NULL_CHECK(frameThree);
 
-        status = frameAddIndexStreamFromArray(frameThree, tempIndexStream, sizeof(tempIndexStream));
+        status = gif_frameAddIndexStreamFromArray(frameThree, tempIndexStream, sizeof(tempIndexStream));
         CHECKSTATUS(status);
 
-        status = frameSetTransparanetColorIndexInColorTable(frameThree, 0);
+        status = gif_frameSetTransparanetColorIndexInColorTable(frameThree, 0);
         CHECKSTATUS(status);
 
-        status = frameAddGraphicsControlInfo(frameThree, 2, 1);
+        status = gif_frameAddGraphicsControlInfo(frameThree, 2, 1);
         CHECKSTATUS(status);
     }
     
@@ -122,36 +122,36 @@ STATUS_CODE createTransparancyTest() {
          1,0,0,0,0,0,0,1,
          0,1,1,1,1,1,1,0,};
 
-        frameFour = frameCreate(TRANSPARENT_SMILY_FACE_TEST_WIDTH, TRANSPARENT_SMILY_FACE_TEST_HEIGHT, 0, 0);
+        frameFour = gif_frameCreate(TRANSPARENT_SMILY_FACE_TEST_WIDTH, TRANSPARENT_SMILY_FACE_TEST_HEIGHT, 0, 0);
         FRAME_NULL_CHECK(frameFour);
 
-        status = frameAddIndexStreamFromArray(frameFour, tempIndexStream, sizeof(tempIndexStream));
+        status = gif_frameAddIndexStreamFromArray(frameFour, tempIndexStream, sizeof(tempIndexStream));
         CHECKSTATUS(status);
 
-        status = frameSetTransparanetColorIndexInColorTable(frameFour, 0);
+        status = gif_frameSetTransparanetColorIndexInColorTable(frameFour, 0);
         CHECKSTATUS(status);
 
-        status = frameAddGraphicsControlInfo(frameFour, 2, 200);
+        status = gif_frameAddGraphicsControlInfo(frameFour, 2, 200);
         CHECKSTATUS(status);
     }
 
-    status = canvasAddFrame(canvas, frameOne);
+    status = gif_canvasAddFrame(canvas, frameOne);
     CHECKSTATUS(status);
-    status = canvasAddFrame(canvas, frameTwo);
+    status = gif_canvasAddFrame(canvas, frameTwo);
     CHECKSTATUS(status);
-    status = canvasAddFrame(canvas, frameThree);
+    status = gif_canvasAddFrame(canvas, frameThree);
     CHECKSTATUS(status);
-    status = canvasAddFrame(canvas, frameFour);
+    status = gif_canvasAddFrame(canvas, frameFour);
     CHECKSTATUS(status);
-    status = canvasAddFrame(canvas, frameThree);
+    status = gif_canvasAddFrame(canvas, frameThree);
     CHECKSTATUS(status);
-    status = canvasAddFrame(canvas, frameTwo);
+    status = gif_canvasAddFrame(canvas, frameTwo);
     CHECKSTATUS(status);
 
     u32 widthMuliplier  = 10; u32 heightMuliplier = 10;
-    status = expandCanvas(canvas, widthMuliplier, heightMuliplier);
+    status = gif_expandCanvas(canvas, widthMuliplier, heightMuliplier);
 
-    createGIF(canvas, true, true);
+    gif_createGIF(canvas, true, true);
 
     return OPERATION_SUCCESS;
 }

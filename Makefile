@@ -11,6 +11,10 @@ CC = gcc
 DIRS = $(sort $(dir $(wildcard src/*/)))
 CFLAGS += $(addprefix -I , $(DIRS)) -I src
 
+ifdef DEBUG_PRINTS
+	CFLAGS += -D PRINT_ENABLE
+endif
+
 # main program rule
 main: bin/main.o $(OBJECTS)
 	$(CC) -o a.out bin/main.o $(OBJECTS) -lm -Wall -Werror -Wpedantic
@@ -20,11 +24,10 @@ test: bin/test.o $(OBJECTS)
 	$(CC) -o a.out bin/test.o $(OBJECTS) -lm -Wall -Werror -Wpedantic
 
 # for shared library must used -fPIC for all compilations
+lib: CFLAGS += -fPIC
 lib: $(OBJECTS)
 	ar -cvq libgifencoder.a $(OBJECTS)
-
-#objcopy --prefix-symbols=gifEncoder_ libgifencoder.a
-#$(CC) -shared -o libgifencoder.so $(OBJECTS) -lm -Wall -Werror -Wpedantic
+	$(CC) -shared -o libgifencoder.so $(OBJECTS) -lm -Wall -Werror -Wpedantic
 
 # compile web assembly
 wasm: CFLAGS += -D WASM

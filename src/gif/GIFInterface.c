@@ -27,20 +27,20 @@
  * 
  * @return OPERATION_SUCCESS or error code
  */
-WASM_EXPORT STATUS_CODE createGIF(GIFCanvas *canvas, bool freeCanvasRecord, bool createGIFOnError) {
+WASM_EXPORT STATUS_CODE gif_createGIF(GIFCanvas *canvas, bool freeCanvasRecord, bool createGIFOnError) {
     STATUS_CODE status;
 
     CANVAS_NULL_CHECK(canvas);
 
-    status = encodeGIF(canvas);
+    status = gif_encodeGIF(canvas);
 
     if (status != OPERATION_SUCCESS && createGIFOnError) {
         // Ignoring potential error code
-        createErrorGif(status);
+        gif_createErrorGif(status);
     }
 
     if (freeCanvasRecord) {
-        freeCanvas(canvas);
+        gif_freeCanvas(canvas);
     }
 
     return status;
@@ -56,7 +56,7 @@ WASM_EXPORT STATUS_CODE createGIF(GIFCanvas *canvas, bool freeCanvasRecord, bool
  *
  * @return GIFCanvas pointer or NULL
  */
-WASM_EXPORT GIFCanvas *canvasCreate(u16 canvasWidth, u16 canvasHeight) {
+WASM_EXPORT GIFCanvas *gif_canvasCreate(u16 canvasWidth, u16 canvasHeight) {
     GIFCanvas *newCanvas = calloc(1, sizeof(GIFCanvas));
     if (newCanvas == NULL)
         return NULL;
@@ -74,7 +74,7 @@ WASM_EXPORT GIFCanvas *canvasCreate(u16 canvasWidth, u16 canvasHeight) {
 
     newCanvas->globalColorTable = NULL;
 
-    newCanvas->frames           = linkedlistInit();
+    newCanvas->frames           = gif_linkedlistInit();
     if (newCanvas->frames == NULL) {
         free(newCanvas);
         return NULL;
@@ -93,12 +93,12 @@ WASM_EXPORT GIFCanvas *canvasCreate(u16 canvasWidth, u16 canvasHeight) {
 
 // METHOD #1
 // Give a colorTable struct pointer directly to the canvas
-WASM_EXPORT STATUS_CODE canvasAddGlobalColorTable(GIFCanvas *canvas, colorTable *clrTable) {
+WASM_EXPORT STATUS_CODE gif_canvasAddGlobalColorTable(GIFCanvas *canvas, gif_colorTable *clrTable) {
     CANVAS_NULL_CHECK(canvas);
     COLOR_TABLE_NULL_CHECK(clrTable);
 
     if (canvas->globalColorTable != NULL) {
-        freeColorTable(canvas->globalColorTable);
+        gif_freeColorTable(canvas->globalColorTable);
     }
 
     canvas->packedField_GlobalColorTableFlag = 1;
@@ -117,14 +117,14 @@ WASM_EXPORT STATUS_CODE canvasAddGlobalColorTable(GIFCanvas *canvas, colorTable 
 
 // METHOD #2
 // Create color table (colorTable struct) and append individual entries
-WASM_EXPORT STATUS_CODE canvasCreateGlobalColorTable(GIFCanvas *canvas) { 
+WASM_EXPORT STATUS_CODE gif_canvasCreateGlobalColorTable(GIFCanvas *canvas) { 
     CANVAS_NULL_CHECK(canvas);
 
     if (canvas->globalColorTable != NULL) {
-        freeColorTable(canvas->globalColorTable);
+        gif_freeColorTable(canvas->globalColorTable);
     }
 
-    colorTable *clrTable = colortableInit();
+    gif_colorTable *clrTable = gif_colortableInit();
     COLOR_TABLE_NULL_CHECK(clrTable);
 
     canvas->packedField_GlobalColorTableFlag = 1;
@@ -138,13 +138,13 @@ WASM_EXPORT STATUS_CODE canvasCreateGlobalColorTable(GIFCanvas *canvas) {
     return OPERATION_SUCCESS;
 }
 
-WASM_EXPORT STATUS_CODE canvasAddColorToColorTable(GIFCanvas *canvas, u8 red, u8 green, u8 blue) {
+WASM_EXPORT STATUS_CODE gif_canvasAddColorToColorTable(GIFCanvas *canvas, u8 red, u8 green, u8 blue) {
     STATUS_CODE status;
     
     CANVAS_NULL_CHECK(canvas);
     COLOR_TABLE_NULL_CHECK(canvas->globalColorTable);
 
-    status = colortableAppendRGB(canvas->globalColorTable, red, green, blue);       
+    status = gif_colortableAppendRGB(canvas->globalColorTable, red, green, blue);       
     CHECKSTATUS(status);
 
     u32 sizeLog = log2(canvas->globalColorTable->lastIndex);
@@ -162,7 +162,7 @@ WASM_EXPORT STATUS_CODE canvasAddColorToColorTable(GIFCanvas *canvas, u8 red, u8
  *
  * @return OPERATION_SUCCESS or error code
  */
-WASM_EXPORT STATUS_CODE canvasSetBackgroundColorIndex(GIFCanvas *canvas, u8 globalColorTableIndex) {
+WASM_EXPORT STATUS_CODE gif_canvasSetBackgroundColorIndex(GIFCanvas *canvas, u8 globalColorTableIndex) {
     CANVAS_NULL_CHECK(canvas);
 
     if (canvas->globalColorTable == NULL)
@@ -183,17 +183,17 @@ WASM_EXPORT STATUS_CODE canvasSetBackgroundColorIndex(GIFCanvas *canvas, u8 glob
  * 
  * @return OPERATION_SUCCESS or error code
  */
-WASM_EXPORT STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame) {
+WASM_EXPORT STATUS_CODE gif_canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame) {
     STATUS_CODE status;
     
     CANVAS_NULL_CHECK(canvas);
     FRAME_NULL_CHECK(frame);
 
     if (canvas->frames == NULL) {
-        canvas->frames = linkedlistInit();
+        canvas->frames = gif_linkedlistInit();
     }
 
-    status = linkedlistAppend(canvas->frames, frame);
+    status = gif_linkedlistAppend(canvas->frames, frame);
     CHECKSTATUS(status);
 
     return OPERATION_SUCCESS;
@@ -207,7 +207,7 @@ WASM_EXPORT STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame) {
  * if it's stored on the heap. 
  * @return OPERATION_SUCCESS or error code
  */
-WASM_EXPORT STATUS_CODE canvasSetFileName(GIFCanvas *canvas, char *newName) {
+WASM_EXPORT STATUS_CODE gif_canvasSetFileName(GIFCanvas *canvas, char *newName) {
     CANVAS_NULL_CHECK(canvas);
 
     u32 newNameLength = strlen(newName);
@@ -225,13 +225,13 @@ WASM_EXPORT STATUS_CODE canvasSetFileName(GIFCanvas *canvas, char *newName) {
 }
 
 // Free the canvas record and all it's frames
-WASM_EXPORT void freeCanvas(GIFCanvas *canvas) {
+WASM_EXPORT void gif_freeCanvas(GIFCanvas *canvas) {
     if (canvas != NULL) {
         if (canvas->globalColorTable != NULL)
-            freeColorTable(canvas->globalColorTable);
+            gif_freeColorTable(canvas->globalColorTable);
         
         if (canvas->frames != NULL)
-            freeFrameLinkedList(canvas->frames);
+            gif_freeFrameLinkedList(canvas->frames);
 
         if (canvas->fileName != NULL)
             free(canvas->fileName);
@@ -255,7 +255,7 @@ WASM_EXPORT void freeCanvas(GIFCanvas *canvas) {
  * @param imageTopPosition  Pixels from the top before image start
  * @return GIFFrame pointer or NULL
  */
-WASM_EXPORT GIFFrame *frameCreate(u16 frameWidth, u16 frameHeight, u16 imageLeftPosition, u16 imageTopPosition) {
+WASM_EXPORT GIFFrame *gif_frameCreate(u16 frameWidth, u16 frameHeight, u16 imageLeftPosition, u16 imageTopPosition) {
     GIFFrame *newFrame = calloc(1, sizeof(GIFFrame));
     if (newFrame == NULL)
         return NULL;
@@ -298,12 +298,12 @@ WASM_EXPORT GIFFrame *frameCreate(u16 frameWidth, u16 frameHeight, u16 imageLeft
 
 // METHOD #1
 // Give a colorTable struct pointer directly to the frame
-WASM_EXPORT STATUS_CODE frameAddLocalColorTable(GIFFrame *frame, colorTable *clrTable) {
+WASM_EXPORT STATUS_CODE gif_frameAddLocalColorTable(GIFFrame *frame, gif_colorTable *clrTable) {
     FRAME_NULL_CHECK(frame);
     COLOR_TABLE_NULL_CHECK(clrTable);
 
     if (frame->localColorTable != NULL) {
-        freeColorTable(frame->localColorTable);
+        gif_freeColorTable(frame->localColorTable);
     }
 
     frame->packedField_LocalColorTableFlag   = 1;
@@ -321,14 +321,14 @@ WASM_EXPORT STATUS_CODE frameAddLocalColorTable(GIFFrame *frame, colorTable *clr
 
 // METHOD #2
 // Create color table (colorTable struct) and append individual entries
-WASM_EXPORT STATUS_CODE frameCreateLocalColorTable(GIFFrame *frame) { 
+WASM_EXPORT STATUS_CODE gif_frameCreateLocalColorTable(GIFFrame *frame) { 
     FRAME_NULL_CHECK(frame);
 
     if (frame->localColorTable != NULL) {
-        freeColorTable(frame->localColorTable);
+        gif_freeColorTable(frame->localColorTable);
     }
 
-    colorTable *clrTable = colortableInit();
+    gif_colorTable *clrTable = gif_colortableInit();
     COLOR_TABLE_NULL_CHECK(clrTable);
 
     frame->packedField_LocalColorTableFlag   = 1;
@@ -341,13 +341,13 @@ WASM_EXPORT STATUS_CODE frameCreateLocalColorTable(GIFFrame *frame) {
     return OPERATION_SUCCESS;
 }
 
-WASM_EXPORT STATUS_CODE frameAddColorToColorTable(GIFFrame *frame, u8 red, u8 green, u8 blue) {
+WASM_EXPORT STATUS_CODE gif_frameAddColorToColorTable(GIFFrame *frame, u8 red, u8 green, u8 blue) {
     STATUS_CODE status;
     
     FRAME_NULL_CHECK(frame);
     COLOR_TABLE_NULL_CHECK(frame->localColorTable);
 
-    status = colortableAppendRGB(frame->localColorTable, red, green, blue);       
+    status = gif_colortableAppendRGB(frame->localColorTable, red, green, blue);       
     CHECKSTATUS(status);
 
     u32 sizeLog = log2(frame->localColorTable->lastIndex);
@@ -366,12 +366,12 @@ WASM_EXPORT STATUS_CODE frameAddColorToColorTable(GIFFrame *frame, u8 red, u8 gr
 
 // METHOD #1
 // Give the array struct pointer directly to the frame
-WASM_EXPORT STATUS_CODE frameAddIndexStream(GIFFrame *frame, array *indexStream) {
+WASM_EXPORT STATUS_CODE gif_frameAddIndexStream(GIFFrame *frame, gif_array *indexStream) {
     FRAME_NULL_CHECK(frame);
     ARRAY_NULL_CHECK(indexStream);
 
     if (frame->indexStream != NULL) {
-        freeArray(frame->indexStream);
+        gif_freeArray(frame->indexStream);
     }
 
     frame->indexStream = indexStream;
@@ -382,14 +382,14 @@ WASM_EXPORT STATUS_CODE frameAddIndexStream(GIFFrame *frame, array *indexStream)
 // METHOD #2
 // Give an array pointer and its size to the frame 
 // NOTE: size MUST BE EXACT!
-WASM_EXPORT STATUS_CODE frameAddIndexStreamFromArray(GIFFrame *frame, u8 stackArr[], size_t size) {
+WASM_EXPORT STATUS_CODE gif_frameAddIndexStreamFromArray(GIFFrame *frame, u8 stackArr[], size_t size) {
     FRAME_NULL_CHECK(frame);
 
     if (frame->indexStream != NULL) {
-        freeArray(frame->indexStream);
+        gif_freeArray(frame->indexStream);
     }
 
-    frame->indexStream = arrayInitFromStackArray((u8*)stackArr, size);
+    frame->indexStream = gif_arrayInitFromStackArray((u8*)stackArr, size);
     ARRAY_NULL_CHECK(frame->indexStream);
 
     return OPERATION_SUCCESS;
@@ -398,27 +398,27 @@ WASM_EXPORT STATUS_CODE frameAddIndexStreamFromArray(GIFFrame *frame, u8 stackAr
 // METHOD #3
 // Create index stream (array struct) and append individual entries
 // NOTE: indexStreamSize MUST BE EXACT!
-WASM_EXPORT STATUS_CODE frameCreateIndexStream(GIFFrame *frame, size_t indexStreamSize) {
+WASM_EXPORT STATUS_CODE gif_frameCreateIndexStream(GIFFrame *frame, size_t indexStreamSize) {
     FRAME_NULL_CHECK(frame);
 
     if (frame->indexStream != NULL) {
-        freeArray(frame->indexStream);
+        gif_freeArray(frame->indexStream);
     }
 
-    frame->indexStream = arrayInit(indexStreamSize);
+    frame->indexStream = gif_arrayInit(indexStreamSize);
     ARRAY_NULL_CHECK(frame->indexStream);
 
     return OPERATION_SUCCESS;
 }
 
-WASM_EXPORT STATUS_CODE frameAppendToIndexStream(GIFFrame *frame, u32 item) {
+WASM_EXPORT STATUS_CODE gif_frameAppendToIndexStream(GIFFrame *frame, u32 item) {
     STATUS_CODE status;
     
     FRAME_NULL_CHECK(frame);
     ARRAY_NULL_CHECK(frame->indexStream);
 
     // TODO! On encode zero the rest of the array if it is not full
-    status = arrayAppend(frame->indexStream, item);
+    status = gif_arrayAppend(frame->indexStream, item);
     CHECKSTATUS(status);
 
     return OPERATION_SUCCESS;
@@ -436,7 +436,7 @@ WASM_EXPORT STATUS_CODE frameAppendToIndexStream(GIFFrame *frame, u32 item) {
  * 
  * @return OPERATION_SUCCESS or error code
  */
-WASM_EXPORT STATUS_CODE frameAddGraphicsControlInfo(GIFFrame *frame, u8 disposalMethod, u16 delayTime) {
+WASM_EXPORT STATUS_CODE gif_frameAddGraphicsControlInfo(GIFFrame *frame, u8 disposalMethod, u16 delayTime) {
     FRAME_NULL_CHECK(frame);
 
     frame->packedField_GCE_DisposalMethod = disposalMethod;
@@ -453,7 +453,7 @@ WASM_EXPORT STATUS_CODE frameAddGraphicsControlInfo(GIFFrame *frame, u8 disposal
  * 
  * @return OPERATION_SUCCESS or error code
  */
-WASM_EXPORT STATUS_CODE frameSetTransparanetColorIndexInColorTable(GIFFrame *frame, u8 transparentColorIndex) {
+WASM_EXPORT STATUS_CODE gif_frameSetTransparanetColorIndexInColorTable(GIFFrame *frame, u8 transparentColorIndex) {
     FRAME_NULL_CHECK(frame);
 
     frame->packedField_GCE_TransparentColorFlag = 1;
@@ -463,16 +463,16 @@ WASM_EXPORT STATUS_CODE frameSetTransparanetColorIndexInColorTable(GIFFrame *fra
 }
 
 // Free a frame record
-WASM_EXPORT void freeFrame(GIFFrame *frame) {
+WASM_EXPORT void gif_freeFrame(GIFFrame *frame) {
     if (frame != NULL) {
         if (frame->localColorTable != NULL)
-            freeColorTable(frame->localColorTable);
+            gif_freeColorTable(frame->localColorTable);
 
         if (frame->indexStream != NULL)
-            freeArray(frame->indexStream);
+            gif_freeArray(frame->indexStream);
 
         if (frame->imageData != NULL)
-            freeBitArray(frame->imageData);
+            gif_freeBitArray(frame->imageData);
 
         free(frame);
     }

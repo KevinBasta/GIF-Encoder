@@ -12,14 +12,14 @@
  * @param size number of RGB entries
  * @return colorTable pointer or NULL
  */
-colorTable *colortableInit() {
-    colorTable *table = calloc(1, sizeof(colorTable));
+gif_colorTable *gif_colortableInit() {
+    gif_colorTable *table = calloc(1, sizeof(gif_colorTable));
     if (table == NULL)
         return NULL;
 
-    table->lastIndex = getLastColorIndex(3);
+    table->lastIndex = gif_getLastColorIndex(3);
     table->currentIndex = 0;
-    table->items = calloc(MAX_COLOR_TABLE_ENTRIES, sizeof(RGB));
+    table->items = calloc(MAX_COLOR_TABLE_ENTRIES, sizeof(gif_RGB));
     if (table->items == NULL) {
         free(table);
         return NULL;
@@ -37,7 +37,7 @@ colorTable *colortableInit() {
 }
 
 // Append an RGB color to a color table
-STATUS_CODE colortableAppendRGB(colorTable *table, u8 red, u8 green, u8 blue) {
+STATUS_CODE gif_colortableAppendRGB(gif_colorTable *table, u8 red, u8 green, u8 blue) {
     COLOR_TABLE_NULL_CHECK(table);
 
     if (table->currentIndex > 255)
@@ -47,13 +47,13 @@ STATUS_CODE colortableAppendRGB(colorTable *table, u8 red, u8 green, u8 blue) {
     table->items[table->currentIndex].green = green;
     table->items[table->currentIndex].blue  = blue;
 
-    table->lastIndex = getLastColorIndex(table->currentIndex);
+    table->lastIndex = gif_getLastColorIndex(table->currentIndex);
     table->currentIndex++;
 
     return OPERATION_SUCCESS;
 }
 
-void freeColorTable(colorTable *table) {
+void gif_freeColorTable(gif_colorTable *table) {
     if (table != NULL) {
         if (table->items != NULL)
             free(table->items);
@@ -63,7 +63,7 @@ void freeColorTable(colorTable *table) {
 }
 
 // Returning color table value information based on last index
-static u16 colortableSizeToCodeTableEntry(char *request, i32 colorTableLastIndex) {
+static u16 gif_colortableSizeToCodeTableEntry(char *request, i32 colorTableLastIndex) {
     //
     // 0: LWZMinCodeSize 
     // 1: ClearCode
@@ -101,20 +101,20 @@ static u16 colortableSizeToCodeTableEntry(char *request, i32 colorTableLastIndex
 }
 
 // Get the last index number in the code table
-u16 getLastColorIndex(i32 colorTableLastIndex) {
+u16 gif_getLastColorIndex(i32 colorTableLastIndex) {
     // Subtracting one from the clear code to get the last index
-    return colortableSizeToCodeTableEntry("CC", colorTableLastIndex) - 1;
+    return gif_colortableSizeToCodeTableEntry("CC", colorTableLastIndex) - 1;
 }
 
 // The following functions take in the size, and use -1 for the index
-u8 getLWZMinCodeSize(i32 colorTableLastIndex) {
-    return colortableSizeToCodeTableEntry("LWZ", colorTableLastIndex);
+u8 gif_getLWZMinCodeSize(i32 colorTableLastIndex) {
+    return gif_colortableSizeToCodeTableEntry("LWZ", colorTableLastIndex);
 }
 
-u16 getClearCodeValue(i32 colorTableLastIndex) {
-    return colortableSizeToCodeTableEntry("CC", colorTableLastIndex);
+u16 gif_getClearCodeValue(i32 colorTableLastIndex) {
+    return gif_colortableSizeToCodeTableEntry("CC", colorTableLastIndex);
 }
 
-u16 getEOICodeValue(i32 colorTableLastIndex) {
-    return colortableSizeToCodeTableEntry("EOI", colorTableLastIndex);
+u16 gif_getEOICodeValue(i32 colorTableLastIndex) {
+    return gif_colortableSizeToCodeTableEntry("EOI", colorTableLastIndex);
 }

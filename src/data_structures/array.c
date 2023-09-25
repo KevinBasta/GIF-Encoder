@@ -17,7 +17,7 @@
  * @param arr Array to return new size for
  * @return New size (number of entries) for the array
  */
-static size_t arrayNewSize(array *arr) {
+static size_t gif_arrayNewSize(gif_array *arr) {
     return arr->size + 1;
 }
 
@@ -27,11 +27,11 @@ static size_t arrayNewSize(array *arr) {
  * @param newTotalEntries   The new size (number of entries) to expand to
  * @return OPERATION_SUCCESS or error code
  */
-static STATUS_CODE arrayRealloc(array *arr, size_t newTotalEntries) {
+static STATUS_CODE gif_arrayRealloc(gif_array *arr, size_t newTotalEntries) {
     u32 *status = realloc(arr->items, newTotalEntries * sizeof(u32));
     
     if (status == NULL) {
-        freeArray(arr);
+        gif_freeArray(arr);
         return ARRAY_REALLOC_FAILED;
     }
     
@@ -48,8 +48,8 @@ static STATUS_CODE arrayRealloc(array *arr, size_t newTotalEntries) {
  * @param size  Max number of elements to allow
  * @return Pointer to new array or NULL
  */
-array *arrayInit(size_t size) {
-    array *arr = calloc(1, sizeof(array));
+gif_array *gif_arrayInit(size_t size) {
+    gif_array *arr = calloc(1, sizeof(gif_array));
     if (arr == NULL)
         return NULL;
 
@@ -71,11 +71,11 @@ array *arrayInit(size_t size) {
  * @param item  The item to append
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE arrayAppend(array *arr, u32 item) {     
+STATUS_CODE gif_arrayAppend(gif_array *arr, u32 item) {     
     ARRAY_NULL_CHECK(arr);
     
     if (arr->currentIndex >= arr->size) {
-        STATUS_CODE status = arrayRealloc(arr, arrayNewSize(arr));
+        STATUS_CODE status = gif_arrayRealloc(arr, gif_arrayNewSize(arr));
         CHECKSTATUS(status);
     }
 
@@ -90,7 +90,7 @@ STATUS_CODE arrayAppend(array *arr, u32 item) {
  * @param arr Array to delete from
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE arrayPop(array *arr) {
+STATUS_CODE gif_arrayPop(gif_array *arr) {
     ARRAY_NULL_CHECK(arr);
 
     if (arr->currentIndex - 1 < 0)
@@ -103,7 +103,7 @@ STATUS_CODE arrayPop(array *arr) {
 }
 
 // Get item at specified index
-STATUS_CODE arrayGetItemAtIndex(array *arr, size_t index, u32 *itemReturn) {
+STATUS_CODE gif_arrayGetItemAtIndex(gif_array *arr, size_t index, u32 *itemReturn) {
     if (index > arr->currentIndex)
         return ARRAY_INDEX_UNDEFINED;
 
@@ -113,12 +113,12 @@ STATUS_CODE arrayGetItemAtIndex(array *arr, size_t index, u32 *itemReturn) {
 }
 
 // Get current index item
-u32 arrayGetItemAtCurrentIndex(array *arr) {
+u32 gif_arrayGetItemAtCurrentIndex(gif_array *arr) {
     return arr->items[arr->currentIndex];
 }
 
 // Get current index item and increment
-u32 arrayGetIncrement(array *arr) {
+u32 gif_arrayGetIncrement(gif_array *arr) {
     return arr->items[(arr->currentIndex)++];
 }
 
@@ -127,7 +127,7 @@ u32 arrayGetIncrement(array *arr) {
  * @param arr Array to reset elements of
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE arrayReset(array *arr) {
+STATUS_CODE gif_arrayReset(gif_array *arr) {
     ARRAY_NULL_CHECK(arr);
 
     memset(arr->items, 0, arr->currentIndex);
@@ -143,7 +143,7 @@ STATUS_CODE arrayReset(array *arr) {
  * @param entrySeparator    Character to put between each array entry in the string
  * @return A '\0' terminated string (character array) or NULL
  */
-char* arrayConcat(array *arr, char entrySeparator) {
+char* gif_arrayConcat(gif_array *arr, char entrySeparator) {
     // Allocate space for 3 chars per int (because max is 255) and 1 comma per int
     char *concat = calloc((arr->currentIndex * 3) + arr->currentIndex, sizeof(char));
     if (concat == NULL)
@@ -151,7 +151,7 @@ char* arrayConcat(array *arr, char entrySeparator) {
 
     size_t k = 0;
     for (size_t i = 0; i < arr->currentIndex; i += 1) {
-        char *itemStr = intToString(arr->items[i], 6);
+        char *itemStr = gif_intToString(arr->items[i], 6);
         if (itemStr == NULL)
             return NULL;
         
@@ -176,17 +176,17 @@ char* arrayConcat(array *arr, char entrySeparator) {
  * @param size      Size of given stack array
  * @return Pointer to new array struct
  */
-array *arrayInitFromStackArray(u8 stackArr[], size_t size) {
+gif_array *gif_arrayInitFromStackArray(u8 stackArr[], size_t size) {
     STATUS_CODE status;
 
-    array *heapArr = arrayInit(size);
+    gif_array *heapArr = gif_arrayInit(size);
     if (heapArr == NULL)
         return NULL;
     
     for (size_t i = 0; i < size; i++) {
-        status = arrayAppend(heapArr, stackArr[i]);
+        status = gif_arrayAppend(heapArr, stackArr[i]);
         if (status != OPERATION_SUCCESS) {
-            freeArray(heapArr);
+            gif_freeArray(heapArr);
             return NULL;
         }
     }
@@ -197,7 +197,7 @@ array *arrayInitFromStackArray(u8 stackArr[], size_t size) {
 }
 
 // Print an array's items up to the last populated entry
-void arrayPrint(array *arr) {
+void gif_arrayPrint(gif_array *arr) {
     #ifdef PRINT_ENABLE
 
     size_t index = 0;
@@ -216,7 +216,7 @@ void arrayPrint(array *arr) {
 }
 
 // Free all of an array's entries
-void freeArray(array *arr) {
+void gif_freeArray(gif_array *arr) {
     if (arr != NULL) {
         if (arr->items != NULL)
             free(arr->items);

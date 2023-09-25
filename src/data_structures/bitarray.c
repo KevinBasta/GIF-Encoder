@@ -16,7 +16,7 @@
  * @param arr   Bitarray struct
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE setMarkValueAndMarkNewLocation(bitarray *arr) { 
+STATUS_CODE gif_setMarkValueAndMarkNewLocation(gif_bitarray *arr) { 
     STATUS_CODE status;
 
     BIT_ARRAY_NULL_CHECK(arr);
@@ -27,12 +27,12 @@ STATUS_CODE setMarkValueAndMarkNewLocation(bitarray *arr) {
         // expected to be called after every current index increment
         //
         if ((arr->currentIndex - 1) % arr->intervalInsertBoundry == 0) {
-            status = bitarraySetBookMarkValue(arr, arr->intervalInsertItem);
+            status = gif_bitarraySetBookMarkValue(arr, arr->intervalInsertItem);
             CHECKSTATUS(status);
             
-            status = bitarrayBookMark(arr, 0);
+            status = gif_bitarrayBookMark(arr, 0);
             CHECKSTATUS(status);
-            status = bitarrayAppend(arr, 0);
+            status = gif_bitarrayAppend(arr, 0);
             CHECKSTATUS(status);
         }
     }
@@ -47,7 +47,7 @@ STATUS_CODE setMarkValueAndMarkNewLocation(bitarray *arr) {
  * @param offset    Offset from current index
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE bitarrayBookMark(bitarray *arr, u32 offset) {
+STATUS_CODE gif_bitarrayBookMark(gif_bitarray *arr, u32 offset) {
     BIT_ARRAY_NULL_CHECK(arr);
 
     if (arr->currentIndex + offset < 0 || arr->currentIndex + offset > arr->size)
@@ -64,7 +64,7 @@ STATUS_CODE bitarrayBookMark(bitarray *arr, u32 offset) {
  * @param item  Item to put at current markIndex
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE bitarraySetBookMarkValue(bitarray *arr, u8 item) {
+STATUS_CODE gif_bitarraySetBookMarkValue(gif_bitarray *arr, u8 item) {
     BIT_ARRAY_NULL_CHECK(arr);
 
     if (arr->markIndex != -1) {
@@ -82,7 +82,7 @@ STATUS_CODE bitarraySetBookMarkValue(bitarray *arr, u8 item) {
  * @param insertItem    Item to append at interval
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE bitarraySetIntervalInsertRule(bitarray *arr, size_t boundry, u8 insertItem) {
+STATUS_CODE gif_bitarraySetIntervalInsertRule(gif_bitarray *arr, size_t boundry, u8 insertItem) {
     BIT_ARRAY_NULL_CHECK(arr);
     
     arr->intervalInsertFlag    = true;
@@ -99,7 +99,7 @@ STATUS_CODE bitarraySetIntervalInsertRule(bitarray *arr, size_t boundry, u8 inse
  * @param item          u8 integer to modify
  * @param currentBit    Bit to start zeroing from 
  */
-static void zeroRestOfByte(u8 *item, u8 currentBit) {
+static void gif_zeroRestOfByte(u8 *item, u8 currentBit) {
     for (u8 i = currentBit; i < 8; i++) {
         *item &= ~(1 << i);
     }
@@ -110,7 +110,7 @@ static void zeroRestOfByte(u8 *item, u8 currentBit) {
  * @param arr Bitarray to return new size for
  * @return New size (number of entries) for the array
  */
-static size_t bitarrayNewSize(bitarray *arr) {
+static size_t gif_bitarrayNewSize(gif_bitarray *arr) {
     return arr->size + (arr->size / 2);
 }
 
@@ -120,11 +120,11 @@ static size_t bitarrayNewSize(bitarray *arr) {
  * @param newSize   The new size (number of entries) to expand to
  * @return OPERATION_SUCCESS or error code
  */
-static STATUS_CODE bitarrayRealloc(bitarray *arr, size_t newTotalEntries) {
+static STATUS_CODE gif_bitarrayRealloc(gif_bitarray *arr, size_t newTotalEntries) {
     u8 *status = realloc(arr->items, newTotalEntries * sizeof(u8));
     
     if (status == NULL) {
-        freeBitArray(arr);
+        gif_freeBitArray(arr);
         return BIT_ARRAY_REALLOC_FAILED;
     }
     
@@ -139,17 +139,17 @@ static STATUS_CODE bitarrayRealloc(bitarray *arr, size_t newTotalEntries) {
  * @param arr The bitarray to perform on
  * @return OPERATION_SUCCESS or error code
  */
-static STATUS_CODE incrementCurrentIndex(bitarray *arr) {
+static STATUS_CODE gif_incrementCurrentIndex(gif_bitarray *arr) {
     STATUS_CODE status;
 
     if (arr->currentIndex + 1 >= arr->size) {
-        status = bitarrayRealloc(arr, bitarrayNewSize(arr));
+        status = gif_bitarrayRealloc(arr, gif_bitarrayNewSize(arr));
         CHECKSTATUS(status);
     }
     
     arr->currentIndex++;
     arr->currentBit = 0;
-    status = setMarkValueAndMarkNewLocation(arr);
+    status = gif_setMarkValueAndMarkNewLocation(arr);
 
     return status;
 }
@@ -161,8 +161,8 @@ static STATUS_CODE incrementCurrentIndex(bitarray *arr) {
  * @param size Total entries to initally allocate space for
  * @return Bitarray pointer or NULL
  */
-bitarray *bitarrayInit(size_t size) {
-    bitarray *arr = calloc(1, sizeof(bitarray));
+gif_bitarray *gif_bitarrayInit(size_t size) {
+    gif_bitarray *arr = calloc(1, sizeof(gif_bitarray));
     if (arr == NULL)
         return NULL;
 
@@ -190,19 +190,19 @@ bitarray *bitarrayInit(size_t size) {
  * @param item  Item to append
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE bitarrayAppend(bitarray *arr, u8 item) {
+STATUS_CODE gif_bitarrayAppend(gif_bitarray *arr, u8 item) {
     STATUS_CODE status;
     
     BIT_ARRAY_NULL_CHECK(arr);
     
     if (arr->currentBit != 0) {
-        zeroRestOfByte(&(arr->items[arr->currentIndex]), arr->currentBit);
-        status = incrementCurrentIndex(arr);
+        gif_zeroRestOfByte(&(arr->items[arr->currentIndex]), arr->currentBit);
+        status = gif_incrementCurrentIndex(arr);
         CHECKSTATUS(status);
     }
 
     arr->items[arr->currentIndex] = item;
-    status = incrementCurrentIndex(arr);
+    status = gif_incrementCurrentIndex(arr);
     CHECKSTATUS(status);
     
     return OPERATION_SUCCESS;
@@ -216,11 +216,11 @@ STATUS_CODE bitarrayAppend(bitarray *arr, u8 item) {
  * @param minNumberOfBits   The minimum number of bits this item should take up
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE bitarrayAppendPackedLeft(bitarray *arr, u32 item, u32 minNumberOfBits) {
+STATUS_CODE gif_bitarrayAppendPackedLeft(gif_bitarray *arr, u32 item, u32 minNumberOfBits) {
     STATUS_CODE status;
     BIT_ARRAY_NULL_CHECK(arr);
 
-    u32 occupiedBits = getOccupiedBits(item);
+    u32 occupiedBits = gif_getOccupiedBits(item);
     if (minNumberOfBits < occupiedBits) {
         return BIT_ARRAY_PACK_OCCUPIED_GREATER_THAN_MIN;
     }
@@ -234,7 +234,7 @@ STATUS_CODE bitarrayAppendPackedLeft(bitarray *arr, u32 item, u32 minNumberOfBit
         arr->currentBit += minNumberOfBits;
         
         if (arr->currentBit == 8) {
-            status = incrementCurrentIndex(arr);
+            status = gif_incrementCurrentIndex(arr);
             CHECKSTATUS(status);
         }
     } else {
@@ -257,7 +257,7 @@ STATUS_CODE bitarrayAppendPackedLeft(bitarray *arr, u32 item, u32 minNumberOfBit
             }
 
             if (arr->currentBit == 8) {
-                status = incrementCurrentIndex(arr);
+                status = gif_incrementCurrentIndex(arr);
                 CHECKSTATUS(status);
             }
 
@@ -276,12 +276,12 @@ STATUS_CODE bitarrayAppendPackedLeft(bitarray *arr, u32 item, u32 minNumberOfBit
  * @param minNumberOfBits   The minimum number of bits this item should take up
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE bitarrayAppendPackedRight(bitarray *arr, u32 item, u32 minNumberOfBits) {
+STATUS_CODE gif_bitarrayAppendPackedRight(gif_bitarray *arr, u32 item, u32 minNumberOfBits) {
     STATUS_CODE status;
     
     BIT_ARRAY_NULL_CHECK(arr);
 
-    u32 occupiedBits = getOccupiedBits(item);
+    u32 occupiedBits = gif_getOccupiedBits(item);
     if (minNumberOfBits < occupiedBits) {
         return BIT_ARRAY_PACK_OCCUPIED_GREATER_THAN_MIN;
     }
@@ -295,7 +295,7 @@ STATUS_CODE bitarrayAppendPackedRight(bitarray *arr, u32 item, u32 minNumberOfBi
         arr->currentBit += minNumberOfBits;
         
         if (arr->currentBit == 8) {
-            status = incrementCurrentIndex(arr);
+            status = gif_incrementCurrentIndex(arr);
             CHECKSTATUS(status);
         }
     } else {
@@ -307,9 +307,9 @@ STATUS_CODE bitarrayAppendPackedRight(bitarray *arr, u32 item, u32 minNumberOfBi
             if (remainingBitsToBeWritten > remainingBitsInCurrentArrayByte) {
                 u32 leftOverBits = (remainingBitsToBeWritten - remainingBitsInCurrentArrayByte);
                 
-                //printIntBits(&item, sizeof(u8));
+                //gif_printIntBits(&item, sizeof(u8));
                 u32 itemShifted = (item >> bitsWrittenSoFar) << arr->currentBit;
-                //printIntBits(&itemShifted, sizeof(u8));
+                //gif_printIntBits(&itemShifted, sizeof(u8));
                 arr->items[arr->currentIndex] = currentItem | itemShifted;
                 arr->currentBit += remainingBitsToBeWritten - leftOverBits;
                 bitsWrittenSoFar += remainingBitsToBeWritten - leftOverBits;
@@ -324,7 +324,7 @@ STATUS_CODE bitarrayAppendPackedRight(bitarray *arr, u32 item, u32 minNumberOfBi
             }
 
             if (arr->currentBit == 8) {
-                status = incrementCurrentIndex(arr);
+                status = gif_incrementCurrentIndex(arr);
                 CHECKSTATUS(status);
             }
 
@@ -336,7 +336,7 @@ STATUS_CODE bitarrayAppendPackedRight(bitarray *arr, u32 item, u32 minNumberOfBi
 }
 
 // Print bitarray up to last occupied byte
-void bitarrayPrint(bitarray *arr) {
+void gif_bitarrayPrint(gif_bitarray *arr) {
     #ifdef PRINT_ENABLE
 
     size_t index = 0;
@@ -355,7 +355,7 @@ void bitarrayPrint(bitarray *arr) {
 }
 
 // Free the struct and its pointer fields
-void freeBitArray(bitarray *arr) {
+void gif_freeBitArray(gif_bitarray *arr) {
     if (arr != NULL) {
         if (arr->items != NULL)
             free(arr->items);
@@ -368,14 +368,14 @@ void freeBitArray(bitarray *arr) {
 /* int main() {
     STATUS_CODE status;
     
-    bitarray *arr = bitarrayInit(100);
-    status = bitarrayAppendPackedRight(arr, 4, 3, 4);
-    status = bitarrayAppendPackedRight(arr, 3, 2, 8);
-    status = bitarrayAppendPackedRight(arr, 501, 9, 9);
-    status = bitarrayAppendPackedRight(arr, 502, 9, 9);
-    status = bitarrayAppendPackedRight(arr, 7, 3, 4);
-    status = bitarrayAppendPackedRight(arr, 1, 1, 3);
-    status = bitarrayAppendPackedRight(arr, 4001, 12, 13); //1111 1010 0001
-    status = bitarrayAppendPackedRight(arr, 1, 1, 5);
-    status = bitarrayAppendPackedRight(arr, 5, 3, 3);
+    bitarray *arr = gif_bitarrayInit(100);
+    status = gif_bitarrayAppendPackedRight(arr, 4, 3, 4);
+    status = gif_bitarrayAppendPackedRight(arr, 3, 2, 8);
+    status = gif_bitarrayAppendPackedRight(arr, 501, 9, 9);
+    status = gif_bitarrayAppendPackedRight(arr, 502, 9, 9);
+    status = gif_bitarrayAppendPackedRight(arr, 7, 3, 4);
+    status = gif_bitarrayAppendPackedRight(arr, 1, 1, 3);
+    status = gif_bitarrayAppendPackedRight(arr, 4001, 12, 13); //1111 1010 0001
+    status = gif_bitarrayAppendPackedRight(arr, 1, 1, 5);
+    status = gif_bitarrayAppendPackedRight(arr, 5, 3, 3);
 } */

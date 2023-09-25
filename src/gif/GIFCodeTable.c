@@ -17,16 +17,16 @@
  * @param clrTable color table to build from
  * @return codeTable pointer or NULL
  */
-codeTable* codetableInit(colorTable *clrTable) {
+gif_codeTable* gif_codetableInit(gif_colorTable *clrTable) {
     STATUS_CODE status;
     
-    codeTable *table = calloc(1, sizeof(codeTable));
+    gif_codeTable *table = calloc(1, sizeof(gif_codeTable));
     if (table == NULL)
         return NULL;
 
     // Max code table entries is 4095 as defined by the GIF format
     // To allow for a max load factor <= 0.5, the closest prime to (4095 * 2) is used
-    HashMap *map = hashmapInit(8191);
+    gif_HashMap *map = gif_hashmapInit(8191);
     if (map == NULL) {
         free(table);
         return NULL;
@@ -35,51 +35,51 @@ codeTable* codetableInit(colorTable *clrTable) {
     table->map = map;
 
     for (size_t i = 0; i <= clrTable->lastIndex; i++) {
-        char *str1 = intToString(i, 6);
-        char *str2 = intToString(i, 6);
-        status = hashmapInsert(map, str1, str2);
+        char *str1 = gif_intToString(i, 6);
+        char *str2 = gif_intToString(i, 6);
+        status = gif_hashmapInsert(map, str1, str2);
         if (status != OPERATION_SUCCESS) {
-            freeCodeTable(table);
+            gif_freeCodeTable(table);
             return NULL;
         }
 
         table->index = i;
     }
 
-    status = hashmapInsert(map, hashmapCreateKey("cc", 2), intToString(getClearCodeValue(clrTable->lastIndex), 6));
+    status = gif_hashmapInsert(map, gif_hashmapCreateKey("cc", 2), gif_intToString(gif_getClearCodeValue(clrTable->lastIndex), 6));
     if (status != OPERATION_SUCCESS) {
-        freeCodeTable(table);
+        gif_freeCodeTable(table);
         return NULL;
     }
 
-    status = hashmapInsert(map, hashmapCreateKey("eoi", 3), intToString(getEOICodeValue(clrTable->lastIndex), 6));
+    status = gif_hashmapInsert(map, gif_hashmapCreateKey("eoi", 3), gif_intToString(gif_getEOICodeValue(clrTable->lastIndex), 6));
     if (status != OPERATION_SUCCESS) {
-        freeCodeTable(table);
+        gif_freeCodeTable(table);
         return NULL;
     }
 
-    hashmapPrint(map);
+    gif_hashmapPrint(map);
     table->index += 2;
 
     return table;
 }
 
 // Return next code table index for LZW
-u32 codetableGetNextIndex(codeTable *table) {
+u32 gif_codetableGetNextIndex(gif_codeTable *table) {
     table->index++;
     //PRINTF("%d\n", table->map->currentCount);
 
     return table->index;
 }
 
-u32 codetableGetCurrentIndex(codeTable *table) {
+u32 gif_codetableGetCurrentIndex(gif_codeTable *table) {
     return table->index;
 }
 
-void freeCodeTable(codeTable *table) {
+void gif_freeCodeTable(gif_codeTable *table) {
     if (table != NULL) {
         if (table->map != NULL)
-            freeHashMap(table->map);
+            gif_freeHashMap(table->map);
 
         free(table);
     }

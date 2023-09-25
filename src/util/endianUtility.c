@@ -11,14 +11,14 @@
 #include "printUtility.h"
 
 // endian check
-const int endiannessCheck = 1;
-#define bigEndianPlatform() ( (*(char *) &endiannessCheck) == 0 )
+const int gif_endiannessCheck = 1;
+#define gif_bigEndianPlatform() ( (*(char *) &gif_endiannessCheck) == 0 )
 
 /**
  * @brief u64val is where the converted int is writte.
  * all types can be read for type conversion.
  */
-union endianSwappedInt { 
+union gif_endianSwappedInt { 
     u8  u8val;
     u16 u16val;
     u32 u32val;
@@ -41,12 +41,12 @@ union endianSwappedInt {
  * @param numberOfBytes     - number of bytes to work with
  * @return a union value to allow for multiple type return from interface
  */
-static union endianSwappedInt convertToLittleEndian(const u8 *arr, u32 numberOfBytes) { 
-    union endianSwappedInt intUnion;
+static union gif_endianSwappedInt convertToLittleEndian(const u8 *arr, u32 numberOfBytes) { 
+    union gif_endianSwappedInt intUnion;
     intUnion.u64val = 0;
     u8 *p = (u8*) &intUnion;
 
-    if (bigEndianPlatform()) {
+    if (gif_bigEndianPlatform()) {
         for (int i = 0; i < numberOfBytes; i++)
             p[i] = arr[numberOfBytes - i - 1];
     } else {
@@ -58,36 +58,36 @@ static union endianSwappedInt convertToLittleEndian(const u8 *arr, u32 numberOfB
 }
 
 // u8-u64 stack ints interface
-u8 littleEndianU8(u8 val) { 
+u8 gif_littleEndianU8(u8 val) { 
     return convertToLittleEndian((const u8*) &val, sizeof(u8)).u8val;
 }
 
-u16 littleEndianU16(u16 val) { 
+u16 gif_littleEndianU16(u16 val) { 
     return convertToLittleEndian((const u8*) &val, sizeof(u16)).u16val;
 }
 
-u32 littleEndianU32(u32 val) { 
+u32 gif_littleEndianU32(u32 val) { 
     return convertToLittleEndian((const u8*) &val, sizeof(u32)).u32val;
 }
 
-u64 littleEndianU64(u64 val) { 
+u64 gif_littleEndianU64(u64 val) { 
     return convertToLittleEndian((const u8*) &val, sizeof(u64)).u64val;
 }
 
 // i8-i64 stack ints interface
-i8 littleEndianI8(i8 val) { 
+i8 gif_littleEndianI8(i8 val) { 
     return convertToLittleEndian((const u8*) &val, sizeof(i8)).i8val;
 }
 
-i16 littleEndianI16(i16 val) { 
+i16 gif_littleEndianI16(i16 val) { 
     return convertToLittleEndian((const u8*) &val, sizeof(i16)).i16val;
 }
 
-i32 littleEndianI32(i32 val) { 
+i32 gif_littleEndianI32(i32 val) { 
     return convertToLittleEndian((const u8*) &val, sizeof(i32)).i32val;
 }
 
-i64 littleEndianI64(i64 val) { 
+i64 gif_littleEndianI64(i64 val) { 
     return convertToLittleEndian((const u8*) &val, sizeof(i64)).i64val;
 }
 
@@ -103,8 +103,8 @@ i64 littleEndianI64(i64 val) {
  *  @param numberOfBytes        - number of bytes the convert from char array
  *  @return u32 value
  */
-union endianSwappedInt bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(u8 *bigEndianCharArray, u32 numberOfBytes) { 
-    union endianSwappedInt intUnion;
+union gif_endianSwappedInt gif_bigEndianIntegerStoredInCharArrayToLittleEndianGeneralizedInteger(u8 *bigEndianCharArray, u32 numberOfBytes) { 
+    union gif_endianSwappedInt intUnion;
     intUnion.u64val = 0;
     u32 byteNumb = numberOfBytes - 1;
 

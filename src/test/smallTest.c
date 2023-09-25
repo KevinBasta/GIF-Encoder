@@ -13,24 +13,24 @@
 #define SMALL_TEST_WIDTH    2
 #define SMALL_TEST_HEIGHT   1
 
-STATUS_CODE createSmallGif() {
+STATUS_CODE gif_createSmallGif() {
     STATUS_CODE status;
 
     // Create canvas
-    GIFCanvas *canvas = canvasCreate(SMALL_TEST_WIDTH, SMALL_TEST_HEIGHT);
+    GIFCanvas *canvas = gif_canvasCreate(SMALL_TEST_WIDTH, SMALL_TEST_HEIGHT);
     CANVAS_NULL_CHECK(canvas);
 
-    status = canvasSetFileName(canvas, "testGIF_Small.gif");
+    status = gif_canvasSetFileName(canvas, "testGIF_Small.gif");
     CHECKSTATUS(status);
 
-    status = canvasCreateGlobalColorTable(canvas);
+    status = gif_canvasCreateGlobalColorTable(canvas);
     CHECKSTATUS(status);
     
-    status = canvasAddColorToColorTable(canvas, 0, 0, 0); // index 0 - black
+    status = gif_canvasAddColorToColorTable(canvas, 0, 0, 0); // index 0 - black
     CHECKSTATUS(status);
-    status = canvasAddColorToColorTable(canvas, 88, 89, 89); // index 1 - grey
+    status = gif_canvasAddColorToColorTable(canvas, 88, 89, 89); // index 1 - grey
     CHECKSTATUS(status);
-    status = canvasAddColorToColorTable(canvas, 143, 82, 70); // index 2 - red
+    status = gif_canvasAddColorToColorTable(canvas, 143, 82, 70); // index 2 - red
     CHECKSTATUS(status);
 
     {
@@ -38,20 +38,20 @@ STATUS_CODE createSmallGif() {
          {1,1,};
 
         // Base Red Light Frame
-        GIFFrame *frame = frameCreate(SMALL_TEST_WIDTH, SMALL_TEST_HEIGHT, 0, 0);
+        GIFFrame *frame = gif_frameCreate(SMALL_TEST_WIDTH, SMALL_TEST_HEIGHT, 0, 0);
         FRAME_NULL_CHECK(frame);
 
-        status = frameAddIndexStreamFromArray(frame, tempIndexStream, sizeof(tempIndexStream));
+        status = gif_frameAddIndexStreamFromArray(frame, tempIndexStream, sizeof(tempIndexStream));
         CHECKSTATUS(status);
 
-        status = canvasAddFrame(canvas, frame);
+        status = gif_canvasAddFrame(canvas, frame);
         CHECKSTATUS(status);
     }
 
     u32 widthMuliplier  = 2; u32 heightMuliplier = 2;
-    status = expandCanvas(canvas, widthMuliplier, heightMuliplier);
+    status = gif_expandCanvas(canvas, widthMuliplier, heightMuliplier);
 
-    status = createGIF(canvas, true, true);
+    status = gif_createGIF(canvas, true, true);
     CHECKSTATUS(status);
 
     return OPERATION_SUCCESS;

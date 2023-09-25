@@ -9,14 +9,14 @@
 #include "GIFCodeTable.h"
 #include "GIFColorTable.h"
 
-typedef struct codeTable {
+typedef struct gif_codeTable {
     u32 index;
-    HashMap *map;
-} codeTable;
+    gif_HashMap *map;
+} gif_codeTable;
 
-codeTable* codetableInit(colorTable *clrTable);
-u32 codetableGetNextIndex(codeTable *table);
-u32 codetableGetCurrentIndex(codeTable *table);
-void freeCodeTable(codeTable *table);
+gif_codeTable* gif_codetableInit(gif_colorTable *clrTable);
+u32 gif_codetableGetNextIndex(gif_codeTable *table);
+u32 gif_codetableGetCurrentIndex(gif_codeTable *table);
+void gif_freeCodeTable(gif_codeTable *table);
 
 #endif // GIF_ENCODER_CODE_TABLE_H

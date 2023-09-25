@@ -15,7 +15,7 @@
  * @param numberOfBytes -   the number of bytes to compare
  * @return true or false
  */
-bool compareNBytes(u8 *firstItem, u8 secondItem[], u32 numberOfBytes) {     
+bool gif_compareNBytes(u8 *firstItem, u8 secondItem[], u32 numberOfBytes) {     
     bool isEqual = true;
     for (u32 i = 0; i < numberOfBytes; i++) {
         if (firstItem[i] != secondItem[i]) {
@@ -34,7 +34,7 @@ bool compareNBytes(u8 *firstItem, u8 secondItem[], u32 numberOfBytes) {
  * @param item integer getting the bitsize of
  * @return number of bits the item occupies
  */
-u32 getOccupiedBits(u32 item) {
+u32 gif_getOccupiedBits(u32 item) {
     // count bits from left side to first non zero bit
     u32 leadingBits = 0;
 
@@ -63,7 +63,7 @@ u32 getOccupiedBits(u32 item) {
  * @param data the data to get the bits from
  * @return u8 with the bit range in the lsb
  */
-u8 getNBits(u32 startBit, u32 endBit, u8 data) { 
+u8 gif_getNBits(u32 startBit, u32 endBit, u8 data) { 
     if (startBit < 0 || startBit > 7 || endBit > 7 || endBit < 0 || endBit < startBit) { 
         return 0; // considar changing to -1. might end up with other bugs due to i8 in shifting
     }
@@ -75,7 +75,7 @@ u8 getNBits(u32 startBit, u32 endBit, u8 data) {
     // or mask the range startBit to endBit and then shift right
 }
 
-u8 getNthBit(u32 bitNumber, u8 data) { 
+u8 gif_getNthBit(u32 bitNumber, u8 data) { 
     if (bitNumber < 0 || bitNumber > 7) { 
         return 0; 
     }

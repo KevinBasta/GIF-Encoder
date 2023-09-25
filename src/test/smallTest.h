@@ -5,6 +5,6 @@
 #include <stdint.h>
 #include "main.h"
 
-STATUS_CODE createSmallGif();
+STATUS_CODE gif_createSmallGif();
 
 #endif // SMALL_TEST_H

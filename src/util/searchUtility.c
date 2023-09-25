@@ -14,7 +14,7 @@
  * @param totalEntries  The total number of entries of the array
  * @return true or false
  */
-bool frameInArray(GIFFrame *target, GIFFrame **array, u32 totalEntries) { 
+bool gif_frameInArray(GIFFrame *target, GIFFrame **array, u32 totalEntries) { 
     for (int i = 0; i < totalEntries; i++) {
         if (target == array[i])
             return true;
@@ -25,7 +25,7 @@ bool frameInArray(GIFFrame *target, GIFFrame **array, u32 totalEntries) {
 
 
 // The following function and the following comp functions implement binary search
-u32 binarySearch(u32 target, u32 *table, u32 totalEntries, i32 (*comp) (const void *, const void *)) { 
+u32 gif_binarySearch(u32 target, u32 *table, u32 totalEntries, i32 (*comp) (const void *, const void *)) { 
     u32 low = 0;
     u32 high = totalEntries;
     u32 mid; 
@@ -46,7 +46,7 @@ u32 binarySearch(u32 target, u32 *table, u32 totalEntries, i32 (*comp) (const vo
     return low;
 }
 
-i32 compi32(const void *a, const void *b) { 
+i32 gif_compi32(const void *a, const void *b) { 
     i32 arg1 = *(const int*) a;
     i32 arg2 = *(const int*) b;
 
@@ -55,7 +55,7 @@ i32 compi32(const void *a, const void *b) {
     return 0;
 }
 
-i32 compu32(const void *a, const void *b) { 
+i32 gif_compu32(const void *a, const void *b) { 
     u32 arg1 = *(const int*) a;
     u32 arg2 = *(const int*) b;
 
@@ -77,18 +77,18 @@ void swap (u32 *arr1, u32 *arr2, u32 firstIndex, u32 secondIndex) {
     arr2[secondIndex] = arr2Temp;
 }
 
-void bubbleSort(u32 *arr1, u32* arr2, int n) {
-    int swapped;
+void gif_bubbleSort(u32 *arr1, u32* arr2, int n) {
+    bool swapped;
     for (int i = 0; i < n - 1; i++) {
-        swapped = FALSE;
+        swapped = false;
         for (int j = 0; j < n - i - 1; j++) {
             if (arr1[j] > arr1[j + 1]) {
                 swap(arr1, arr2, j, j+1);
-                swapped = TRUE;
+                swapped = true;
             }
         }
  
-        if (swapped == FALSE)
+        if (swapped == false)
             break;
     }
 }
@@ -111,11 +111,11 @@ u32 partition(u32 *arr1, u32 *arr2, u32 low, u32 high) {
     return (i + 1);
 }
 
-void quickSort(u32 *arr1, u32 *arr2, u32 low, u32 high) { 
+void gif_quickSort(u32 *arr1, u32 *arr2, u32 low, u32 high) { 
     if (low < high) { 
         u32 pivotIndex = partition(arr1, arr2, low, high);
 
-        quickSort(arr1, arr2, low, pivotIndex - 1);
-        quickSort(arr1, arr2, pivotIndex + 1, high);
+        gif_quickSort(arr1, arr2, low, pivotIndex - 1);
+        gif_quickSort(arr1, arr2, pivotIndex + 1, high);
     }
 }

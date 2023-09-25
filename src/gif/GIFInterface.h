@@ -78,9 +78,9 @@ typedef struct GIFCanvas {
     // Global color table only used if
     // packedField_GlobalColorTableFlag == 1
     //
-    colorTable *globalColorTable;
+    gif_colorTable *globalColorTable;
 
-    linkedlist *frames;
+    gif_linkedlist *frames;
 
     //
     // General canvas data
@@ -172,58 +172,58 @@ typedef struct GIFFrame {
     // Local color table only used if
     // packedField_LocalColorTableFlag == 1
     //
-    colorTable *localColorTable;
+    gif_colorTable *localColorTable;
 
     //
     // Stream of integers between 0 and 255
     // each integer being equivalent to a pixel
     // using it's value as the color table index
     //
-    array *indexStream;
+    gif_array *indexStream;
     
     // 
     // Optimization fields to avoid
     // re-encoding the same frames
     //
     bool persistentFrameEncodeData;
-    bitarray *imageData;
+    gif_bitarray *imageData;
 
 } GIFFrame;
 
 
 // Encode the canvas record
-STATUS_CODE createGIF(GIFCanvas *canvas, bool freeCanvasRecord, bool createGIFOnError);
+STATUS_CODE gif_createGIF(GIFCanvas *canvas, bool freeCanvasRecord, bool createGIFOnError);
 
 
 // Create a canvas record
-GIFCanvas *canvasCreate(u16 canvasWidth, u16 canvasHeight);
+GIFCanvas *gif_canvasCreate(u16 canvasWidth, u16 canvasHeight);
 
-STATUS_CODE canvasAddGlobalColorTable(GIFCanvas *canvas, colorTable *clrTable);
-STATUS_CODE canvasCreateGlobalColorTable(GIFCanvas *canvas);
-STATUS_CODE canvasAddColorToColorTable(GIFCanvas *canvas, u8 red, u8 green, u8 blue);
+STATUS_CODE gif_canvasAddGlobalColorTable(GIFCanvas *canvas, gif_colorTable *clrTable);
+STATUS_CODE gif_canvasCreateGlobalColorTable(GIFCanvas *canvas);
+STATUS_CODE gif_canvasAddColorToColorTable(GIFCanvas *canvas, u8 red, u8 green, u8 blue);
 
-STATUS_CODE canvasSetBackgroundColorIndex(GIFCanvas *canvas, u8 globalColorTableIndex);
-STATUS_CODE canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame);
+STATUS_CODE gif_canvasSetBackgroundColorIndex(GIFCanvas *canvas, u8 globalColorTableIndex);
+STATUS_CODE gif_canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame);
 
-STATUS_CODE canvasSetFileName(GIFCanvas *canvas, char *newName);
+STATUS_CODE gif_canvasSetFileName(GIFCanvas *canvas, char *newName);
 
-void freeCanvas(GIFCanvas *canvas);
+void gif_freeCanvas(GIFCanvas *canvas);
 
 
 // Create a frame record
-GIFFrame *frameCreate(u16 frameWidth, u16 frameHeight, u16 imageLeftPosition, u16 imageTopPosition);
+GIFFrame *gif_frameCreate(u16 frameWidth, u16 frameHeight, u16 imageLeftPosition, u16 imageTopPosition);
 
-STATUS_CODE frameAddLocalColorTable(GIFFrame *frame, colorTable *clrTable);
-STATUS_CODE frameCreateLocalColorTable(GIFFrame *frame);
-STATUS_CODE frameAddColorToColorTable(GIFFrame *frame, u8 red, u8 green, u8 blue);
+STATUS_CODE gif_frameAddLocalColorTable(GIFFrame *frame, gif_colorTable *clrTable);
+STATUS_CODE gif_frameCreateLocalColorTable(GIFFrame *frame);
+STATUS_CODE gif_frameAddColorToColorTable(GIFFrame *frame, u8 red, u8 green, u8 blue);
 
-STATUS_CODE frameAddIndexStream(GIFFrame *frame, array *indexStream);
-STATUS_CODE frameAddIndexStreamFromArray(GIFFrame *frame, u8 stackArr[], size_t size);
-STATUS_CODE frameCreateIndexStream(GIFFrame *frame, size_t indexStreamSize);
-STATUS_CODE frameAppendToIndexStream(GIFFrame *frame, u32 item);
+STATUS_CODE gif_frameAddIndexStream(GIFFrame *frame, gif_array *indexStream);
+STATUS_CODE gif_frameAddIndexStreamFromArray(GIFFrame *frame, u8 stackArr[], size_t size);
+STATUS_CODE gif_frameCreateIndexStream(GIFFrame *frame, size_t indexStreamSize);
+STATUS_CODE gif_frameAppendToIndexStream(GIFFrame *frame, u32 item);
 
-STATUS_CODE frameAddGraphicsControlInfo(GIFFrame *frame, u8 disposalMethod, u16 delayTime);
-STATUS_CODE frameSetTransparanetColorIndexInColorTable(GIFFrame *frame, u8 transparentColorIndex);
-void freeFrame(GIFFrame *frame);
+STATUS_CODE gif_frameAddGraphicsControlInfo(GIFFrame *frame, u8 disposalMethod, u16 delayTime);
+STATUS_CODE gif_frameSetTransparanetColorIndexInColorTable(GIFFrame *frame, u8 transparentColorIndex);
+void gif_freeFrame(GIFFrame *frame);
 
 #endif // GIF_INTERFACE_H

@@ -5,6 +5,6 @@
 #include <stdint.h>
 #include "main.h"
 
-STATUS_CODE createGradientTest();
+STATUS_CODE gif_createGradientTest();
 
 #endif // GRADIENT_TEST_H

@@ -9,21 +9,21 @@
 #include "GIFInterface.h"
 #include "GIFTransformations.h"
 
-STATUS_CODE createMaxColorIndexTest() {
+STATUS_CODE gif_createMaxColorIndexTest() {
     STATUS_CODE status;
 
     // Create canvas
-    GIFCanvas *canvas = canvasCreate(255, 1);
+    GIFCanvas *canvas = gif_canvasCreate(255, 1);
     CANVAS_NULL_CHECK(canvas);
 
-    status = canvasSetFileName(canvas, "testGIF_MaxColorIndex.gif");
+    status = gif_canvasSetFileName(canvas, "testGIF_MaxColorIndex.gif");
     CHECKSTATUS(status);
 
-    status = canvasCreateGlobalColorTable(canvas);
+    status = gif_canvasCreateGlobalColorTable(canvas);
     CHECKSTATUS(status);
     
     for (int i = 0; i < 255; i++) {
-        status = canvasAddColorToColorTable(canvas, 0, i, i);
+        status = gif_canvasAddColorToColorTable(canvas, 0, i, i);
         CHECKSTATUS(status);
     }
 
@@ -33,20 +33,20 @@ STATUS_CODE createMaxColorIndexTest() {
     }
     
     {
-        GIFFrame *frameOne = frameCreate(255, 1, 0, 0);
+        GIFFrame *frameOne = gif_frameCreate(255, 1, 0, 0);
         FRAME_NULL_CHECK(frameOne);
 
-        status = frameAddIndexStreamFromArray(frameOne, tempIndexStream, sizeof(tempIndexStream));
+        status = gif_frameAddIndexStreamFromArray(frameOne, tempIndexStream, sizeof(tempIndexStream));
         CHECKSTATUS(status);
 
-        status = canvasAddFrame(canvas, frameOne);
+        status = gif_canvasAddFrame(canvas, frameOne);
         CHECKSTATUS(status);
     }
 
     u32 widthMuliplier  = 12; u32 heightMuliplier = 1000;
-    status = expandCanvas(canvas, widthMuliplier, heightMuliplier);
+    status = gif_expandCanvas(canvas, widthMuliplier, heightMuliplier);
 
-    createGIF(canvas, true, true);
+    gif_createGIF(canvas, true, true);
 
     return OPERATION_SUCCESS;
 }

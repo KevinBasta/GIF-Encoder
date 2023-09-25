@@ -5,25 +5,25 @@
 #include <stdint.h>
 #include "main.h"
 
-typedef struct array {
+typedef struct gif_array {
     size_t size;
     size_t currentIndex;
     u32 *items;
-} array;
+} gif_array;
 
-array *arrayInit(size_t size);
-STATUS_CODE arrayAppend(array *arr, u32 item);
-STATUS_CODE arrayPop(array *arr);
+gif_array *gif_arrayInit(size_t size);
+STATUS_CODE gif_arrayAppend(gif_array *arr, u32 item);
+STATUS_CODE gif_arrayPop(gif_array *arr);
 
-STATUS_CODE arrayGetItemAtIndex(array *arr, size_t index, u32 *itemReturn);
-u32 arrayGetItemAtCurrentIndex(array *arr);
-u32 arrayGetIncrement(array *arr);
+STATUS_CODE gif_arrayGetItemAtIndex(gif_array *arr, size_t index, u32 *itemReturn);
+u32         gif_arrayGetItemAtCurrentIndex(gif_array *arr);
+u32         gif_arrayGetIncrement(gif_array *arr);
 
-STATUS_CODE arrayReset(array *arr);
-char* arrayConcat(array *arr, char entrySeparator);
-array *arrayInitFromStackArray(u8 stackArr[], size_t size);
+STATUS_CODE gif_arrayReset(gif_array *arr);
+char        *gif_arrayConcat(gif_array *arr, char entrySeparator);
+gif_array   *gif_arrayInitFromStackArray(u8 stackArr[], size_t size);
 
-void arrayPrint(array *arr);
-void freeArray (array *arr);
+void gif_arrayPrint(gif_array *arr);
+void gif_freeArray (gif_array *arr);
 
 #endif // GIF_ENCODER_ARRAY_H

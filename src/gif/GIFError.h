@@ -5,6 +5,6 @@
 #include <stdint.h>
 #include "main.h"
 
-STATUS_CODE createErrorGif(u32 errorCode);
+STATUS_CODE gif_createErrorGif(u32 errorCode);
 
 #endif // GIF_ERROR_H

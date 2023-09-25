@@ -88,18 +88,18 @@ typedef enum STATUS_CODE {
 #ifndef GIF_ENCODER_ARRAY_H
 #define GIF_ENCODER_ARRAY_H
 
-typedef struct gifEncoder_array {
+typedef struct gif_array {
     size_t size;
     size_t currentIndex;
     u32 *items;
-} gifEncoder_array;
+} gif_array;
 
 #endif // GIF_ENCODER_ARRAY_H
 
 #ifndef GIF_ENCODER_BIT_ARRAY_H
 #define GIF_ENCODER_BIT_ARRAY_H
 
-typedef struct gifEncoder_bitarray {
+typedef struct gif_bitarray {
     size_t size;
     size_t currentIndex;
     u8     currentBit;
@@ -110,74 +110,74 @@ typedef struct gifEncoder_bitarray {
     long   markIndex;
     
     u8 *items;
-} gifEncoder_bitarray;
+} gif_bitarray;
 
 #endif // GIF_ENCODER_BIT_ARRAY_H
 
 #ifndef GIF_ENCODER_HASHMAP_H
 #define GIF_ENCODER_HASHMAP_H
 
-typedef struct gifEncoder_HashMapEntry {
+typedef struct gif_HashMapEntry {
     void *key;
     void *value;
-} gifEncoder_HashMapEntry;
+} gif_HashMapEntry;
 
-typedef struct gifEncoder_HashMap {
+typedef struct gif_HashMap {
     size_t size;
     size_t currentCount;
-    gifEncoder_HashMapEntry **entries;
-} gifEncoder_HashMap;
+    gif_HashMapEntry **entries;
+} gif_HashMap;
 
 #endif // GIF_ENCODER_HASHMAP_H
 
 #ifndef GIF_ENCODER_LINKED_LIST_H
 #define GIF_ENCODER_LINKED_LIST_H
 
-typedef struct gifEncoder_node { 
+typedef struct gif_node { 
     void *item;
     void *nextNode;
-} gifEncoder_node;
+} gif_node;
 
-typedef struct linkedlist {
+typedef struct gif_linkedlist {
     size_t size;
-    gifEncoder_node *head;
-    gifEncoder_node *tail;
-    gifEncoder_node *currentIter;
-} gifEncoder_linkedlist;
+    gif_node *head;
+    gif_node *tail;
+    gif_node *currentIter;
+} gif_linkedlist;
 
 #endif // GIF_ENCODER_LINKED_LIST_H
 
 #ifndef GIF_ENCODER_COLOR_TABLE_H
 #define GIF_ENCODER_COLOR_TABLE_H
 
-typedef struct gifEncoder_RGB {
+typedef struct gif_RGB {
     u8 red;
     u8 green;
     u8 blue;
-} gifEncoder_RGB;
+} gif_RGB;
 
-typedef struct gifEncoder_colorTable {
+typedef struct gif_colorTable {
     u32 lastIndex;
     u32 currentIndex;
-    gifEncoder_RGB *items;
-} gifEncoder_colorTable;
+    gif_RGB *items;
+} gif_colorTable;
 
 #endif // GIF_ENCODER_COLOR_TABLE_H
 
 #ifndef GIF_ENCODER_CODE_TABLE_H
 #define GIF_ENCODER_CODE_TABLE_H
 
-typedef struct gifEncoder_codeTable {
+typedef struct gif_codeTable {
     u32 index;
-    gifEncoder_HashMap *map;
-} gifEncoder_codeTable;
+    gif_HashMap *map;
+} gif_codeTable;
 
 #endif // GIF_ENCODER_CODE_TABLE_H
 
 #ifndef GIF_INTERFACE_H
 #define GIF_INTERFACE_H
 
-typedef struct gifEncoder_GIFCanvas {
+typedef struct GIFCanvas {
     //
     // LogicalScreenDescriptor Fields Start
     //
@@ -224,18 +224,18 @@ typedef struct gifEncoder_GIFCanvas {
     // Global color table only used if
     // packedField_GlobalColorTableFlag == 1
     //
-    gifEncoder_colorTable *globalColorTable;
+    gif_colorTable *globalColorTable;
 
-    gifEncoder_linkedlist *frames;
+    gif_linkedlist *frames;
 
     //
     // General canvas data
     //
     char *fileName;
 
-} gifEncoder_GIFCanvas;
+} GIFCanvas;
 
-typedef struct gifEncoder_GIFFrame {
+typedef struct GIFFrame {
     //
     // ImageDescriptor Fields Start
     //
@@ -317,21 +317,21 @@ typedef struct gifEncoder_GIFFrame {
     // Local color table only used if
     // packedField_LocalColorTableFlag == 1
     //
-    gifEncoder_colorTable *localColorTable;
+    gif_colorTable *localColorTable;
 
     //
     // Stream of integers between 0 and 255
     // each integer being equivalent to a pixel
     // using it's value as the color table index
     //
-    gifEncoder_array *indexStream;
+    gif_array *indexStream;
     
     // 
     // Optimization fields to avoid
     // re-encoding the same frames
     //
     bool persistentFrameEncodeData;
-    gifEncoder_bitarray *imageData;
+    gif_bitarray *imageData;
 
 } GIFFrame;
 
@@ -342,68 +342,68 @@ typedef struct gifEncoder_GIFFrame {
 //
 
 // Encode the canvas record
-STATUS_CODE gifEncoder_createGIF(gifEncoder_GIFCanvas *canvas, bool freeCanvasRecord, bool createGIFOnError);
+STATUS_CODE gif_createGIF(GIFCanvas *canvas, bool freeCanvasRecord, bool createGIFOnError);
 
 // Create a canvas record
-gifEncoder_GIFCanvas *gifEncoder_canvasCreate(u16 canvasWidth, u16 canvasHeight);
+GIFCanvas *gif_canvasCreate(u16 canvasWidth, u16 canvasHeight);
 
-STATUS_CODE gifEncoder_canvasAddGlobalColorTable(gifEncoder_GIFCanvas *canvas, gifEncoder_colorTable *clrTable);
-STATUS_CODE gifEncoder_canvasCreateGlobalColorTable(gifEncoder_GIFCanvas *canvas);
-STATUS_CODE gifEncoder_canvasAddColorToColorTable(gifEncoder_GIFCanvas *canvas, u8 red, u8 green, u8 blue);
+STATUS_CODE gif_canvasAddGlobalColorTable(GIFCanvas *canvas, gif_colorTable *clrTable);
+STATUS_CODE gif_canvasCreateGlobalColorTable(GIFCanvas *canvas);
+STATUS_CODE gif_canvasAddColorToColorTable(GIFCanvas *canvas, u8 red, u8 green, u8 blue);
 
-STATUS_CODE gifEncoder_canvasSetBackgroundColorIndex(gifEncoder_GIFCanvas *canvas, u8 globalColorTableIndex);
-STATUS_CODE gifEncoder_canvasAddFrame(gifEncoder_GIFCanvas *canvas, gifEncoder_GIFFrame *frame);
+STATUS_CODE gif_canvasSetBackgroundColorIndex(GIFCanvas *canvas, u8 globalColorTableIndex);
+STATUS_CODE gif_canvasAddFrame(GIFCanvas *canvas, GIFFrame *frame);
 
-STATUS_CODE gifEncoder_canvasSetFileName(gifEncoder_GIFCanvas *canvas, char *newName);
-void gifEncoder_freeCanvas(gifEncoder_GIFCanvas *canvas);
+STATUS_CODE gif_canvasSetFileName(GIFCanvas *canvas, char *newName);
+void gif_freeCanvas(GIFCanvas *canvas);
 
 // Create a frame record
-gifEncoder_GIFFrame *gifEncoder_frameCreate(u16 frameWidth, u16 frameHeight, u16 imageLeftPosition, u16 imageTopPosition);
+GIFFrame *gif_frameCreate(u16 frameWidth, u16 frameHeight, u16 imageLeftPosition, u16 imageTopPosition);
 
-STATUS_CODE gifEncoder_frameAddLocalColorTable(gifEncoder_GIFFrame *frame, gifEncoder_colorTable *clrTable);
-STATUS_CODE gifEncoder_frameCreateLocalColorTable(gifEncoder_GIFFrame *frame);
-STATUS_CODE gifEncoder_frameAddColorToColorTable(gifEncoder_GIFFrame *frame, u8 red, u8 green, u8 blue);
+STATUS_CODE gif_frameAddLocalColorTable(GIFFrame *frame, gif_colorTable *clrTable);
+STATUS_CODE gif_frameCreateLocalColorTable(GIFFrame *frame);
+STATUS_CODE gif_frameAddColorToColorTable(GIFFrame *frame, u8 red, u8 green, u8 blue);
 
-STATUS_CODE gifEncoder_frameAddIndexStream(gifEncoder_GIFFrame *frame, gifEncoder_array *indexStream);
-STATUS_CODE gifEncoder_frameAddIndexStreamFromArray(gifEncoder_GIFFrame *frame, u8 stackArr[], size_t size);
-STATUS_CODE gifEncoder_frameCreateIndexStream(gifEncoder_GIFFrame *frame, size_t indexStreamSize);
-STATUS_CODE gifEncoder_frameAppendToIndexStream(gifEncoder_GIFFrame *frame, u32 item);
+STATUS_CODE gif_frameAddIndexStream(GIFFrame *frame, gif_array *indexStream);
+STATUS_CODE gif_frameAddIndexStreamFromArray(GIFFrame *frame, u8 stackArr[], size_t size);
+STATUS_CODE gif_frameCreateIndexStream(GIFFrame *frame, size_t indexStreamSize);
+STATUS_CODE gif_frameAppendToIndexStream(GIFFrame *frame, u32 item);
 
-STATUS_CODE gifEncoder_frameAddGraphicsControlInfo(gifEncoder_GIFFrame *frame, u8 disposalMethod, u16 delayTime);
-STATUS_CODE gifEncoder_frameSetTransparanetColorIndexInColorTable(gifEncoder_GIFFrame *frame, u8 transparentColorIndex);
-void gifEncoder_freeFrame(gifEncoder_GIFFrame *frame);
+STATUS_CODE gif_frameAddGraphicsControlInfo(GIFFrame *frame, u8 disposalMethod, u16 delayTime);
+STATUS_CODE gif_frameSetTransparanetColorIndexInColorTable(GIFFrame *frame, u8 transparentColorIndex);
+void gif_freeFrame(GIFFrame *frame);
 
 
 //
 // Extended Interface
 //
-STATUS_CODE gifEncoder_canvasUpdateWidthAndHeight(gifEncoder_GIFCanvas *canvas, u16 canvasWidth, u16 canvasHeight);
-STATUS_CODE gifEncoder_canvasUpdateWidth(gifEncoder_GIFCanvas *canvas, u16 canvasWidth);
-STATUS_CODE gifEncoder_canvasUpdateHeight(gifEncoder_GIFCanvas *canvas, u16 canvasHeight);
-STATUS_CODE gifEncoder_canvasPrependFrame(gifEncoder_GIFCanvas *canvas, gifEncoder_GIFFrame *frame);
+STATUS_CODE gif_canvasUpdateWidthAndHeight(GIFCanvas *canvas, u16 canvasWidth, u16 canvasHeight);
+STATUS_CODE gif_canvasUpdateWidth(GIFCanvas *canvas, u16 canvasWidth);
+STATUS_CODE gif_canvasUpdateHeight(GIFCanvas *canvas, u16 canvasHeight);
+STATUS_CODE gif_canvasPrependFrame(GIFCanvas *canvas, GIFFrame *frame);
 
-STATUS_CODE gifEncoder_frameUpdateWidthAndHeight(gifEncoder_GIFFrame *frame, u16 frameWidth, u16 frameHeight);
-STATUS_CODE gifEncoder_frameUpdateWidth(gifEncoder_GIFFrame *frame, u16 frameWidth);
-STATUS_CODE gifEncoder_frameUpdateHeight(gifEncoder_GIFFrame *frame, u16 frameHeight);
-STATUS_CODE gifEncoder_frameUpdateImageLeftPosition(gifEncoder_GIFFrame *frame, u16 imageLeftPosition);
-STATUS_CODE gifEncoder_frameUpdateImageTopPosition(gifEncoder_GIFFrame *frame, u16 imageTopPosition);
-STATUS_CODE gifEncoder_frameUpdateDisposalMethod(gifEncoder_GIFFrame *frame, u8 disposalMethod);
-STATUS_CODE gifEncoder_frameUpdateDelayTime(gifEncoder_GIFFrame *frame, u16 delayTime);
-STATUS_CODE gifEncoder_frameRemoveTransparentColorIndex(gifEncoder_GIFFrame *frame);
+STATUS_CODE gif_frameUpdateWidthAndHeight(GIFFrame *frame, u16 frameWidth, u16 frameHeight);
+STATUS_CODE gif_frameUpdateWidth(GIFFrame *frame, u16 frameWidth);
+STATUS_CODE gif_frameUpdateHeight(GIFFrame *frame, u16 frameHeight);
+STATUS_CODE gif_frameUpdateImageLeftPosition(GIFFrame *frame, u16 imageLeftPosition);
+STATUS_CODE gif_frameUpdateImageTopPosition(GIFFrame *frame, u16 imageTopPosition);
+STATUS_CODE gif_frameUpdateDisposalMethod(GIFFrame *frame, u8 disposalMethod);
+STATUS_CODE gif_frameUpdateDelayTime(GIFFrame *frame, u16 delayTime);
+STATUS_CODE gif_frameRemoveTransparentColorIndex(GIFFrame *frame);
 
 
 //
 // Transformations
 //
-STATUS_CODE gifEncoder_expandCanvas(gifEncoder_GIFCanvas *canvas, u32 widthMuliplier, u32 heightMuliplier);
-STATUS_CODE gifEncoder_appendToFrame(gifEncoder_GIFFrame *frame, u8 *arrayToAppend, u32 widthOfAppendingArray, u32 heightOfAppendingArray, u32 trailingRows, u8 valueToUseForOverflow);
+STATUS_CODE gif_expandCanvas(GIFCanvas *canvas, u32 widthMuliplier, u32 heightMuliplier);
+STATUS_CODE gif_appendToFrame(GIFFrame *frame, u8 *arrayToAppend, u32 widthOfAppendingArray, u32 heightOfAppendingArray, u32 trailingRows, u8 valueToUseForOverflow);
 
 
 //
 // Pattern encoding functions
 //
-STATUS_CODE gifEncoder_createErrorGif(u32 errorCode);
-STATUS_CODE gifEncoder_createTypingGIF(char *sentence, bool addCursor);
+STATUS_CODE gif_createErrorGif(u32 errorCode);
+STATUS_CODE gif_createTypingGIF(char *sentence, bool addCursor);
 
 
 #endif // _GIF_ENCODER_STUB_H

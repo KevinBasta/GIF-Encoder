@@ -1,15 +1,15 @@
 
-#ifndef PRINT_UTIL_H
-#define PRINT_UTIL_H
+#ifndef GIF_PRINT_UTIL_H
+#define GIF_PRINT_UTIL_H
 
 #include <stdint.h>
 #include "main.h"
 
-void printNBytes(u8 *string, u32 bytesToPrint, u8 prefixString[], u8 postfixString[]);
-void printHexNBytes(u8 *string, u32 bytesToPrint);
-void printCharArrayBits(u8 *bitPattern);
-void printBits(void const * const ptr, size_t const size);
-void printIntBits(void const * const ptr, size_t const size);
-char* intToString(size_t i, u32 maxStringLength);
+void gif_printNBytes(u8 *string, u32 bytesToPrint, u8 prefixString[], u8 postfixString[]);
+void gif_printHexNBytes(u8 *string, u32 bytesToPrint);
+void gif_printCharArrayBits(u8 *bitPattern);
+void gif_printBits(void const * const ptr, size_t const size);
+void gif_printIntBits(void const * const ptr, size_t const size);
+char* gif_intToString(size_t i, u32 maxStringLength);
 
-#endif // PRINT_UTIL_H
+#endif // GIF_PRINT_UTIL_H

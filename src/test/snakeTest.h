@@ -5,6 +5,6 @@
 #include <stdint.h>
 #include "main.h"
 
-STATUS_CODE createSnakeTest();
+STATUS_CODE gif_createSnakeTest();
 
 #endif // SNAKE_TEST_H

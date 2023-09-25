@@ -16,7 +16,7 @@
  * @param size      size of the map 
  * @return hashed index of the key
  */
-static size_t hashFunction(char *key, size_t size) {
+static size_t gif_hashFunction(char *key, size_t size) {
     size_t index = 1;
 
     // create index out of key
@@ -32,13 +32,13 @@ static size_t hashFunction(char *key, size_t size) {
  * @brief creates a hashmap entry
  * @param key   string
  * @param value any pointer
- * @return HashMapEntry 
+ * @return gif_HashMapEntry 
  */
-HashMapEntry *hashmapCreateEntry(char *key, void *value) {
+gif_HashMapEntry *hashmapCreateEntry(char *key, void *value) {
     if (key == NULL || value == NULL)
         return NULL;
 
-    HashMapEntry *entry = (HashMapEntry*) calloc(1, sizeof(HashMapEntry));
+    gif_HashMapEntry *entry = (gif_HashMapEntry*) calloc(1, sizeof(gif_HashMapEntry));
     entry->key   = key;
     entry->value = value;
 
@@ -48,14 +48,14 @@ HashMapEntry *hashmapCreateEntry(char *key, void *value) {
 /**
  * @brief creates a hashmap
  * @param size total number of entries map can hold
- * @return HashMap
+ * @return gif_HashMap
  */
-HashMap *hashmapInit(size_t size) {
-    HashMap *map = (HashMap*) calloc(1, sizeof(HashMap));
+gif_HashMap *gif_hashmapInit(size_t size) {
+    gif_HashMap *map = (gif_HashMap*) calloc(1, sizeof(gif_HashMap));
     if (map == NULL)
         return NULL;
 
-    map->entries = (HashMapEntry**) calloc(size, sizeof(HashMapEntry*));
+    map->entries = (gif_HashMapEntry**) calloc(size, sizeof(gif_HashMapEntry*));
     if (map->entries == NULL) {
         free(map);
         return NULL;
@@ -78,7 +78,7 @@ HashMap *hashmapInit(size_t size) {
  * @param value the value of the new entry
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE hashmapInsert(HashMap *map, char *key, void *value) {
+STATUS_CODE gif_hashmapInsert(gif_HashMap *map, char *key, void *value) {
     HASH_MAP_NULL_CHECK(map);
     if (key == NULL || value == NULL)
         return HASH_MAP_KEY_VAL_NULL;
@@ -87,8 +87,8 @@ STATUS_CODE hashmapInsert(HashMap *map, char *key, void *value) {
         return HASH_MAP_FULL;
     }
 
-    size_t index           = hashFunction(key, map->size);
-    HashMapEntry *newEntry = hashmapCreateEntry(key, value);
+    size_t index           = gif_hashFunction(key, map->size);
+    gif_HashMapEntry *newEntry = hashmapCreateEntry(key, value);
 
     // collision resolution: Open addressing, quadratic probing
     size_t k = 0;
@@ -115,12 +115,12 @@ STATUS_CODE hashmapInsert(HashMap *map, char *key, void *value) {
  * @param key the key to search for
  * @return the value or null
  */
-void *hashmapSearch(HashMap *map, char *key) {
+void *gif_hashmapSearch(gif_HashMap *map, char *key) {
     if (map == NULL || key == NULL)
         return NULL;
 
-    size_t index        = hashFunction(key, map->size);
-    HashMapEntry *entry = map->entries[index];
+    size_t index        = gif_hashFunction(key, map->size);
+    gif_HashMapEntry *entry = map->entries[index];
     void *value         = NULL;
 
     size_t k = 0;
@@ -151,13 +151,13 @@ void *hashmapSearch(HashMap *map, char *key) {
  * @param key int key to search for
  * @return the value or NULL
  */
-char *hashmapSearchWithIntKey(HashMap *map, size_t key) {
+char *gif_hashmapSearchWithIntKey(gif_HashMap *map, size_t key) {
     if (map == NULL)
         return NULL;
 
-    char *strKey = intToString(key, 100);
+    char *strKey = gif_intToString(key, 100);
 
-    char *value = hashmapSearch(map, strKey);
+    char *value = gif_hashmapSearch(map, strKey);
 
     free(strKey);
     return value;
@@ -170,10 +170,10 @@ char *hashmapSearchWithIntKey(HashMap *map, size_t key) {
  * @param value the value returning
  * @return OPERATION_SUCCESS or error code
  */
-STATUS_CODE hashmapSearchConvert(HashMap *map, char *key, u32 *value) {
+STATUS_CODE gif_hashmapSearchConvert(gif_HashMap *map, char *key, u32 *value) {
     HASH_MAP_NULL_CHECK(map);
 
-    char *valueSearched = hashmapSearch(map, key);
+    char *valueSearched = gif_hashmapSearch(map, key);
     if (valueSearched == NULL)
         return HASH_MAP_SEARCH_FAILED;
 
@@ -188,7 +188,7 @@ STATUS_CODE hashmapSearchConvert(HashMap *map, char *key, u32 *value) {
  * @param length    length of string literal
  * @return char array/string
  */
-char *hashmapCreateKey(char *str, u32 length) {
+char *gif_hashmapCreateKey(char *str, u32 length) {
     char *key = calloc(1, sizeof(length + 1));
     strncpy(key, str, length);
     key[length] = '\0';
@@ -197,7 +197,7 @@ char *hashmapCreateKey(char *str, u32 length) {
 }
 
 // Print all non-null hashmap entries
-void hashmapPrint(HashMap *map) {
+void gif_hashmapPrint(gif_HashMap *map) {
     #ifdef PRINT_ENABLE
 
     for (size_t i = 0; i < map->size; i++) {
@@ -210,10 +210,10 @@ void hashmapPrint(HashMap *map) {
 }
 
 // Print the key value pair if key is found in hashmap
-void hashmapSearchPrint(HashMap *map, char *key) {
+void gif_hashmapSearchPrint(gif_HashMap *map, char *key) {
     #ifdef PRINT_ENABLE
 
-    char *value = hashmapSearch(map, key);
+    char *value = gif_hashmapSearch(map, key);
 
     if (value == NULL) {
         PRINTF("Key [%s] not found\n", key);
@@ -225,7 +225,7 @@ void hashmapSearchPrint(HashMap *map, char *key) {
 }
 
 
-void freeHashMapEntry(HashMapEntry *entry) {
+void gif_freeHashMapEntry(gif_HashMapEntry *entry) {
     if (entry != NULL) {
         if (entry->key != NULL)
             free(entry->key);
@@ -235,14 +235,14 @@ void freeHashMapEntry(HashMapEntry *entry) {
     }
 }
 
-void freeHashMap(HashMap *map) {
+void gif_freeHashMap(gif_HashMap *map) {
     if (map != NULL) {
         if (map->entries != NULL) {
             for (size_t i = 0; i < map->size; i++) {
-                HashMapEntry *entry = map->entries[i];
+                gif_HashMapEntry *entry = map->entries[i];
 
                 if (entry != NULL) {
-                    freeHashMapEntry(entry);
+                    gif_freeHashMapEntry(entry);
                 }
                 
                 free(entry);
