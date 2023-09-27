@@ -2,17 +2,28 @@
 SOURCE += $(wildcard src/gif/*.c)
 SOURCE += $(wildcard src/util/*.c)
 SOURCE += $(wildcard src/data_structures/*.c)
-SOURCE += $(wildcard src/test/*.c)
 
 # replace .c suffix with .o
 OBJECTS = $(SOURCE:src/%.c=bin/%.o)
+
+# add tests if building test or COMPILE_TESTS is set
+COMPILE_TESTS ?= 0
+ifneq ($(filter test, $(MAKECMDGOALS)), )
+COMPILE_TESTS = 1
+endif
+
+ifneq ($(COMPILE_TESTS),0)
+TESTS = $(wildcard src/test/*.c)
+OBJECTS += $(TESTS:src/%.c=bin/%.o)
+$(info $(OBJECTS))
+endif
 
 CC = gcc
 DIRS = $(sort $(dir $(wildcard src/*/)))
 CFLAGS += $(addprefix -I , $(DIRS)) -I src
 
 ifdef DEBUG_PRINTS
-	CFLAGS += -D PRINT_ENABLE
+CFLAGS += -D PRINT_ENABLE
 endif
 
 # main program rule
@@ -25,9 +36,15 @@ test: bin/test.o $(OBJECTS)
 
 # for shared library must used -fPIC for all compilations
 lib: CFLAGS += -fPIC
-lib: $(OBJECTS)
+lib: libstatic libshared
+
+libstatic: $(OBJECTS)
 	ar -cvq libgifencoder.a $(OBJECTS)
-	$(CC) -shared -o libgifencoder.so $(OBJECTS) -lm -Wall -Werror -Wpedantic
+
+libshared: $(OBJECTS)
+	$(CC) -shared -Wl,-soname,libgifencoder.so.1 -o libgifencoder.so.1.0 $(OBJECTS) -lm -Wall -Werror -Wpedantic
+	ln -sf libgifencoder.so.1.0 libgifencoder.so.1
+	ln -sf libgifencoder.so.1.0 libgifencoder.so
 
 # compile web assembly
 wasm: CFLAGS += -D WASM
@@ -42,12 +59,21 @@ bin/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@ -Wall
 
 # cleaning all generated files
-clean:
-	-rm libgifencoder.a libgifencoder.so 2> /dev/null
-	-rm gifEncoder.html gifEncoder.js gifEncoder.wasm 2> /dev/null
+.PHONY: clean cleanbin cleanlib cleanwasm cleangifs
+clean: cleanbin cleanlib cleanwasm cleangifs
+
+cleanbin: 
+	-rm $(wildcard bin/*/*) $(filter %.o, $(wildcard bin/*)) a.out 2> /dev/null
+	-rmdir $(wildcard bin/*/) 2> /dev/null
+
+cleanlib:
+	-rm libgifencoder.a libgifencoder.so libgifencoder.so.1 libgifencoder.so.1.0 2> /dev/null
+
+cleanwasm:
+	-rm gifencoder.html gifencoder.js gifencoder.wasm 2> /dev/null
+
+cleangifs:
 	-rm $(wildcard *.gif) 2> /dev/null
-	-rm $(OBJECTS) bin/main.o bin/test.o a.out 2> /dev/null
-	-rmdir $(sort $(dir $(OBJECTS))) 2> /dev/null
 
 # for testing modules individually during development
 foo: $(OBJECTS)

@@ -176,9 +176,9 @@ typedef struct gif_colorTable {
     gif_RGB *items;
 } gif_colorTable;
 
-gif_colorTable *gif_colortableInit();
+gif_colorTable              *gif_colortableInit();
 GIF_ENCODER_STATUS_CODE     gif_colortableAppendRGB(gif_colorTable *table, uint8_t red, uint8_t green, uint8_t blue);
-void            gif_freeColorTable(gif_colorTable *table);
+void                        gif_freeColorTable(gif_colorTable *table);
 
 uint16_t gif_getLastColorIndex(int32_t colorTableInputSize);
 uint8_t  gif_getLWZMinCodeSize(int32_t colorTableSize);

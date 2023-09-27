@@ -19,7 +19,7 @@
 #include "snakeTest.h"
 #include "trafficLightTest.h"
 #include "transparancyTest.h"
-#include "typeTextTest.h"
+#include "typeTextUtility.h"
 
 #include "bitUtility.h"
 #include "endianUtility.h"

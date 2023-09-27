@@ -1,7 +1,7 @@
 # GIF-Encoder 
-A GIF (Graphics Interchange Format) encoder written in the C programming language. The codebase can be used as a static library, shared library, or web assembly module. The compiled files for these options are in the release package folder (alternatively they can be easily compiled using the makefile). All public interface functions have been prefixed with `gif_` to avoid any namespace collisions. This library/program was created with a strong error-checking system in mind. You can find the meanings of the error code return values in [src/main.h](src/main.h).
+A GIF (Graphics Interchange Format) encoder written in the C programming language. The codebase can be used as a static library, shared library, or web assembly module. The compiled files for these options are in the release package folder (alternatively they can be easily compiled using the makefile). All public interface functions have been prefixed with `gif_` to avoid any namespace collisions. This library/program was created with a strong error-checking system in mind. You can find the meanings of the integer error return values in [src/main.h](src/main.h). Valgrind was used to extensively test this library/program, no memory leaks are present.
 
-The following gifs were created using my encoder. You can find the code for the ERR70_ GIF in [src/gif/GIFError.c](src/gif/GIFError.c). The code for other tests (including the gradient GIF) is located in [src/test](src/test/). Other generated/encoded GIF examples are located in the [examples](examples/) folder.
+The following gifs were created using my encoder. You can find the code for the ERR70_ GIF in [src/gif/GIFError.c](src/gif/GIFError.c). The code for other tests (including the gradient GIF) is located in [src/test](src/test/). A typing effect utility is located in [src/util/typeTextUtility.c](src/util/typeTextUtility.c). Other generated/encoded GIF examples are located in the [examples](examples/) folder.
 
 <img src="examples/error_70.gif" alt="Error Example"/>
 <img src="examples/gradient.gif" alt="Gradient Example"/>
@@ -10,13 +10,12 @@ The following gifs were created using my encoder. You can find the code for the 
 ## Compiling
 static and shared libraries:
 ```bash
-make clean; make lib -j8
+make lib -j8
 ```
 
 web assembly:
-
 ```bash
-make clean; make wasm -j8
+make wasm -j8
 ```
 
 ## Interface
@@ -28,6 +27,8 @@ In order to use this library in your c code, you must link both math.h and the l
 ```bash
 gcc main.c -Lpath/to/library -lgifencoder -lm
 ```
+
+For using the shared .so library, an additional step is needed for allowing the library to be found during run time. This step is described in detail [here](http://www.yolinux.com/TUTORIALS/LibraryArchives-StaticAndDynamic.html#:~:text=LDP%3A%20Shared%20libraries-,Library%20Path%3A,-In%20order%20for).
 
 ## Acknowledgements
 The Graphics Interchange Format(c) is the Copyright property of CompuServe Incorporated.

@@ -5,6 +5,7 @@ bin
 *.o
 *.a
 *.so
+*.so.*
 *.wasm
 *.js
 *.html
