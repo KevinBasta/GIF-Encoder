@@ -35,7 +35,7 @@ static GIFFrame *createLetterFrame(gif_letterPattern *pattern, u16 imageLeftPosi
     return frame;
 }
 
-// Needs support for reusing frames when encoding for this to work efficiently. 
+// Needs support for reusing frame index streams with different frame object/position for this to work efficiently. 
 static void addBlinkingCursor(GIFCanvas *canvas, u16 imageLeftPosition, u16 imageTopPosition, u32 numberOfBlinks, u32 lengthOfBlink, u32 lengthOfClearBlink);
 
 WASM_EXPORT STATUS_CODE gif_createTypingGIF(char *sentence, bool addCursor) {

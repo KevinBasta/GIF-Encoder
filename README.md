@@ -13,7 +13,7 @@ static and shared libraries:
 make lib -j8
 ```
 
-web assembly:
+web assembly ([emscripten](https://emscripten.org/docs/getting_started/downloads.html) required):
 ```bash
 make wasm -j8
 ```

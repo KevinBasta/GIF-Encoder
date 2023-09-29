@@ -50,7 +50,7 @@ libshared: $(OBJECTS)
 wasm: CFLAGS += -D WASM
 wasm: $(SOURCE)
 	emcc -O3 -s WASM=1 \
-    $(SOURCE) $(CFLAGS) -o gifEncoder.html \
+    $(SOURCE) $(CFLAGS) -o gifencoder.js \
 	-s NO_EXIT_RUNTIME=1 -s "EXPORTED_RUNTIME_METHODS=['ccall']" -sFORCE_FILESYSTEM
 
 # c file rules, -c src/file.c -o bin/file.o
