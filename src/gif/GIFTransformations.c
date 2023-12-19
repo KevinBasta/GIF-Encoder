@@ -30,10 +30,10 @@ static void gif_expandFrame(GIFFrame *frame, u32 widthMuliplier, u32 heightMulip
     u32 newArraySize = newWidth * newHeight;
     gif_array *newIndexStream = gif_arrayInit(newArraySize);
 
-    for (int i = 0; i < oldHeight; i++) {
-        for (int j = 0; j < oldWidth; j++) {
-            for (int k = 0; k < widthMuliplier; k++) {
-                for (int l = 0; l < heightMuliplier; l++) {
+    for (u16 i = 0; i < oldHeight; i++) {
+        for (u16 j = 0; j < oldWidth; j++) {
+            for (u16 k = 0; k < widthMuliplier; k++) {
+                for (u16 l = 0; l < heightMuliplier; l++) {
                     // 
                     // current frame entry: (i * oldWidth) + j
                     // 

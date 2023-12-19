@@ -129,7 +129,7 @@ void *gif_hashmapSearch(gif_HashMap *map, char *key) {
             return NULL;
         }
 
-        if (strncmp(entry->key, key, strlen(key)) == 0) {
+        if ((strlen(key) == strlen(entry->key)) && (strncmp(entry->key, key, strlen(key)) == 0)) {
             //PRINTF("entry key: %s \n      key: %s\n", entry->key, key);
             value = entry->value;
             //PRINTF("search found: %s\n", value);

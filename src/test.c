@@ -24,8 +24,18 @@
 #include "bitUtility.h"
 #include "endianUtility.h"
 #include "printUtility.h"
+#include "peepoBug.h"
 
 #define PRINT_STATUS_AND_EXIT(status) if (status != OPERATION_SUCCESS) { printf("Test Faild With Status %d\n", status); exit(1); }
+#define BENCHMARK_COUNT 9
+
+static void gif_printBenchmarks(float *arr, int size) {
+    printf("\n\nBENCHMARKS:\n");
+    for (int i = 0; i < size; i++) {
+        printf("%d: %f\n", i, arr[i]);
+    }
+    printf("\n\n");
+}
 
 int main() { 
     assert(gif_getNBits(0, 2, 0xFF)  == 7);
@@ -55,29 +65,92 @@ int main() {
 
     STATUS_CODE status;
 
+    float benchmark[BENCHMARK_COUNT];
+    int benchmarkIdx = 0;
+
     TIMER_INIT;
-    TIMER_START();
+    {
+        TIMER_START();
 
-    status = gif_createErrorGif(0);
-    PRINT_STATUS_AND_EXIT(status);
-    status = gif_createGradientTest();
-    PRINT_STATUS_AND_EXIT(status);
-    status = gif_createLocalColorTableTest();
-    PRINT_STATUS_AND_EXIT(status);
-    status = gif_createMaxColorIndexTest();
-    PRINT_STATUS_AND_EXIT(status);
-    status = gif_createSmallGif();
-    PRINT_STATUS_AND_EXIT(status);
-    status = gif_createSnakeTest();
-    PRINT_STATUS_AND_EXIT(status);
-    status = gif_createTrafficLightGif();
-    PRINT_STATUS_AND_EXIT(status);
-    status = gif_createTransparancyTest();
-    PRINT_STATUS_AND_EXIT(status);
-    status = gif_createTypingGIF("Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz 0 1 2 3 4 5 6 7 8 9 ! ? / \\ \" ' [ ], ( ).", false);
-    PRINT_STATUS_AND_EXIT(status);
+        status = gif_createErrorGif(0);
 
-    TIMER_END();
+        TIMER_END();
+        benchmark[benchmarkIdx++] = timeElapsed;
+    }  PRINT_STATUS_AND_EXIT(status);
+
+    {
+        TIMER_START();
+        
+        status = gif_createGradientTest();
+        
+        TIMER_END();
+        benchmark[benchmarkIdx++] = timeElapsed;
+    } PRINT_STATUS_AND_EXIT(status);
+    
+    {
+        TIMER_START();
+        
+        status = gif_createLocalColorTableTest();
+        
+        TIMER_END();
+        benchmark[benchmarkIdx++] = timeElapsed;
+    } PRINT_STATUS_AND_EXIT(status);
+    
+    {
+        TIMER_START();
+        
+        status = gif_createMaxColorIndexTest();
+        
+        TIMER_END();
+        benchmark[benchmarkIdx++] = timeElapsed;
+    } PRINT_STATUS_AND_EXIT(status);
+    
+    {
+        TIMER_START();
+
+        status = gif_createSmallGif();
+        
+        TIMER_END();
+        benchmark[benchmarkIdx++] = timeElapsed;
+    } PRINT_STATUS_AND_EXIT(status);
+    
+    {
+        TIMER_START();
+        
+        status = gif_createSnakeTest();
+        
+        TIMER_END();
+        benchmark[benchmarkIdx++] = timeElapsed;
+    } PRINT_STATUS_AND_EXIT(status);
+
+    {   
+        TIMER_START();
+        
+        status = gif_createTrafficLightGif();
+        
+        TIMER_END();
+        benchmark[benchmarkIdx++] = timeElapsed;
+    } PRINT_STATUS_AND_EXIT(status);
+    
+    {
+        TIMER_START();
+        
+        status = gif_createTransparancyTest();
+        
+        TIMER_END();
+        benchmark[benchmarkIdx++] = timeElapsed;
+    } PRINT_STATUS_AND_EXIT(status);
+    
+    {
+        TIMER_START();
+        
+        status = gif_createTypingGIF("Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz 0 1 2 3 4 5 6 7 8 9 ! ? / \\ \" ' [ ], ( ).", false);
+        
+        TIMER_END();
+        benchmark[benchmarkIdx++] = timeElapsed;
+    } PRINT_STATUS_AND_EXIT(status);
+
+    gif_printBenchmarks(benchmark, BENCHMARK_COUNT);
 
     printf("All Test GIFs Encoded Without Error\n");
     exit(0);

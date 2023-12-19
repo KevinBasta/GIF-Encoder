@@ -15,6 +15,7 @@ bin
 log
 local_files
 local_tests
+Exclude
 *.log
 *.txt
 l_*.c
