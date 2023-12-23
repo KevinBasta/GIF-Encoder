@@ -66,7 +66,7 @@ i32 gif_compu32(const void *a, const void *b) {
 
 
 // The following functions implement bubble sort
-void swap (u32 *arr1, u32 *arr2, u32 firstIndex, u32 secondIndex) { 
+static void gif_swap (u32 *arr1, u32 *arr2, u32 firstIndex, u32 secondIndex) { 
     u32 arr1Temp = arr1[firstIndex];
     u32 arr2Temp = arr2[firstIndex];
 
@@ -83,7 +83,7 @@ void gif_bubbleSort(u32 *arr1, u32* arr2, int n) {
         swapped = false;
         for (int j = 0; j < n - i - 1; j++) {
             if (arr1[j] > arr1[j + 1]) {
-                swap(arr1, arr2, j, j+1);
+                gif_swap(arr1, arr2, j, j+1);
                 swapped = true;
             }
         }
@@ -95,7 +95,7 @@ void gif_bubbleSort(u32 *arr1, u32* arr2, int n) {
 
 
 // The following functions implement quick sort
-u32 partition(u32 *arr1, u32 *arr2, u32 low, u32 high) { 
+static u32 gif_partition(u32 *arr1, u32 *arr2, u32 low, u32 high) { 
     int i = (low - 1);
 
     int pivot = arr1[high];
@@ -104,16 +104,16 @@ u32 partition(u32 *arr1, u32 *arr2, u32 low, u32 high) {
     for (j = low; j < high; j++) {
         if (arr1[j] <= pivot){
             i++;
-            swap(arr1, arr2, i, j);
+            gif_swap(arr1, arr2, i, j);
         }
     }
-    swap(arr1, arr2, i + 1, high);
+    gif_swap(arr1, arr2, i + 1, high);
     return (i + 1);
 }
 
 void gif_quickSort(u32 *arr1, u32 *arr2, u32 low, u32 high) { 
     if (low < high) { 
-        u32 pivotIndex = partition(arr1, arr2, low, high);
+        u32 pivotIndex = gif_partition(arr1, arr2, low, high);
 
         gif_quickSort(arr1, arr2, low, pivotIndex - 1);
         gif_quickSort(arr1, arr2, pivotIndex + 1, high);

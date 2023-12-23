@@ -24,7 +24,6 @@
 #include "bitUtility.h"
 #include "endianUtility.h"
 #include "printUtility.h"
-#include "peepoBug.h"
 
 #define PRINT_STATUS_AND_EXIT(status) if (status != OPERATION_SUCCESS) { printf("Test Faild With Status %d\n", status); exit(1); }
 #define BENCHMARK_COUNT 9

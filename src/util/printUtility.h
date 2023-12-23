@@ -10,6 +10,6 @@ void gif_printHexNBytes(u8 *string, u32 bytesToPrint);
 void gif_printCharArrayBits(u8 *bitPattern);
 void gif_printBits(void const * const ptr, size_t const size);
 void gif_printIntBits(void const * const ptr, size_t const size);
-char *gif_intToString(size_t i, u32 maxStringLength);
+char *gif_intToString(long i, u32 maxStringLength);
 
 #endif // GIF_PRINT_UTIL_H
