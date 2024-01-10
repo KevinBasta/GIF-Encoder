@@ -10,6 +10,6 @@
 #include "GIFColorTable.h"
 
 STATUS_CODE gif_createLZWImageData(gif_colorTable *clrTable, gif_array *indexStream, gif_bitarray *imageData);
-STATUS_CODE gif_createLZWImageDataInitialDraft(gif_colorTable *clrTable, gif_array *indexStream, gif_bitarray *imageData);
+// STATUS_CODE gif_createLZWImageDataInitialDraft(gif_colorTable *clrTable, gif_array *indexStream, gif_bitarray *imageData);
 
 #endif // GIF_LZW_COMPRESSION_H

@@ -20,7 +20,7 @@ u32         gif_arrayGetItemAtCurrentIndex(gif_array *arr);
 u32         gif_arrayGetIncrement(gif_array *arr);
 
 STATUS_CODE gif_arrayReset(gif_array *arr);
-char        *gif_arrayConcat(gif_array *arr, char entrySeparator);
+gif_array* gif_arrayCopy(gif_array *arr);
 gif_array   *gif_arrayInitFromStackArray(u8 stackArr[], size_t size);
 
 void gif_arrayPrint(gif_array *arr);

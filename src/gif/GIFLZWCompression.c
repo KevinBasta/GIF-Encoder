@@ -32,37 +32,41 @@ static STATUS_CODE gif_encodeLZWChunk(gif_array *indexBuffer, gif_codeTable *cod
         status = gif_arrayAppend(indexBuffer, k);
         CHECKSTATUS(status);
         
-        char *indexBufferPlusKKey = gif_arrayConcat(indexBuffer, ',');
+/*         char *indexBufferPlusKKey = gif_arrayConcat(indexBuffer, ',');
         if (indexBufferPlusKKey == NULL)
             return LZW_INDEX_BUFFER_PLUS_K_CONCAT_NULL;
         
         status = gif_arrayPop(indexBuffer);
         CHECKSTATUS(status);
+ */
+        u32 searchRet;
+        if (gif_hashmapSearch(codeTable->map, indexBuffer, &searchRet) == OPERATION_SUCCESS) {
+            // index buffer is index buffer + k
 
-
-        if (gif_hashmapSearch(codeTable->map, indexBufferPlusKKey) != NULL) {
-            status = gif_arrayAppend(indexBuffer, k);
-            CHECKSTATUS(status);
-            
-            free(indexBufferPlusKKey);
         } else {
             // Insert indexBufferPlusKKey in hashmap with value as the next code table index
+            gif_array *indexBufferPlusKKey = gif_arrayCopy(indexBuffer);
+            if (indexBufferPlusKKey == NULL)
+                return LZW_INDEX_BUFFER_PLUS_K_CONCAT_NULL;
+
             u32 codeTableIndex          = gif_codetableGetNextIndex(codeTable);
-            char *codeTableIndexString  = gif_intToString(codeTableIndex, 6);
-            status = gif_hashmapInsert(codeTable->map, indexBufferPlusKKey, codeTableIndexString);
+            status = gif_hashmapInsert(codeTable->map, indexBufferPlusKKey, codeTableIndex);
             CHECKSTATUS(status);
             
 
-            // Get  the code value of the index buffer without K
-            char *indexBufferKey = gif_arrayConcat(indexBuffer, ',');
+            // Get the code value of the index buffer without K
+            status = gif_arrayPop(indexBuffer);
+            CHECKSTATUS(status);
+
+            gif_array *indexBufferKey = gif_arrayCopy(indexBuffer);
             if (indexBufferKey == NULL)
                 return LZW_INDEX_BUFFER_CONCAT_NULL;
 
             u32 indexBufferValue;
-            status = gif_hashmapSearchConvert(codeTable->map, indexBufferKey, &indexBufferValue);
+            status = gif_hashmapSearch(codeTable->map, indexBufferKey, &indexBufferValue);
             CHECKSTATUS(status);
             
-            free(indexBufferKey);
+            gif_freeArray(indexBufferKey);
             
 
             // Reset the index buffer and add k to it
@@ -155,24 +159,22 @@ static STATUS_CODE gif_encodeFlexibleCodeSizeCodeStream(gif_colorTable *clrTable
     }
 
     // Put the code value of the last index buffer state into the image data
-    char *indexBufferKey = gif_arrayConcat(indexBuffer, ',');
+    gif_array *indexBufferKey = gif_arrayCopy(indexBuffer);
     if (indexBufferKey == NULL)
         return LZW_INDEX_BUFFER_LAST_CONCAT_NULL;
     
     u32 indexBufferValue;
-    status = gif_hashmapSearchConvert(codeTable->map, indexBufferKey, &indexBufferValue);
+    status = gif_hashmapSearch(codeTable->map, indexBufferKey, &indexBufferValue);
     CHECKSTATUS(status);
     
-    free(indexBufferKey);
+    gif_freeArray(indexBufferKey);
 
     status = gif_bitarrayAppendPackedRight(imageData, indexBufferValue, currentCodeSize);
     CHECKSTATUS(status);
 
 
     // Put the end of information code value into the image data
-    u32 endOfInformationCodeValue;
-    status = gif_hashmapSearchConvert(codeTable->map, "eoi", &endOfInformationCodeValue);
-    CHECKSTATUS(status);
+    u32 endOfInformationCodeValue = gif_getEOICodeValue(clrTable->lastIndex);
 
     status = gif_bitarrayAppendPackedRight(imageData, endOfInformationCodeValue, currentCodeSize);
     CHECKSTATUS(status);
@@ -232,6 +234,7 @@ STATUS_CODE gif_createLZWImageData(gif_colorTable *clrTable, gif_array *indexStr
  * What is accomplished here is broken down and documented more clearly in the above 
  * three functions. This function is kept for debugging purposes.
  */
+/* 
 STATUS_CODE gif_createLZWImageDataInitialDraft(gif_colorTable *clrTable, gif_array *indexStream, gif_bitarray *imageData) {
     STATUS_CODE status;
     
@@ -350,3 +353,4 @@ STATUS_CODE gif_createLZWImageDataInitialDraft(gif_colorTable *clrTable, gif_arr
 
     return OPERATION_SUCCESS;
 }
+*/
