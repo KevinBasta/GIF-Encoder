@@ -34,10 +34,11 @@ gif_codeTable* gif_codetableInit(gif_colorTable *clrTable) {
 
     table->map = map;
 
-    for (size_t i = 0; i <= clrTable->lastIndex; i++) {
-        char *str1 = gif_intToString(i, 6);
-        char *str2 = gif_intToString(i, 6);
-        status = gif_hashmapInsert(map, str1, str2);
+    for (size_t i = 0; i <= clrTable->lastIndex + 2; i++) {
+        gif_array *arr = gif_arrayInit(1);
+        gif_arrayAppend(arr, i);
+
+        status = gif_hashmapInsert(map, arr, i);
         if (status != OPERATION_SUCCESS) {
             gif_freeCodeTable(table);
             return NULL;
@@ -46,20 +47,30 @@ gif_codeTable* gif_codetableInit(gif_colorTable *clrTable) {
         table->index = i;
     }
 
-    status = gif_hashmapInsert(map, gif_hashmapCreateKey("cc", 2), gif_intToString(gif_getClearCodeValue(clrTable->lastIndex), 6));
+/* 
+    u16 ccVal = gif_getClearCodeValue(clrTable->lastIndex);
+    gif_array *ccArr = gif_arrayInit(1);
+    gif_arrayAppend(ccArr, ccVal);
+
+    status = gif_hashmapInsert(map, ccArr, ccVal);
     if (status != OPERATION_SUCCESS) {
         gif_freeCodeTable(table);
         return NULL;
     }
 
-    status = gif_hashmapInsert(map, gif_hashmapCreateKey("eoi", 3), gif_intToString(gif_getEOICodeValue(clrTable->lastIndex), 6));
+    u16 eoiVal = gif_getEOICodeValue(clrTable->lastIndex);
+    gif_array *eoiArr = gif_arrayInit(1);
+    gif_arrayAppend(eoiArr, eoiVal);
+
+    status = gif_hashmapInsert(map, eoiArr, eoiVal);
     if (status != OPERATION_SUCCESS) {
         gif_freeCodeTable(table);
         return NULL;
     }
+    table->index += 2; 
+*/
 
     gif_hashmapPrint(map);
-    table->index += 2;
 
     return table;
 }

@@ -143,31 +143,17 @@ STATUS_CODE gif_arrayReset(gif_array *arr) {
  * @param entrySeparator    Character to put between each array entry in the string
  * @return A '\0' terminated string (character array) or NULL
  */
-char* gif_arrayConcat(gif_array *arr, char entrySeparator) {
-    // Allocate space for 3 chars per int (because max is 255) and 1 comma per int
-    char *concat = calloc((arr->currentIndex * 3) + arr->currentIndex, sizeof(char));
-    if (concat == NULL)
-        return NULL;
+gif_array* gif_arrayCopy(gif_array *arr) {
+    gif_array *newArr = gif_arrayInit(arr->currentIndex);
+    newArr->currentIndex = arr->currentIndex;
+    memcpy(newArr->items, arr->items, (arr->currentIndex * sizeof(u32)));
 
-    size_t k = 0;
-    for (size_t i = 0; i < arr->currentIndex; i += 1) {
-        char *itemStr = gif_intToString(arr->items[i], 6);
-        if (itemStr == NULL)
-            return NULL;
-        
-        for (size_t j = 0; itemStr[j] != '\0'; j++) {
-            concat[k] = itemStr[j];
-            k++;
-        }
-        
-        concat[k] = entrySeparator;
-        k++;
+    /* printf("=============\n");
+    gif_arrayPrint(arr);
+    gif_arrayPrint(newArr);
+    printf("=============\n"); */
 
-        free(itemStr);
-    }
-    concat[k - 1] = '\0';
-
-    return concat;
+    return newArr;
 }
 
 /**
