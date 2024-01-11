@@ -21,7 +21,7 @@ static size_t gif_hashFunction(gif_array *key, size_t size) {
 
     // create index out of key
     for (size_t j = 0; j < key->currentIndex; j++)
-        index += pow( (u8) key->items[j] + 2, 3);
+        index += (key->items[j] + 2) * key->items[j];
     
     index = index % size;
 
