@@ -20,8 +20,10 @@ static size_t gif_hashFunction(gif_array *key, size_t size) {
     size_t index = 1;
 
     // create index out of key
+    // non-quadratic is faster on larger canvas multipliers
+    // but slower with more colors in color table
     for (size_t j = 0; j < key->currentIndex; j++)
-        index += (key->items[j] + 2) * key->items[j];
+        index += key->items[j];
     
     index = index % size;
 

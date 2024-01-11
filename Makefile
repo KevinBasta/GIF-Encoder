@@ -26,13 +26,19 @@ ifdef DEBUG_PRINTS
 CFLAGS += -D PRINT_ENABLE
 endif
 
+CFLAGS += -lm -Wall -Werror -Wpedantic
+
+ifdef PROFILE
+CFLAGS += -pg
+endif
+
 # main program rule
 main: bin/main.o $(OBJECTS)
-	$(CC) -o a.out bin/main.o $(OBJECTS) -lm -Wall -Werror -Wpedantic
+	$(CC) -o a.out bin/main.o $(OBJECTS) $(CFLAGS)
 
 # unittesting rule
 test: bin/test.o $(OBJECTS)
-	$(CC) -o a.out bin/test.o $(OBJECTS) -lm -Wall -Werror -Wpedantic
+	$(CC) -o a.out bin/test.o $(OBJECTS) $(CFLAGS) 
 
 # for shared library must used -fPIC for all compilations
 lib: CFLAGS += -fPIC
@@ -64,7 +70,7 @@ wasm: $(SOURCE)
 # c file rules, -c src/file.c -o bin/file.o
 bin/%.o: src/%.c
 	mkdir -p $(@D)
-	$(CC) $(CFLAGS) -c $< -o $@ -Wall
+	$(CC) -c $< -o $@ $(CFLAGS)
 
 # cleaning all generated files
 .PHONY: clean cleanbin cleanlib cleanwasm cleangifs

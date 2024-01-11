@@ -25,6 +25,7 @@ bool gif_frameInArray(GIFFrame *target, GIFFrame **array, u32 totalEntries) {
 
 
 // The following function and the following comp functions implement binary search
+/*
 u32 gif_binarySearch(u32 target, u32 *table, u32 totalEntries, i32 (*comp) (const void *, const void *)) { 
     u32 low = 0;
     u32 high = totalEntries;
@@ -63,9 +64,10 @@ i32 gif_compu32(const void *a, const void *b) {
     if (arg1 > arg2) return 1;
     return 0;
 }
-
+*/
 
 // The following functions implement bubble sort
+/* 
 static void gif_swap (u32 *arr1, u32 *arr2, u32 firstIndex, u32 secondIndex) { 
     u32 arr1Temp = arr1[firstIndex];
     u32 arr2Temp = arr2[firstIndex];
@@ -91,10 +93,12 @@ void gif_bubbleSort(u32 *arr1, u32* arr2, int n) {
         if (swapped == false)
             break;
     }
-}
+} 
+*/
 
 
 // The following functions implement quick sort
+/* 
 static u32 gif_partition(u32 *arr1, u32 *arr2, u32 low, u32 high) { 
     int i = (low - 1);
 
@@ -119,3 +123,4 @@ void gif_quickSort(u32 *arr1, u32 *arr2, u32 low, u32 high) {
         gif_quickSort(arr1, arr2, pivotIndex + 1, high);
     }
 }
+*/
