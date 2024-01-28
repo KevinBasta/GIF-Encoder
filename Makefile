@@ -26,7 +26,8 @@ ifdef DEBUG_PRINTS
 CFLAGS += -D PRINT_ENABLE
 endif
 
-CFLAGS += -lm -Wall -Werror -Wpedantic
+# -Werror -Wpedantic
+CFLAGS += -lm -Wall
 
 ifdef PROFILE
 CFLAGS += -pg
@@ -40,13 +41,11 @@ main: bin/main.o $(OBJECTS)
 test: bin/test.o $(OBJECTS)
 	$(CC) -o a.out bin/test.o $(OBJECTS) $(CFLAGS) 
 
-# for shared library must used -fPIC for all compilations
-lib: CFLAGS += -fPIC
-lib: libstatic libshared
-
+# static library rule
 libstatic: $(OBJECTS)
 	ar -cvq libgifencoder.a $(OBJECTS)
 
+# shared library rule must used -fPIC for all compilations
 libshared: CFLAGS += -fPIC
 libshared: $(OBJECTS)
 	$(CC) -shared -Wl,-soname,libgifencoder.so.1 -o libgifencoder.so.1.0 $(OBJECTS) -lm -Wall -Werror -Wpedantic

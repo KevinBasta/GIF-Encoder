@@ -94,7 +94,7 @@ uint32_t    gif_arrayGetItemAtCurrentIndex(gif_array *arr);
 uint32_t    gif_arrayGetIncrement(gif_array *arr);
 
 GIF_ENCODER_STATUS_CODE gif_arrayReset(gif_array *arr);
-char        *gif_arrayConcat(gif_array *arr, char entrySeparator);
+gif_array   *gif_arrayCopy(gif_array *arr);
 gif_array   *gif_arrayInitFromStackArray(uint8_t stackArr[], size_t size);
 
 void gif_arrayPrint(gif_array *arr);
@@ -128,8 +128,8 @@ typedef struct gif_bitarray {
 #define GIF_ENCODER_HASHMAP_H
 
 typedef struct gif_HashMapEntry {
-    void *key;
-    void *value;
+    gif_array *key;
+    uint32_t value;
 } gif_HashMapEntry;
 
 typedef struct gif_HashMap {

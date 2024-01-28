@@ -10,17 +10,17 @@ The following gifs were created using my encoder. You can find the code for the 
 ## Compiling
 static library:
 ```bash
-make libstatic -j8
+make libstatic -j2
 ```
 
 shared library:
 ```bash
-make libshared -j8
+make libshared -j2
 ```
 
 web assembly ([emscripten](https://emscripten.org/docs/getting_started/downloads.html) required):
 ```bash
-make wasm -j8
+make wasm
 ```
 
 ## Interface
