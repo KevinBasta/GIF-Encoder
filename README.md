@@ -7,6 +7,9 @@ The following gifs were created using my encoder. You can find the code for the 
 <img src="examples/gradient.gif" alt="Gradient Example"/>
 
 
+## ReactJS Demo
+You can find a demo web project that utilizes this GIF encoder library here: [ReactJS Demo](https://github.com/KevinBasta/draw-a-gif). I compiled this library to web assembly so that the library functions can take input gathered from users through the ReactJS app.
+
 ## Compiling
 static library:
 ```bash
